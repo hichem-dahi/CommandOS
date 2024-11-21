@@ -15,7 +15,7 @@
         <v-btn color="blue-darken-1" variant="text" @click="emits('close')">
           {{ $t('cancel') }}
         </v-btn>
-        <v-btn color="blue-darken-1" variant="text" @click="emits('confirm')">
+        <v-btn color="blue-darken-1" variant="text" :loading="isLoading" @click="emits('confirm')">
           {{ $t('confirm') }}
         </v-btn>
       </v-card-actions>
@@ -27,5 +27,11 @@
 import { mdiDeleteOutline } from '@mdi/js'
 
 const dialog = defineModel<boolean>()
+const props = defineProps({
+  isLoading: {
+    type: Boolean,
+    default: false
+  }
+})
 const emits = defineEmits(['close', 'confirm'])
 </script>
