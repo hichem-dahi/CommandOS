@@ -152,7 +152,6 @@ function nextStep(v: Validation) {
     if (step.value === Steps.ExtraInfo) {
       cleanForm()
       insertOrderApi.form.value = { ...(form as TablesInsert<'orders'>) }
-
       if (deliveryForm.value) {
         insertOrderApi.form.value!.document_type = DocumentType.DeliveryNote
         insertDeliveryApi.form.value = { ...deliveryForm.value }
@@ -160,7 +159,8 @@ function nextStep(v: Validation) {
       }
 
       if (individualForm.value && !insertOrderApi.form.value.individual_id) {
-        insertIndividualApi.form.value = { ...individualForm.value }
+        const { id, ...form } = individualForm.value
+        insertIndividualApi.form.value = form
         insertIndividualApi.execute()
       }
 
