@@ -131,12 +131,12 @@ async function registerPushManager(
 }
 
 function saveSubscriptionToSupabase(
-  organizationId: string,
+  organization_id: string,
   endpoint: string,
   keys: Record<string, string>
 ) {
   insertPushSubscriptionsApi.form.value = {
-    organization_id: organizationId,
+    organization_id,
     endpoint,
     p256dh: keys.p256dh,
     auth: keys.auth
