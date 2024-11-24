@@ -67,11 +67,14 @@ import {
 
 import type { TablesInsert } from '@/types/database.types'
 import { DocumentType, OrderStatus } from '@/models/models'
+import { useInsertNotificationApi } from '@/composables/api/notifications/useInsertNotificationApi'
+import self from '@/composables/localStore/useSelf'
 
 const getProductsApi = useGetProductsApi()
 const insertOrderApi = useInsertOrderApi()
 const insertOrderlinesApi = useInsertOrderlinesApi()
 const insertPaymentApi = useInsertPaymentsApi()
+const insertNotificationApi = useInsertNotificationApi()
 
 const showScanner = ref(false)
 
@@ -157,6 +160,33 @@ watch(
 
       resetForm()
       resetPayment()
+    }
+  }
+)
+
+watch(
+  [() => insertOrderlinesApi.isSuccess.value, () => insertOrderApi.isSuccess.value],
+  ([isSuccess1, isSuccess2]) => {
+    const orderlines = insertOrderlinesApi.data.value
+    const org_id = self.value.user?.organization_id
+    const order = insertOrderApi.data.value
+
+    if (isSuccess1 && isSuccess2 && orderlines && org_id && order) {
+      const body =
+        orderlines
+          .map((line) => {
+            const product = products.value.find((prod) => prod.id === line.product_id)
+            return product ? `${line.qte} ${product.name}` : `${line.qte} Unknown Product`
+          })
+          .join(', ') + ` — ${order.total_price} DA`
+
+      insertNotificationApi.form.value = {
+        title: `Vente réalisée`,
+        body,
+        org_id
+      }
+
+      insertNotificationApi.execute()
     }
   }
 )
