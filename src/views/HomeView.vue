@@ -48,11 +48,20 @@
 import { onMounted, ref } from 'vue'
 import { mdiAccount, mdiDotsVertical } from '@mdi/js'
 
+import { useInsertPushSubscriptionsApi } from '@/composables/api/push_subscriptions/useInsertPushSubscriptionsApi'
+
 import MenuBar from './HomeView/MenuBar.vue'
+
+import self from '@/composables/localStore/useSelf'
+
+import { fetchVapidPublicKey } from '@/supabase/api/fetchVapidPublicKey'
+import { urlBase64ToUint8Array } from '@/helpers/helpers'
+
+const insertPushSubscriptionsApi = useInsertPushSubscriptionsApi()
 
 const deferredPrompt = ref()
 
-onMounted(() => {
+onMounted(async () => {
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault()
     deferredPrompt.value = e
@@ -61,6 +70,8 @@ onMounted(() => {
   window.addEventListener('appinstalled', () => {
     deferredPrompt.value = null
   })
+  await requestNotificationPermission()
+  await registerPushSubscription()
 })
 
 async function install() {
@@ -69,5 +80,67 @@ async function install() {
 
 async function dismiss() {
   deferredPrompt.value = null
+}
+
+async function requestNotificationPermission() {
+  const permission = await Notification.requestPermission()
+
+  if (permission !== 'granted') {
+    throw new Error('Notification permisson not granted')
+  } else {
+    const registration = await navigator.serviceWorker.ready
+    registration.showNotification('Hello world')
+  }
+}
+
+async function registerPushSubscription() {
+  try {
+    if (!('serviceWorker' in navigator && 'PushManager' in window)) {
+      console.error('Push notifications are not supported in this browser.')
+      return
+    }
+
+    const registration = await navigator.serviceWorker.ready
+    const vapidKey = await fetchVapidPublicKey()
+    if (!vapidKey) {
+      throw new Error('Failed to fetch VAPID public key.')
+    }
+    const subscription = await registerPushManager(registration, vapidKey)
+    const { endpoint, keys } = subscription.toJSON()
+    const orgId = self.value.user?.organization_id
+
+    if (orgId && keys && endpoint) {
+      saveSubscriptionToSupabase(orgId, endpoint, keys)
+    } else {
+      throw new Error('Invalid subscription data.')
+    }
+  } catch (error) {
+    console.error('Error during push subscription registration:', error.message)
+  }
+}
+
+async function registerPushManager(
+  registration: ServiceWorkerRegistration,
+  vapidKey: string
+): Promise<PushSubscription> {
+  const applicationServerKey = urlBase64ToUint8Array(vapidKey)
+  return registration.pushManager.subscribe({
+    userVisibleOnly: true, // Required for Chrome
+    applicationServerKey
+  })
+}
+
+function saveSubscriptionToSupabase(
+  organizationId: string,
+  endpoint: string,
+  keys: Record<string, string>
+) {
+  insertPushSubscriptionsApi.form.value = {
+    organization_id: organizationId,
+    endpoint,
+    p256dh: keys.p256dh,
+    auth: keys.auth
+  }
+  insertPushSubscriptionsApi.execute()
 }
 </script>
