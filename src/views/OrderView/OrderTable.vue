@@ -345,7 +345,7 @@ defineExpose({
 </script>
 
 <style>
-.number-input {
+.v-number-input {
   max-width: 70px;
   min-width: 50px;
   .v-field__append-inner {

@@ -1,6 +1,6 @@
 <template>
   <v-row align="end" no-gutters>
-    <v-col>
+    <v-col cols="4">
       <v-select
         class="mr-3"
         :label="$t('product')"
@@ -47,7 +47,7 @@
         v-model="model.unit_price"
       />
     </v-col>
-    <v-col cols="2">
+    <v-col v-if="!$vuetify.display.mobile" cols="1">
       <div class="pa-2 text-medium-emphasis text-caption">
         {{ $t('total') }}: {{ model.total_price }}DA
       </div>
