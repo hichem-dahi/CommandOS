@@ -53,7 +53,7 @@ const filters = reactive({
 const form = ref({
   code: '',
   name: '',
-  org_id: self.value.user?.organization_id || '',
+  org_id: '',
   qte: 0,
   price: 0,
   cost_price: null as number | null,
@@ -73,8 +73,10 @@ const filteredProducts = computed(() =>
 function submitForm() {
   $v.value.$touch()
   if (!$v.value.$invalid) {
-    insertProductApi.form.value = { ...form.value }
-    insertProductApi.execute()
+    if (self.value.user?.organization_id) {
+      insertProductApi.form.value = { ...form.value, org_id: self.value.user?.organization_id }
+      insertProductApi.execute()
+    }
   }
 }
 
