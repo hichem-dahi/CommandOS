@@ -67,8 +67,9 @@ import { useDeleteIndividualApi } from '@/composables/api/individuals/useDeleteI
 import DeleteItemModal from '@/views/OrderView/DeleteItemModal.vue'
 
 import { ConsumerType, type Organization, type Individual } from '@/models/models'
+import type { Tables } from '@/types/database.types'
 
-const client = defineModel<Organization | Individual>()
+const client = defineModel<Tables<'organizations'> | Tables<'individuals'>>()
 
 const deleteIndividualApi = useDeleteIndividualApi()
 
