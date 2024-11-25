@@ -66,7 +66,7 @@ export interface Organization {
   art?: number
   address?: string
   activity?: string
-  org_id: string | null
+  org_id?: string | null
 }
 
 export interface Product {
