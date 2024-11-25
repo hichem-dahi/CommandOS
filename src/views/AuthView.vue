@@ -118,9 +118,9 @@ function submitOrganization() {
 }
 
 watch(
-  () => signUpApi.isReady.value,
-  (isReady) => {
-    if (isReady) {
+  () => signUpApi.isSuccess.value,
+  (isSuccess) => {
+    if (isSuccess && step.value == Steps.SendEmail) {
       step.value = Steps.SendCode
     }
   }
@@ -129,7 +129,7 @@ watch(
 watch(
   () => veryifyOtpApi.isSuccess.value,
   (isSuccess) => {
-    if (isSuccess) {
+    if (isSuccess && step.value == Steps.SendCode) {
       step.value = Steps.FillUserForm
       getProfileApi.userId.value = veryifyOtpApi.state.value?.data.user?.id
       getProfileApi.execute()
