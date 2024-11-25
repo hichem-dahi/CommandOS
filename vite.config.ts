@@ -14,9 +14,8 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       strategies: 'injectManifest',
-      injectManifest: {
-        swSrc: 'src/service-worker.js'
-      },
+      srcDir: 'src',
+      filename: 'service-worker.js',
       devOptions: {
         enabled: true // Enables SW in development for testing
       },
