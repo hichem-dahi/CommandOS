@@ -8,10 +8,10 @@ import { ConsumerType, DocumentType, OrderStatus } from '@/models/models'
 const consumerType = ref<ConsumerType>()
 
 const defaultForm = () => ({
-  organization_id: self.value.user?.organization_id,
   client_id: undefined as string | undefined,
   delivery_id: undefined as string | undefined,
   individual_id: undefined as string | undefined,
+  org_id: self.value.user?.organization_id,
   date: new Date().toISOString(),
   document_type: 0,
   doc_index: null,
@@ -52,7 +52,8 @@ const deliveryForm = ref({
 const individualForm = ref({
   id: undefined as string | undefined,
   name: '',
-  phone: null as string | null
+  phone: null as string | null,
+  org_id: self.value.user?.organization_id
 })
 
 function cleanForm() {
@@ -61,6 +62,7 @@ function cleanForm() {
     case DocumentType.Proforma:
       form.paid_price = undefined
       break
+
     default:
       break
   }
