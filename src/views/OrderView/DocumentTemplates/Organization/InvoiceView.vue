@@ -161,7 +161,7 @@ const selfInfo = computed(() => {
 })
 
 const consumer = computed(() => {
-  let organization = { ...organizations.value.find((c) => c.id === order.value?.organization_id) }
+  let organization = { ...organizations.value.find((c) => c.id === order.value?.org_id) }
   let individual = order.value?.individual as any
 
   if (Object.keys(organization).length) {
