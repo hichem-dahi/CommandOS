@@ -19,8 +19,9 @@ import { useVuelidate } from '@vuelidate/core'
 
 import { useInsertOrganizationApi } from '@/composables/api/organizations/useInsertOrganizationApi'
 
-import ClientForm from './ClientForm.vue'
 import self from '@/composables/localStore/useSelf'
+
+import ClientForm from './ClientForm.vue'
 
 const router = useRouter()
 

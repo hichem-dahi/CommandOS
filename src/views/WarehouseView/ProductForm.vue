@@ -87,7 +87,7 @@ const model = defineModel({
   default: {
     code: '',
     name: '',
-    org_id: self.value.user?.organization_id || '',
+    org_id: '',
     qte: 0,
     price: 0,
     cost_price: null as number | null,
@@ -98,7 +98,6 @@ const model = defineModel({
 const rules = {
   code: { required },
   name: { required },
-  org_id: { required },
   qte: { required, numeric, minValue: minValue(1) },
   price: { required, numeric, minValue: minValue(1) },
   cost_price: { numeric, minValue: minValue(1) }
