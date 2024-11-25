@@ -7,8 +7,12 @@ export async function fetchVapidPublicKey(): Promise<string | null> {
       return null
     }
     return response.json()
-  } catch (error) {
-    console.error('Error fetching VAPID public key:', error.message)
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error('Error fetching VAPID public key:', error.message)
+    } else {
+      console.error('An unknown error occurred:', error)
+    }
     return null
   }
 }
