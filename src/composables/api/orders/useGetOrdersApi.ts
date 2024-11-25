@@ -2,7 +2,12 @@ import { computed, reactive } from 'vue'
 import { useAsyncState } from '@vueuse/core'
 
 import { supabase } from '@/supabase/supabase'
+
+import self from '@/composables/localStore/useSelf'
+
 import type { OrderStatus } from '@/models/models'
+
+const orgId = self.value.user?.organization_id
 
 export function useGetOrdersApi() {
   const params = reactive({
@@ -23,6 +28,10 @@ export function useGetOrdersApi() {
         individual:individuals (*)
       `
     )
+
+    if (orgId) {
+      queryBuilder.eq('org_id', orgId)
+    }
 
     if (params.dateRange.length === 2) {
       queryBuilder.gte('date', params.dateRange[0]).lte('date', params.dateRange[1])

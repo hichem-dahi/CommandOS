@@ -10,7 +10,7 @@ export interface Order {
   id: string
   index: number
   doc_index: number | null
-  organization_id: string
+  org_id: string
   individual_id: string | null
   client_id: string | null
   date: Date | string
@@ -45,6 +45,7 @@ export interface Individual {
   id: string
   name: string
   phone: string | null
+  org_id: string
 }
 
 export interface Delivery {
@@ -65,6 +66,7 @@ export interface Organization {
   art?: number
   address?: string
   activity?: string
+  org_id: string | null
 }
 
 export interface Product {
@@ -74,7 +76,7 @@ export interface Product {
   price: number
   cost_price: number | null
   qte: number
-  organization_id: string
+  org_id: string
   bar_code: number | null
 }
 

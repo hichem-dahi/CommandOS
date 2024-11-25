@@ -2,9 +2,13 @@ import { computed } from 'vue'
 import { useAsyncState } from '@vueuse/core'
 
 import { supabase } from '@/supabase/supabase'
+import self from '@/composables/localStore/useSelf'
+
+const orgId = self.value.user?.organization_id
 
 export function useGetIndividualsApi() {
-  const query = async () => supabase.from('individuals').select()
+  const query = async () =>
+    orgId ? supabase.from('individuals').select().eq('org_id', orgId) : undefined
 
   const q = useAsyncState(query, undefined, { immediate: false }) // Invoke query properly
 
