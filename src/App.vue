@@ -4,7 +4,6 @@
 <script setup lang="ts">
 import { onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { watchOnce } from '@vueuse/core'
 
 import { supabase } from './supabase/supabase'
 
@@ -23,6 +22,8 @@ onMounted(() => {
       getProfileApi.userId.value = _session.user.id
       getProfileApi.execute()
     } else {
+      self.value.session = undefined
+
       router.push('/auth')
     }
   })
@@ -33,6 +34,15 @@ watch(
   (isSuccess) => {
     if (isSuccess && getProfileApi.data.value) {
       self.value.user = getProfileApi.data.value
+    }
+  }
+)
+
+watch(
+  () => getProfileApi.error.value,
+  async (error) => {
+    if (error) {
+      await supabase.auth.signOut()
     }
   }
 )
