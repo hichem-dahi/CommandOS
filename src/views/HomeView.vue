@@ -24,7 +24,7 @@
         class="text-left"
         position="fixed"
         bg-color="blue"
-        style="bottom: 0"
+        style="bottom: 0; z-index: 1000"
       >
         Get our free app. It won't take up space on your phone and also works offline!
         <template v-slot:actions>
