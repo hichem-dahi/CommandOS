@@ -9,18 +9,27 @@
       </div>
       <div v-else-if="step === Steps.SendCode">
         <v-otp-input label="code" v-model="form.code" />
-        <v-btn block @click="submitCode">{{ $t('confirm') }}</v-btn>
+        <v-btn block :loading="veryifyOtpApi.isLoading.value" @click="submitCode">
+          {{ $t('confirm') }}
+        </v-btn>
       </div>
       <div v-else-if="step === Steps.FillUserForm">
         <v-text-field :label="$t('name')" v-model="form.full_name" />
         <v-text-field :label="$t('phone')" v-model="form.phone" />
 
-        <v-btn block @click="submitProfile">{{ $t('confirm') }}</v-btn>
+        <v-btn block :loading="updateProfileApi.isLoading.value" @click="submitProfile">{{
+          $t('confirm')
+        }}</v-btn>
       </div>
       <div v-else-if="step === Steps.FillOrganizationForm">
         <ClientForm :title="$t('your-informations')" v-model="organizationForm">
           <template v-slot:actions>
-            <v-btn block @click="submitOrganization">{{ $t('confirm') }} </v-btn>
+            <v-btn
+              block
+              :loading="insertOrganizationApi.isLoading.value"
+              @click="submitOrganization"
+              >{{ $t('confirm') }}
+            </v-btn>
           </template>
         </ClientForm>
       </div>
