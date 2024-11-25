@@ -37,8 +37,8 @@
         </v-card-actions>
       </v-card>
     </v-col>
-    <v-col sm="12" md="6">
-      <BarcodeScanner v-if="showScanner" @detected="selectProduct" />
+    <v-col v-if="showScanner" @detected="selectProduct" sm="12" md="6">
+      <BarcodeScanner />
     </v-col>
   </v-row>
 </template>
