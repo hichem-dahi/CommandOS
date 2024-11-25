@@ -180,14 +180,18 @@ watch(
           })
           .join(', ') + ` — ${order.total_price} DA`
 
-      insertNotificationApi.form.value = {
-        title: `Vente réalisée`,
-        body,
-        org_id
-      }
-
-      insertNotificationApi.execute()
+      sendNotification('Vente réalisée', body, org_id)
     }
   }
 )
+
+function sendNotification(title: string, body: string, org_id: string) {
+  insertNotificationApi.form.value = {
+    title,
+    body,
+    org_id
+  }
+
+  insertNotificationApi.execute()
+}
 </script>
