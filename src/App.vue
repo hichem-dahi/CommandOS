@@ -8,9 +8,9 @@ import { watchOnce } from '@vueuse/core'
 
 import { supabase } from './supabase/supabase'
 
-import self from './composables/localStore/useSelf'
-
 import { useGetProfileApi } from './composables/api/auth/useGetProfileApi'
+
+import self from './composables/localStore/useSelf'
 
 const router = useRouter()
 
@@ -20,21 +20,13 @@ onMounted(() => {
   supabase.auth.onAuthStateChange(async (_, _session) => {
     if (_session) {
       self.value.session = _session
+      getProfileApi.userId.value = _session.user.id
+      getProfileApi.execute()
     } else {
       router.push('/auth')
     }
   })
 })
-
-watchOnce(
-  () => self.value.session,
-  (newSession) => {
-    if (newSession) {
-      getProfileApi.userId.value = newSession.user.id
-      getProfileApi.execute()
-    }
-  }
-)
 
 watch(
   () => getProfileApi.isSuccess.value,
