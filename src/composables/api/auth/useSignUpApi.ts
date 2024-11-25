@@ -13,5 +13,9 @@ export function useSignUpApi() {
 
   const q = useAsyncState(query, null, { immediate: false })
 
-  return { ...q, params }
+  const data = computed(() => q.state.value?.data)
+  const error = computed(() => !!q.state.value?.error)
+  const isSuccess = computed(() => q.isReady.value && !error.value)
+
+  return { ...q, params, data, error, isSuccess }
 }
