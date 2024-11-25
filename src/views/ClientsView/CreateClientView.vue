@@ -15,15 +15,12 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { useVuelidate } from '@vuelidate/core'
 
 import { useInsertOrganizationApi } from '@/composables/api/organizations/useInsertOrganizationApi'
 
-import organizations from '@/composables/localStore/useOrganizationsStore'
-
 import ClientForm from './ClientForm.vue'
-
-import { useVuelidate } from '@vuelidate/core'
-import type { Organization } from '@/models/models'
+import self from '@/composables/localStore/useSelf'
 
 const router = useRouter()
 
@@ -39,13 +36,14 @@ const form = ref({
   nis: null as number | null,
   art: null as number | null,
   address: '',
-  activity: ''
+  activity: '',
+  org_id: ''
 })
 
 function submitForm() {
   $v.value.$touch()
   if (!$v.value.$invalid) {
-    insertOrganizationApi.form.value = form.value
+    insertOrganizationApi.form.value = { ...form.value, org_id: self.value.user?.organization_id }
     insertOrganizationApi.execute()
   }
 }
@@ -53,8 +51,7 @@ function submitForm() {
 watch(
   () => insertOrganizationApi.isSuccess.value,
   (isSuccess) => {
-    if (isSuccess && insertOrganizationApi.data.value) {
-      organizations.value.push(insertOrganizationApi.data.value as Organization)
+    if (isSuccess) {
       router.go(-1)
     }
   }

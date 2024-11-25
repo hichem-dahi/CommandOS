@@ -1,6 +1,6 @@
 <template>
   <v-radio-group v-model="form.document_type">
-    <div v-if="form.organization_id">
+    <div v-if="form.org_id">
       <v-radio :label="$t('invoice')" :value="DocumentType.Invoice" />
       <v-radio :label="$t('proforma')" :value="DocumentType.Proforma" />
     </div>
@@ -21,7 +21,7 @@
       v-model="paymentForm.amount"
     />
     <v-text-field
-      v-if="form.organization_id"
+      v-if="form.org_id"
       :label="$t('payment-method')"
       :error="!$v.payment_method.$pending && $v.payment_method.$error"
       v-model="form.payment_method"
@@ -46,9 +46,7 @@ import { deliveryForm, form, individualForm, paymentForm } from './state'
 
 const rules = {
   payment_method: {
-    required: requiredIf(
-      () => !!form.organization_id && form.document_type != DocumentType.Proforma
-    ) // required only if company exists
+    required: requiredIf(() => !!form.org_id && form.document_type != DocumentType.Proforma) // required only if company exists
   },
   paid_price: { numeric }
 }

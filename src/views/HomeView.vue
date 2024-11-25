@@ -48,7 +48,7 @@
 import { onMounted, ref } from 'vue'
 import { mdiAccount, mdiDotsVertical } from '@mdi/js'
 
-import { useInsertPushSubscriptionsApi } from '@/composables/api/push_subscriptions/useInsertPushSubscriptionsApi'
+import { useInsertPushSubscriptionsApi } from '@/composables/api/pushSubscriptions/useInsertPushSubscriptionsApi'
 
 import MenuBar from './HomeView/MenuBar.vue'
 
@@ -114,8 +114,12 @@ async function registerPushSubscription() {
     } else {
       throw new Error('Invalid subscription data.')
     }
-  } catch (error) {
-    console.error('Error during push subscription registration:', error.message)
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error('Error during push subscription registration:', error.message)
+    } else {
+      console.error('Unknown error during push subscription registration:', error)
+    }
   }
 }
 
@@ -131,12 +135,12 @@ async function registerPushManager(
 }
 
 function saveSubscriptionToSupabase(
-  organization_id: string,
+  org_id: string,
   endpoint: string,
   keys: Record<string, string>
 ) {
   insertPushSubscriptionsApi.form.value = {
-    organization_id,
+    org_id,
     endpoint,
     p256dh: keys.p256dh,
     auth: keys.auth

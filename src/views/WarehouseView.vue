@@ -53,7 +53,7 @@ const filters = reactive({
 const form = ref({
   code: '',
   name: '',
-  organization_id: self.value.user?.organization_id || '',
+  org_id: self.value.user?.organization_id || '',
   qte: 0,
   price: 0,
   cost_price: null as number | null,

@@ -56,7 +56,8 @@ const model = defineModel({
     nis: null as number | null,
     art: null as number | null,
     address: '',
-    activity: ''
+    activity: '',
+    org_id: ''
   }
 })
 
