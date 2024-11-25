@@ -18,7 +18,7 @@
         <v-btn block @click="submitProfile">{{ $t('confirm') }}</v-btn>
       </div>
       <div v-else-if="step === Steps.FillOrganizationForm">
-        <ClientForm :title="$t('create-client')" v-model="organizationForm">
+        <ClientForm :title="$t('your-informations')" v-model="organizationForm">
           <template v-slot:actions>
             <v-btn block @click="submitOrganization">{{ $t('confirm') }} </v-btn>
           </template>
@@ -29,7 +29,7 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive, ref, watch } from 'vue'
+import { onMounted, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import useVuelidate from '@vuelidate/core'
 
@@ -78,6 +78,15 @@ const organizationForm = ref({
   art: null as number | null,
   address: '',
   activity: ''
+})
+
+onMounted(() => {
+  const session = self.value.session
+  if (session?.user) {
+    step.value = Steps.FillUserForm
+    getProfileApi.userId.value = session.user.id
+    getProfileApi.execute()
+  }
 })
 
 function submitEmail() {
