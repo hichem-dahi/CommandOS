@@ -8,7 +8,7 @@
     <div v-if="consumerType == ConsumerType.Individual">
       <v-combobox
         :label="$t('name')"
-        :items="individualsItems"
+        :items="individuals"
         :error="!v2$.name.$pending && v2$.name.$error"
         v-model="individualForm.name"
         :item-props="itemProps"
@@ -39,15 +39,15 @@ import { isString } from 'lodash'
 import useVuelidate from '@vuelidate/core'
 import { minLength, numeric, required } from '@vuelidate/validators'
 
-import { useGetOrganizationsApi } from '@/composables/api/organizations/useGetOrganizationsApi'
-import { useGetIndividualsApi } from '@/composables/api/individuals/useGetIndividualsApi'
-
 import { ConsumerType } from '@/models/models'
+import type { Tables } from '@/types/database.types'
 
 import { form, consumerType, individualForm } from './state'
 
-const getOrganizationsApi = useGetOrganizationsApi()
-const getIndividualsApi = useGetIndividualsApi()
+const props = defineProps<{
+  individuals: Tables<'individuals'>[]
+  clients: Tables<'organizations'>[]
+}>()
 
 const formClient = reactive({
   client_id: toRef(() => form.client_id)
@@ -78,21 +78,9 @@ const v$ = computed(() =>
   consumerType.value === ConsumerType.Organization ? v1$.value : v2$.value
 )
 
-getOrganizationsApi.execute()
-getIndividualsApi.execute()
-
-const organizations = computed(() => getOrganizationsApi.data.value)
-const individuals = computed(() => getIndividualsApi.data.value || [])
-
 const organizationsItems = computed(() =>
-  organizations.value?.map((c) => {
+  props.clients.map((c) => {
     return { id: c.id, name: c.name }
-  })
-)
-
-const individualsItems = computed(() =>
-  individuals.value.map((c) => {
-    return { id: c.id, name: c.name, phone: c.phone }
   })
 )
 
@@ -108,7 +96,9 @@ function handleCustomerChange(item: any) {
   individualForm.value.name = ''
   individualForm.value.phone = ''
 
-  const existingIndividual = individualsItems.value.find((individual) => individual.id === item.id)
+  const existingIndividual = item?.id
+    ? props.individuals.find((individual) => individual.id === item.id)
+    : null
 
   if (existingIndividual) {
     individualForm.value = { ...existingIndividual }

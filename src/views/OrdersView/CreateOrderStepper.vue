@@ -16,7 +16,7 @@
         <form>
           <!-- Step 1: SelectConsumer - Only displayed if no consumer in route query -->
           <v-stepper-window-item :value="Steps.SelectConsumer">
-            <SelectConsumer>
+            <SelectConsumer :individuals="individuals" :clients="organizations">
               <template v-slot:actions="{ v }">
                 <v-card-actions>
                   <v-spacer></v-spacer>
@@ -60,18 +60,18 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch, watchEffect } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { isString } from 'lodash'
-
-import { individuals } from '@/composables/localStore/useIndividualsStore'
-import organizations from '@/composables/localStore/useOrganizationsStore'
 
 import { useInsertOrderApi } from '@/composables/api/orders/useInsertOrderApi'
 import { useInsertDeliveryApi } from '@/composables/api/deliveries/useInsertDeliveryApi'
 import { useInsertIndividualApi } from '@/composables/api/individuals/useInsertIndividualApi'
 import { useInsertOrderlinesApi } from '@/composables/api/orderlines/useInsertOrderlinesApi'
 import { useInsertPaymentsApi } from '@/composables/api/payments/useInsertPaymentApi'
+
+import { useGetIndividualsApi } from '@/composables/api/individuals/useGetIndividualsApi'
+import { useGetOrganizationsApi } from '@/composables/api/organizations/useGetOrganizationsApi'
 
 import SelectConsumer from './CreateOrderStepper/SelectConsumer.vue'
 import CreateOrderlines from './CreateOrderStepper/CreateOrderlines.vue'
@@ -112,8 +112,15 @@ const insertDeliveryApi = useInsertDeliveryApi()
 const insertIndividualApi = useInsertIndividualApi()
 const insertOrderlinesApi = useInsertOrderlinesApi()
 const insertPaymentApi = useInsertPaymentsApi()
+const getOrganizationsApi = useGetOrganizationsApi()
+const getIndividualsApi = useGetIndividualsApi()
+getOrganizationsApi.execute()
+getIndividualsApi.execute()
 
 const step = ref(Steps.SelectConsumer)
+
+const organizations = computed(() => getOrganizationsApi.data.value || [])
+const individuals = computed(() => getIndividualsApi.data.value || [])
 
 const consumerPicked = computed(() => route.query.consumer)
 
@@ -132,7 +139,7 @@ onMounted(() => {
     // Check if the consumer is a company
     const organization = organizations.value.find((c) => c.id === consumer)
     if (organization) {
-      form.organization_id = organization.id
+      form.org_id = organization.id
     } else {
       // Check if the consumer is an individual
       const individual = individuals.value.find((i) => i.id === consumer)
@@ -152,17 +159,16 @@ function nextStep(v: Validation) {
     if (step.value === Steps.ExtraInfo) {
       cleanForm()
       insertOrderApi.form.value = { ...(form as TablesInsert<'orders'>) }
-      if (deliveryForm.value) {
-        insertOrderApi.form.value!.document_type = DocumentType.DeliveryNote
-        insertDeliveryApi.form.value = { ...deliveryForm.value }
-        insertDeliveryApi.execute()
+      if (form.document_type === DocumentType.DeliveryNote) {
+        insertDelivery(deliveryForm.value)
       }
 
       if (individualForm.value && !insertOrderApi.form.value.individual_id) {
         const { id, ...form } = individualForm.value
-        insertIndividualApi.form.value = form
-        insertIndividualApi.execute()
+        if (form.org_id) insertIndividual(form as TablesInsert<'individuals'>)
+        return
       }
+      insertOrderApi.execute()
 
       return
     }
@@ -174,7 +180,7 @@ function nextStep(v: Validation) {
 const isReadyInsertOrderApi = computed(() => {
   const deliveryId = insertDeliveryApi.data.value?.id
   const deliveryFormId = insertOrderApi.form.value?.delivery_id
-  const individualId = insertOrderApi.form.value?.individual_id
+  const individualId = insertIndividualApi.data.value?.id
   const individualFormId = insertOrderApi.form.value?.individual_id
 
   // Check if `delivery_id` is required
@@ -219,20 +225,12 @@ watch(
   () => insertOrderApi.isSuccess.value,
   (isSuccess) => {
     if (isSuccess && insertOrderApi.data.value?.id) {
-      insertOrderlinesApi.form.value = orderlinesForm.value.map((o) => ({
-        ...o,
-        order_id: insertOrderApi.data.value?.id || ''
-      }))
-      insertOrderlinesApi.execute()
-
+      insertOrderlines(orderlinesForm.value)
       if (paymentForm?.amount) {
-        insertPaymentApi.form.value = {
-          ...paymentForm,
-          order_id: insertOrderApi.data.value?.id
-        } as TablesInsert<'payments'>
-        insertPaymentApi.execute()
+        const amount = Number(paymentForm.amount) // Default to 0 if conversion fails
+        const order_id = insertOrderApi.data.value?.id
+        insertPayment({ ...paymentForm, order_id, amount })
       }
-
       resetForm()
       resetPayment()
     }
@@ -243,10 +241,37 @@ watch(
   [() => insertOrderlinesApi.isSuccess.value, () => insertPaymentApi.isSuccess.value],
   (isSuccess1, isSuccess2) => {
     const isSuccess2Valid = insertPaymentApi.data.value?.id ? isSuccess2 : true
-
     if (isSuccess1 && isSuccess2Valid) {
       router.go(-1)
     }
   }
 )
+function insertPayment(form: TablesInsert<'payments'>) {
+  insertPaymentApi.form.value = {
+    ...form
+  }
+  insertPaymentApi.execute()
+}
+
+function insertIndividual(form: TablesInsert<'individuals'>) {
+  insertIndividualApi.form.value = { ...form }
+  insertIndividualApi.execute()
+}
+
+function insertOrder() {
+  insertOrderApi.execute()
+}
+
+function insertOrderlines(form: TablesInsert<'order_lines'>[]) {
+  insertOrderlinesApi.form.value = form.map((o) => ({
+    ...o,
+    order_id: insertOrderApi.data.value?.id || ''
+  }))
+  insertOrderlinesApi.execute()
+}
+
+function insertDelivery(delivery: TablesInsert<'deliveries'>) {
+  insertDeliveryApi.form.value = { ...delivery }
+  insertDeliveryApi.execute()
+}
 </script>
