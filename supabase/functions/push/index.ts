@@ -102,7 +102,17 @@ Deno.serve(async (req) => {
 
     for (const { endpoint, p256dh, auth } of subscriptions) {
       const subscription = { endpoint, keys: { p256dh, auth } }
-      await sendNotification(subscription, payload.record)
+      try {
+        await sendNotification(subscription, payload.record)
+      } catch (error) {
+        // Log the error and continue with the next subscription
+        console.error(
+          'Failed to send notification to:',
+          subscription.endpoint,
+          'Error:',
+          error.message
+        )
+      }
     }
 
     return new Response('Notification sent', { status: 200, headers })
