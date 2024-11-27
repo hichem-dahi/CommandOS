@@ -54,7 +54,7 @@ const fetchSubscriptions = async (orgId: string) => {
   const { data, error } = await supabase
     .from('push_subscriptions')
     .select('endpoint, p256dh, auth')
-    .eq('organization_id', orgId)
+    .eq('org_id', orgId)
 
   if (error) {
     console.error('Error fetching subscriptions:', error)
@@ -70,7 +70,6 @@ const sendNotification = async (subscription, record) => {
     await subscriber.pushTextMessage(JSON.stringify(record), {})
   } catch (err) {
     console.error('Error sending notification:', err)
-    throw new Error('Failed to send notification')
   }
 }
 
@@ -102,7 +101,17 @@ Deno.serve(async (req) => {
 
     for (const { endpoint, p256dh, auth } of subscriptions) {
       const subscription = { endpoint, keys: { p256dh, auth } }
-      await sendNotification(subscription, payload.record)
+      try {
+        await sendNotification(subscription, payload.record)
+      } catch (error) {
+        // Log the error and continue with the next subscription
+        console.error(
+          'Failed to send notification to:',
+          subscription.endpoint,
+          'Error:',
+          error.message
+        )
+      }
     }
 
     return new Response('Notification sent', { status: 200, headers })
