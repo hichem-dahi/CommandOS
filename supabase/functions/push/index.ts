@@ -54,7 +54,7 @@ const fetchSubscriptions = async (orgId: string) => {
   const { data, error } = await supabase
     .from('push_subscriptions')
     .select('endpoint, p256dh, auth')
-    .eq('organization_id', orgId)
+    .eq('org_id', orgId)
 
   if (error) {
     console.error('Error fetching subscriptions:', error)
