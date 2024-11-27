@@ -92,9 +92,10 @@ async function dismiss() {
 
 async function requestNotificationPermission() {
   const permission = await Notification.requestPermission()
+  const registration = await navigator.serviceWorker.ready
 
   if (permission === 'granted') {
-    new Notification('Notifications enabled!')
+    registration.showNotification('Notifications enabled!')
   } else if (Notification.permission === 'denied') {
     alert('You have denied notification permission. Please change it in your settings.')
   } else {
