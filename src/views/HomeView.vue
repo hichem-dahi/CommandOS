@@ -3,6 +3,12 @@
     <v-app>
       <v-app-bar color="blue-grey-lighten-3" class="text-white" title="CommandOS">
         <template v-slot:append>
+          <v-btn
+            id="enable-notifications"
+            variant="text"
+            :icon="isPermissionGranted ? mdiBell : mdiBellOff"
+            @click="requestNotificationPermission"
+          />
           <v-menu :close-on-content-click="false">
             <template v-slot:activator="{ props }">
               <v-btn v-bind="props" variant="text" :icon="mdiDotsVertical" />
@@ -46,7 +52,7 @@
 </template>
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { mdiAccount, mdiDotsVertical } from '@mdi/js'
+import { mdiAccount, mdiBell, mdiBellOff, mdiDotsVertical } from '@mdi/js'
 
 import { useInsertPushSubscriptionsApi } from '@/composables/api/pushSubscriptions/useInsertPushSubscriptionsApi'
 
@@ -60,6 +66,7 @@ import { urlBase64ToUint8Array } from '@/helpers/helpers'
 const insertPushSubscriptionsApi = useInsertPushSubscriptionsApi()
 
 const deferredPrompt = ref()
+const isPermissionGranted = ref(Notification.permission === 'granted')
 
 onMounted(async () => {
   window.addEventListener('beforeinstallprompt', (e) => {
@@ -70,6 +77,7 @@ onMounted(async () => {
   window.addEventListener('appinstalled', () => {
     deferredPrompt.value = null
   })
+
   await requestNotificationPermission()
   await registerPushSubscription()
 })
@@ -84,13 +92,16 @@ async function dismiss() {
 
 async function requestNotificationPermission() {
   const permission = await Notification.requestPermission()
+  const registration = await navigator.serviceWorker.ready
 
-  if (permission !== 'granted') {
-    throw new Error('Notification permisson not granted')
+  if (permission === 'granted') {
+    registration.showNotification('Notifications enabled!')
+  } else if (Notification.permission === 'denied') {
+    alert('You have denied notification permission. Please change it in your settings.')
   } else {
-    const registration = await navigator.serviceWorker.ready
-    registration.showNotification('Hello world')
+    console.log('Notification permission denied')
   }
+  isPermissionGranted.value = Notification.permission === 'granted'
 }
 
 async function registerPushSubscription() {
