@@ -17,7 +17,8 @@ export default defineConfig({
       srcDir: 'src',
       filename: 'service-worker.js',
       devOptions: {
-        enabled: true // Enables SW in development for testing
+        enabled: true, // Enables SW in development for testing
+        type: 'module'
       },
       injectRegister: 'auto',
       workbox: {
