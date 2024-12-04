@@ -51,7 +51,7 @@
     <v-dialog max-width="500px" v-model="editDialog">
       <ProductForm v-model="proxyForm">
         <template v-slot:actions>
-          <v-btn block :loading="updateProductApi.isLoading.value" @click="editProduct()">
+          <v-btn block :loading="upsertProductsDb.isLoading.value" @click="editProduct()">
             {{ $t('confirm') }}
           </v-btn>
         </template>
@@ -62,46 +62,48 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { mdiDotsVertical } from '@mdi/js'
-import { clone, isEqual, omitBy } from 'lodash'
+import { clone } from 'lodash'
 import useVuelidate from '@vuelidate/core'
+import { injectPGlite } from '@electric-sql/pglite-vue'
 
-import { useUpdateProductApi } from '@/composables/api/products/useUpdateProductApi'
+import { useUpsertProductsDb } from '@/composables/db/products/useUpsertProductsDb'
+import { useDeleteProductDb } from '@/composables/db/products/useDeleteProductDb'
 
 import DeleteItemModal from '@/views/OrderView/DeleteItemModal.vue'
 import ProductForm from './ProductForm.vue'
 
 import type { Product } from '@/models/models'
 
+const db = injectPGlite()
+
 const $v = useVuelidate()
 
 const product = defineModel<Product>()
 const proxyForm = ref(clone(product.value))
 
-const updateProductApi = useUpdateProductApi()
+const upsertProductsDb = useUpsertProductsDb()
+const deleteProductDB = useDeleteProductDb()
 
 const deleteDialog = ref(false)
 const editDialog = ref(false)
 
-function editProduct() {
+async function editProduct() {
   $v.value.$touch()
-  if (!$v.value.$invalid && product.value) {
-    const modifiedFields = omitBy(proxyForm.value, (value, key) => {
-      if (key == 'id') return false
-      return isEqual(value, product.value?.[key as keyof Product])
-    })
-    updateProductApi.form.value = modifiedFields
-    updateProductApi.execute()
+  if (!$v.value.$invalid && proxyForm.value) {
+    upsertProductsDb.form.value = [{ ...proxyForm.value, _synced: false }]
+    upsertProductsDb.execute(db)
   }
 }
 
-function deleteProduct() {}
+async function deleteProduct() {
+  deleteProductDB.productId.value = product.value?.id
+  deleteProductDB.execute(db)
+}
 
 watch(
-  () => updateProductApi.isSuccess.value,
+  () => upsertProductsDb.isSuccess.value,
   (isSuccess) => {
-    if (isSuccess && updateProductApi.data.value) {
-      const originalProduct = product.value
-      if (originalProduct) Object.assign(originalProduct, updateProductApi.data.value)
+    if (isSuccess) {
       editDialog.value = false
     }
   }

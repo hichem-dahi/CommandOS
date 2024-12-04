@@ -333,6 +333,7 @@ export type Database = {
           org_id: string
           price: number
           qte: number
+          updated_at: string
         }
         Insert: {
           bar_code?: number | null
@@ -343,6 +344,7 @@ export type Database = {
           org_id: string
           price: number
           qte: number
+          updated_at?: string
         }
         Update: {
           bar_code?: number | null
@@ -353,6 +355,7 @@ export type Database = {
           org_id?: string
           price?: number
           qte?: number
+          updated_at?: string
         }
         Relationships: [
           {

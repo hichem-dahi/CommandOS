@@ -60,13 +60,13 @@ export interface Organization {
   id: string
   name: string
   phone: string
-  rc?: string
-  nif?: number
-  nis?: number
-  art?: number
-  address?: string
-  activity?: string
-  org_id?: string | null
+  rc: string | null
+  nif: number | null
+  nis: number | null
+  art: number | null
+  address: string | null
+  activity: string | null
+  org_id: string | null
 }
 
 export interface Product {
@@ -78,6 +78,8 @@ export interface Product {
   qte: number
   org_id: string
   bar_code: number | null
+  updated_at: string
+  _synced?: boolean
 }
 
 export interface StockMovement {

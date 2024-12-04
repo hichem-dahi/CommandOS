@@ -6,7 +6,7 @@
     <v-dialog max-width="400px" v-model="dialog">
       <ProductForm v-model="form">
         <template v-slot:actions>
-          <v-btn block :loading="insertProductApi.isLoading.value" @click="submitForm()">
+          <v-btn block :loading="upsertProductsDb.isLoading.value" @click="submitForm()">
             {{ $t('add') }}
           </v-btn>
         </template>
@@ -28,20 +28,24 @@
 import { computed, reactive, ref, watch } from 'vue'
 import { useVuelidate } from '@vuelidate/core'
 import { mdiPlus } from '@mdi/js'
+import { injectPGlite } from '@electric-sql/pglite-vue'
 
 import self from '@/composables/localStore/useSelf'
 
-import { useInsertProductApi } from '@/composables/api/products/useInsertProductApi'
-import { useGetProductsApi } from '@/composables/api/products/useGetProductsApi'
+import { useProductsSync } from '@/composables/sync/useProductsSync'
+import { useUpsertProductsDb } from '@/composables/db/products/useUpsertProductsDb'
 
 import ProductForm from '@/views/WarehouseView/ProductForm.vue'
 import ProductCard from '@/views/WarehouseView/ProductCard.vue'
 import FilterBar from './WarehouseView/FilterBar.vue'
 
+const db = injectPGlite()
+
 const $v = useVuelidate()
 
-const insertProductApi = useInsertProductApi()
-const getProductsApi = useGetProductsApi()
+const { products } = useProductsSync()
+
+const upsertProductsDb = useUpsertProductsDb()
 
 const dialog = ref(false)
 
@@ -60,33 +64,36 @@ const form = ref({
   bar_code: null as number | null
 })
 
-const products = computed(() => getProductsApi.data.value || [])
-
 const filteredProducts = computed(() =>
-  products.value.filter((o) => {
+  products.value?.filter((o) => {
     const name = filters.name ? o.name.includes(filters.name) : true
     const barcode = filters.barcode && o.bar_code ? o.bar_code === filters.barcode : true
     return name && barcode
   })
 )
 
-function submitForm() {
+async function submitForm() {
   $v.value.$touch()
-
   if (!$v.value.$invalid) {
-    if (self.value.user?.organization_id) {
-      insertProductApi.form.value = { ...form.value, org_id: self.value.user?.organization_id }
-      insertProductApi.execute()
+    const org_id = self.value.user?.organization_id
+    if (org_id) {
+      upsertProductsDb.form.value = [
+        {
+          ...form.value,
+          org_id,
+          _synced: false
+        }
+      ]
+      upsertProductsDb.execute(db)
     }
   }
 }
 
 watch(
-  () => insertProductApi.isSuccess.value,
+  () => upsertProductsDb.isSuccess.value,
   (isSuccess) => {
-    if (isSuccess && insertProductApi.data.value) {
+    if (isSuccess) {
       dialog.value = false
-      getProductsApi.execute()
     }
   }
 )

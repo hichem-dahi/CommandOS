@@ -8,7 +8,9 @@ import { nodePolyfills } from 'vite-plugin-node-polyfills'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
-    nodePolyfills(),
+    nodePolyfills({
+      exclude: ['fs', 'stream']
+    }),
     vue(),
     vuetify(),
     VitePWA({
@@ -22,21 +24,7 @@ export default defineConfig({
       },
       injectRegister: 'auto',
       workbox: {
-        cleanupOutdatedCaches: true,
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,json,vue,txt,woff,woff2}'],
-        runtimeCaching: [
-          {
-            urlPattern: /.*\.(?:woff|woff2)$/,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'font-cache',
-              expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365 // cache for 1 year
-              }
-            }
-          }
-        ]
+        globPatterns: ['**/*']
       },
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
       manifest: {
@@ -68,6 +56,9 @@ export default defineConfig({
       }
     })
   ],
+  optimizeDeps: {
+    exclude: ['@electric-sql/pglite']
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
