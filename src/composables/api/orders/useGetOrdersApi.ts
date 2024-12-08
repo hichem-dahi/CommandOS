@@ -12,22 +12,12 @@ const orgId = self.value.user?.organization_id
 export function useGetOrdersApi() {
   const params = reactive({
     dateRange: [] as [string, string] | [], // Array with [startDate, endDate]
-    status: null as OrderStatus | null
+    status: null as OrderStatus | null,
+    date: ''
   })
 
   const query = async () => {
-    const queryBuilder = supabase.from('orders').select(
-      `
-        *,
-        client:organizations!orders_client_id_fkey (*),   
-        order_lines:order_lines (
-          *,
-          product:products (*)
-        ),  
-        delivery:deliveries (*),
-        individual:individuals (*)
-      `
-    )
+    const queryBuilder = supabase.from('orders').select()
 
     if (orgId) {
       queryBuilder.eq('org_id', orgId)
@@ -39,6 +29,10 @@ export function useGetOrdersApi() {
 
     if (params.status !== null) {
       queryBuilder.eq('status', params.status)
+    }
+
+    if (params.date) {
+      queryBuilder.eq('updated_at', params.date)
     }
 
     return queryBuilder
