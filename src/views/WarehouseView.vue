@@ -28,7 +28,6 @@
 import { computed, reactive, ref, watch } from 'vue'
 import { useVuelidate } from '@vuelidate/core'
 import { mdiPlus } from '@mdi/js'
-import { injectPGlite } from '@electric-sql/pglite-vue'
 
 import self from '@/composables/localStore/useSelf'
 
@@ -38,8 +37,6 @@ import { useUpsertProductsDb } from '@/composables/db/products/useUpsertProducts
 import ProductForm from '@/views/WarehouseView/ProductForm.vue'
 import ProductCard from '@/views/WarehouseView/ProductCard.vue'
 import FilterBar from './WarehouseView/FilterBar.vue'
-
-const db = injectPGlite()
 
 const $v = useVuelidate()
 
@@ -84,7 +81,7 @@ async function submitForm() {
           _synced: false
         }
       ]
-      upsertProductsDb.execute(db)
+      upsertProductsDb.execute()
     }
   }
 }
