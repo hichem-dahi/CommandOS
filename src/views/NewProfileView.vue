@@ -19,7 +19,7 @@
           <template v-slot:actions>
             <v-btn
               block
-              :loading="upsertOrganizationApi.isLoading.value"
+              :loading="upsertOrganizationsApi.isLoading.value"
               @click="submitNewProfile()"
             >
               {{ $t('confirm') }}
@@ -37,7 +37,7 @@ import useVuelidate from '@vuelidate/core'
 import self from '@/composables/localStore/useSelf'
 
 import { useUpdateProfileApi } from '@/composables/api/auth/useUpdateProfileApi'
-import { useUpsertOrganizationApi } from '@/composables/api/organizations/useUpsertOrganizationApi'
+import { useUpsertOrganizationsApi } from '@/composables/api/organizations/useUpsertOrganizationsApi'
 
 import ClientForm from './ClientsView/ClientForm.vue'
 
@@ -62,7 +62,7 @@ const organizationForm = reactive({
 })
 
 const updateProfileApi = useUpdateProfileApi()
-const upsertOrganizationApi = useUpsertOrganizationApi()
+const upsertOrganizationsApi = useUpsertOrganizationsApi()
 
 onMounted(() => {
   Object.assign(userForm, {
@@ -84,19 +84,20 @@ function submitProfile() {
 function submitNewProfile() {
   $v.value.$touch()
   if (!$v.value.$invalid) {
-    upsertOrganizationApi.form.value = organizationForm as Organization
-    upsertOrganizationApi.execute()
+    upsertOrganizationsApi.form.value = [organizationForm] as Organization[]
+    upsertOrganizationsApi.execute()
   }
 }
 
 watch(
-  () => upsertOrganizationApi.isSuccess.value,
+  () => upsertOrganizationsApi.isSuccess.value,
   (isSuccess) => {
-    if (isSuccess && upsertOrganizationApi.data.value?.id && self.value.user) {
-      self.value.user.organization = upsertOrganizationApi.data.value
+    const org = upsertOrganizationsApi.data.value?.[0]
+    if (isSuccess && org?.id && self.value.user) {
+      self.value.user.organization = org
       updateProfileApi.form.value = {
         id: self.value.user?.id,
-        organization_id: upsertOrganizationApi.data.value.id
+        organization_id: org.id
       }
       updateProfileApi.execute()
     }
