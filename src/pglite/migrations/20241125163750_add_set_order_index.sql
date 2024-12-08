@@ -11,14 +11,15 @@ AS $function$
 declare
   max_index integer;
 begin
-  -- Get the highest index for the organization (org_id)
-  select coalesce(max(index), 0) into max_index
-  from orders
-  where org_id = NEW.org_id;
+   IF NEW.index IS NULL THEN
+        -- Get the highest index for the organization (org_id)
+        SELECT COALESCE(MAX(index), 0) INTO max_index
+        FROM orders
+        WHERE org_id = NEW.org_id;
 
-  -- Set the NEW index value to be the max index + 1
-  NEW.index := max_index + 1;
-
+        -- Set the NEW index value to be the max index + 1
+        NEW.index := max_index + 1;
+      END IF;
   return NEW;
 end;
 $function$
