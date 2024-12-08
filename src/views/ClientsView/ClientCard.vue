@@ -59,19 +59,17 @@
 import { computed, ref, watch } from 'vue'
 import { mdiAccount, mdiDomain, mdiDotsVertical, mdiHistory, mdiPlus } from '@mdi/js'
 
-import organizations from '@/composables/localStore/useOrganizationsStore'
-import { individuals } from '@/composables/localStore/useIndividualsStore'
-
 import { useDeleteIndividualApi } from '@/composables/api/individuals/useDeleteIndividualApi'
+import { useDeleteOrganizationDb } from '@/composables/db/organizations/useDeleteOrganizationDb'
 
 import DeleteItemModal from '@/views/OrderView/DeleteItemModal.vue'
 
 import { ConsumerType, type Organization, type Individual } from '@/models/models'
-import type { Tables } from '@/types/database.types'
 
-const client = defineModel<Tables<'organizations'> | Tables<'individuals'>>()
+const client = defineModel<Organization | Individual>()
 
 const deleteIndividualApi = useDeleteIndividualApi()
+const deleteOrganizationDb = useDeleteOrganizationDb()
 
 const deleteDialog = ref(false)
 
@@ -81,12 +79,10 @@ const consumerType = computed(() =>
 
 function deleteClient() {
   if (consumerType.value == ConsumerType.Organization && client.value) {
-    const index = organizations.value.indexOf(client.value as Organization)
-    organizations.value.splice(index, 1)
+    deleteOrganizationDb.id.value = client.value.id
+    deleteOrganizationDb.execute()
   } else if (consumerType.value == ConsumerType.Individual && client.value) {
-    const index = individuals.value.indexOf(client.value as Individual)
-    individuals.value.splice(index, 1)
-    deleteIndividualApi.individualId.value = client.value.id
+    deleteIndividualApi.id.value = client.value.id
     deleteIndividualApi.execute()
   }
 }
