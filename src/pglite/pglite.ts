@@ -1,6 +1,5 @@
 import { PGlite } from '@electric-sql/pglite'
 import { worker } from '@electric-sql/pglite/worker'
-import { electricSync } from '@electric-sql/pglite-sync'
 import { live } from '@electric-sql/pglite/live'
 
 import { migrate } from './migrations'
@@ -11,8 +10,7 @@ worker({
       dataDir: 'idb://myDb',
       relaxedDurability: true,
       extensions: {
-        live,
-        electric: electricSync()
+        live
       }
     })
     await migrate(pg)
