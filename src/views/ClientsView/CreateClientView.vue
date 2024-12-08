@@ -17,7 +17,7 @@ import { ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useVuelidate } from '@vuelidate/core'
 
-import { useInsertOrganizationApi } from '@/composables/api/organizations/useInsertOrganizationApi'
+import { useUpsertOrganizationsDb } from '@/composables/db/organizations/useUpsertOrganizationsDb'
 
 import self from '@/composables/localStore/useSelf'
 
@@ -25,7 +25,7 @@ import ClientForm from './ClientForm.vue'
 
 const router = useRouter()
 
-const insertOrganizationApi = useInsertOrganizationApi()
+const upsertOrganizationsDb = useUpsertOrganizationsDb()
 
 const $v = useVuelidate()
 
@@ -44,21 +44,19 @@ const form = ref({
 function submitForm() {
   $v.value.$touch()
   if (!$v.value.$invalid) {
-    insertOrganizationApi.form.value = { ...form.value, org_id: self.value.user?.organization_id }
-    insertOrganizationApi.execute()
+    upsertOrganizationsDb.form.value = [
+      { ...form.value, org_id: self.value.user?.organization_id, _synced: false }
+    ]
+    upsertOrganizationsDb.execute()
   }
 }
 
 watch(
-  () => insertOrganizationApi.isSuccess.value,
+  () => upsertOrganizationsDb.isSuccess.value,
   (isSuccess) => {
     if (isSuccess) {
       router.go(-1)
     }
   }
-)
-watch(
-  () => insertOrganizationApi.error.value,
-  (error) => {}
 )
 </script>
