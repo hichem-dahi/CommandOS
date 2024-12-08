@@ -1,17 +1,16 @@
 import { computed, ref } from 'vue'
 import { useAsyncState } from '@vueuse/core'
 import { injectPGlite } from '@electric-sql/pglite-vue'
-
-import { upsertProductsDB } from '@/pglite/queries/products/upsertProductsDB'
+import { upsertOrganizationsDB } from '@/pglite/queries/organizations/upsertOrganizationsDB'
 
 import type { TablesInsert } from '@/types/database.types'
 
-export function useUpsertProductsDb() {
+export function useUpsertOrganizationsDb() {
   const db = injectPGlite()
 
-  const form = ref<(TablesInsert<'products'> & { _synced?: boolean })[]>()
+  const form = ref<(TablesInsert<'organizations'> & { _synced?: boolean })[]>()
 
-  const q = useAsyncState(upsertProductsDB, undefined, { immediate: false })
+  const q = useAsyncState(upsertOrganizationsDB, undefined, { immediate: false })
 
   const execute = () => {
     if (form.value) q.execute(0, db, form.value)
