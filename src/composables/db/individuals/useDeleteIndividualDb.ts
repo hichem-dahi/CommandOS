@@ -2,14 +2,14 @@ import { computed, ref } from 'vue'
 import { useAsyncState } from '@vueuse/core'
 import { injectPGlite } from '@electric-sql/pglite-vue'
 
-import { deleteOrganizationDB } from '@/pglite/queries/organizations/deleteOrganizationDB'
+import { deleteIndividualDB } from '@/pglite/queries/individuals/deleteIndividualDB'
 
-export function useDeleteOrganizationDb() {
+export function useDeleteIndividualDb() {
   const db = injectPGlite()
 
   const organizationId = ref<string>()
 
-  const q = useAsyncState(deleteOrganizationDB, undefined, { immediate: false })
+  const q = useAsyncState(deleteIndividualDB, undefined, { immediate: false })
 
   const execute = () => {
     if (organizationId.value) q.execute(0, db, organizationId.value)

@@ -4,11 +4,11 @@ import { useAsyncState } from '@vueuse/core'
 import { supabase } from '@/supabase/supabase'
 
 export function useDeleteIndividualApi() {
-  const individualId = ref<string>()
+  const id = ref<string>()
 
   const query = async () => {
-    if (individualId.value) {
-      return supabase.from('individuals').delete().eq('id', individualId.value)
+    if (id.value) {
+      return supabase.from('individuals').delete().eq('id', id.value)
     } else {
       throw new Error('Form is null or incomplete')
     }
@@ -20,5 +20,5 @@ export function useDeleteIndividualApi() {
   const error = computed(() => q.state.value?.error)
   const isSuccess = computed(() => q.isReady.value && !error.value)
 
-  return { ...q, data, error, isSuccess, individualId }
+  return { ...q, data, error, isSuccess, id }
 }
