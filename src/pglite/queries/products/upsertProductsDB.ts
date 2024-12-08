@@ -7,12 +7,22 @@ export async function upsertProductsDB(
 ) {
   // Build the query for bulk upsert
   const query = `
-    INSERT INTO public.products (id, code, name, price, cost_price, qte, org_id, bar_code, _synced)
+    INSERT INTO public.products (id, code, name, price, cost_price, qte, org_id, bar_code, updated_at, _synced)
     VALUES
     ${products
       .map(
-        (_, index) =>
-          `(COALESCE($${index * 9 + 1}, gen_random_uuid()), $${index * 9 + 2}, $${index * 9 + 3}, $${index * 9 + 4}, $${index * 9 + 5}, $${index * 9 + 6}, $${index * 9 + 7}, $${index * 9 + 8}, COALESCE($${index * 9 + 9}, true))`
+        (_, i) => `(
+          COALESCE($${i * 10 + 1}, gen_random_uuid()), 
+          $${i * 10 + 2}, 
+          $${i * 10 + 3}, 
+          $${i * 10 + 4}, 
+          $${i * 10 + 5}, 
+          $${i * 10 + 6}, 
+          $${i * 10 + 7}, 
+          $${i * 10 + 8}, 
+          $${i * 10 + 9},
+          COALESCE($${i * 10 + 10}, true)
+        )`
       )
       .join(', ')}
     ON CONFLICT (id)
@@ -24,7 +34,9 @@ export async function upsertProductsDB(
       qte = EXCLUDED.qte,
       org_id = EXCLUDED.org_id,
       bar_code = EXCLUDED.bar_code,
-      _synced = COALESCE(EXCLUDED._synced, true);
+      updated_at = EXCLUDED.updated_at,
+      _synced = COALESCE(EXCLUDED._synced, true)
+      RETURNING *;
   `
 
   // Flatten the products array into the required values for query execution
@@ -37,9 +49,9 @@ export async function upsertProductsDB(
     product.qte,
     product.org_id,
     product.bar_code || null,
-    product._synced ?? true // sync value
+    product.updated_at || null, // Default to NULL if not provided
+    product._synced ?? true // Default to true if not provided
   ])
-
   try {
     return await db.query(query, queryValues)
   } catch (error) {

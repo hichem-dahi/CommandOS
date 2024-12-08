@@ -7,9 +7,7 @@ export async function deleteProductDB(db: PGlite, productId: string) {
   `
 
   try {
-    const q = await db.query(query, [productId])
-    console.log(`Product with ID ${productId} deleted successfully.`)
-    return q
+    return db.query(query, [productId])
   } catch (error) {
     console.error(`Error deleting product with ID ${productId}:`, error)
   }
