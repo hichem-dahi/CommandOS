@@ -25,16 +25,38 @@
 import { computed, reactive } from 'vue'
 import { isSameDay } from 'date-fns'
 import { mdiPlus } from '@mdi/js'
+import { useLiveQuery } from '@electric-sql/pglite-vue'
 
-import { useGetOrdersApi } from '@/composables/api/orders/useGetOrdersApi'
+import { useOrdersSync } from '@/composables/sync/useOrdersSync'
 
 import OrderCard from '@/views/OrdersView/OrderCard.vue'
 import FilterBar from './OrdersView/FilterBar.vue'
 
 import type { Filters } from './OrdersView/models/models'
 
-const getOrdersApi = useGetOrdersApi()
-getOrdersApi.execute()
+const orders = useLiveQuery(
+  `SELECT 
+    o.*, 
+    -- Fetching individual data as a separate field
+    (
+        SELECT to_jsonb(i)
+        FROM public.individuals i
+        WHERE i.id = o.individual_id
+        LIMIT 1
+    ) AS individual,
+    -- Fetching client data as a separate field
+    (
+        SELECT to_jsonb(org)
+        FROM public.organizations org
+        WHERE org.id = o.client_id
+        LIMIT 1
+    ) AS client
+  FROM public.orders o;  
+`,
+  []
+)
+
+useOrdersSync()
 
 const filters = reactive<Filters>({
   docType: null,
@@ -43,7 +65,7 @@ const filters = reactive<Filters>({
 
 const filteredOrders = computed(
   () =>
-    getOrdersApi.data.value?.filter((o) => {
+    orders.rows.value?.filter((o) => {
       const docFilter = filters.docType ? o.document_type === filters.docType : true
       const dateFilter = filters.dateRange.length
         ? filters.dateRange.some((selectedDate) => isSameDay(o.date, selectedDate))
