@@ -1,10 +1,10 @@
 <template>
   <v-radio-group v-model="form.document_type">
-    <div v-if="form.org_id">
+    <div v-if="consumerType === ConsumerType.Organization">
       <v-radio :label="$t('invoice')" :value="DocumentType.Invoice" />
       <v-radio :label="$t('proforma')" :value="DocumentType.Proforma" />
     </div>
-    <div v-else-if="individualForm">
+    <div v-else-if="consumerType === ConsumerType.Individual">
       <v-radio :label="$t('voucher')" :value="DocumentType.Voucher" />
     </div>
     <v-radio :label="$t('delivery-note')" :value="DocumentType.DeliveryNote" />
@@ -40,9 +40,9 @@ import { numeric, requiredIf } from '@vuelidate/validators'
 
 import CreateDelivery from '../CreateDelivery.vue'
 
-import { DocumentType } from '@/models/models'
+import { ConsumerType, DocumentType } from '@/models/models'
 
-import { deliveryForm, form, individualForm, paymentForm } from './state'
+import { consumerType, deliveryForm, form, paymentForm } from './state'
 
 const rules = {
   payment_method: {
