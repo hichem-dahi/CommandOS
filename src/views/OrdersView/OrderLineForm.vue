@@ -47,11 +47,6 @@
         v-model="model.unit_price"
       />
     </v-col>
-    <v-col v-if="!$vuetify.display.mobile" cols="1">
-      <div class="pa-2 text-medium-emphasis text-caption">
-        {{ $t('total') }}: {{ model.total_price }}DA
-      </div>
-    </v-col>
     <v-col cols="1">
       <v-btn
         v-if="!isNew"
