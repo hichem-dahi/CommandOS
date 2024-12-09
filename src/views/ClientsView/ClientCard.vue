@@ -59,7 +59,7 @@
 import { computed, ref, watch } from 'vue'
 import { mdiAccount, mdiDomain, mdiDotsVertical, mdiHistory, mdiPlus } from '@mdi/js'
 
-import { useDeleteIndividualApi } from '@/composables/api/individuals/useDeleteIndividualApi'
+import { useDeleteIndividualDb } from '@/composables/db/individuals/useDeleteIndividualDb'
 import { useDeleteOrganizationDb } from '@/composables/db/organizations/useDeleteOrganizationDb'
 
 import DeleteItemModal from '@/views/OrderView/DeleteItemModal.vue'
@@ -68,7 +68,7 @@ import { ConsumerType, type Organization, type Individual } from '@/models/model
 
 const client = defineModel<Organization | Individual>()
 
-const deleteIndividualApi = useDeleteIndividualApi()
+const deleteIndividualDb = useDeleteIndividualDb()
 const deleteOrganizationDb = useDeleteOrganizationDb()
 
 const deleteDialog = ref(false)
@@ -82,15 +82,15 @@ function deleteClient() {
     deleteOrganizationDb.id.value = client.value.id
     deleteOrganizationDb.execute()
   } else if (consumerType.value == ConsumerType.Individual && client.value) {
-    deleteIndividualApi.id.value = client.value.id
-    deleteIndividualApi.execute()
+    deleteIndividualDb.id.value = client.value.id
+    deleteIndividualDb.execute()
   }
 }
 
 watch(
-  () => deleteIndividualApi.isSuccess.value,
-  (isSuccess) => {
-    if (isSuccess) {
+  [() => deleteIndividualDb.isSuccess.value, () => deleteOrganizationDb.isSuccess.value],
+  ([isSuccess1, isSuccess2]) => {
+    if (isSuccess1 || isSuccess2) {
       deleteDialog.value = true
     }
   }
