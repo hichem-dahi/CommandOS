@@ -7,12 +7,12 @@ import { deleteIndividualDB } from '@/pglite/queries/individuals/deleteIndividua
 export function useDeleteIndividualDb() {
   const db = injectPGlite()
 
-  const organizationId = ref<string>()
+  const id = ref<string>()
 
   const q = useAsyncState(deleteIndividualDB, undefined, { immediate: false })
 
   const execute = () => {
-    if (organizationId.value) q.execute(0, db, organizationId.value)
+    if (id.value) q.execute(0, db, id.value)
     else {
       throw new Error('Form is null or incomplete')
     }
@@ -21,5 +21,5 @@ export function useDeleteIndividualDb() {
   const error = computed(() => q.error.value)
   const isSuccess = computed(() => q.isReady.value && !error.value)
 
-  return { ...q, data, error, isSuccess, organizationId, execute }
+  return { ...q, data, error, isSuccess, id, execute }
 }
