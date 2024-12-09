@@ -52,16 +52,20 @@
 </template>
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
+import { injectPGlite } from '@electric-sql/pglite-vue'
 import { mdiAccount, mdiBell, mdiBellOff, mdiDotsVertical } from '@mdi/js'
 
 import { useInsertPushSubscriptionsApi } from '@/composables/api/pushSubscriptions/useInsertPushSubscriptionsApi'
-
-import MenuBar from './HomeView/MenuBar.vue'
+import { upsertOrganizationDB } from '@/pglite/queries/organizations/upsertOrganizationDB'
 
 import self from '@/composables/localStore/useSelf'
 
+import MenuBar from './HomeView/MenuBar.vue'
+
 import { fetchVapidPublicKey } from '@/supabase/api/fetchVapidPublicKey'
 import { urlBase64ToUint8Array } from '@/helpers/helpers'
+
+const db = injectPGlite()
 
 const insertPushSubscriptionsApi = useInsertPushSubscriptionsApi()
 
@@ -69,6 +73,12 @@ const deferredPrompt = ref()
 const isPermissionGranted = ref(Notification.permission === 'granted')
 
 onMounted(async () => {
+  await db.waitReady
+
+  const org = { ...self.value.user?.organization }
+  if (org) {
+    await upsertOrganizationDB(db, org)
+  }
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault()
     deferredPrompt.value = e
