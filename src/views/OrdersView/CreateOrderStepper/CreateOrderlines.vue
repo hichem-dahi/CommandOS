@@ -27,20 +27,19 @@
 import { computed } from 'vue'
 import useVuelidate from '@vuelidate/core'
 import { mdiPlus } from '@mdi/js'
+import { useLiveQuery } from '@electric-sql/pglite-vue'
 
 import OrderLineForm from '@/views/OrdersView/OrderLineForm.vue'
 
-import { useGetProductsApi } from '@/composables/api/products/useGetProductsApi'
-
-import type { OrderLine } from '@/models/models'
+import type { OrderLine, Product } from '@/models/models'
 
 import { orderlinesForm } from './state'
 
 const $v = useVuelidate()
 
-const getProductsApi = useGetProductsApi()
+const productsQuery = useLiveQuery('SELECT * FROM public.products;', [])
 
-const products = computed(() => getProductsApi.data.value || [])
+const products = computed(() => (productsQuery?.rows.value || []) as unknown as Product[])
 
 const availableProducts = computed(() =>
   products.value.filter((e) => {
