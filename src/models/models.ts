@@ -13,7 +13,7 @@ export interface Order {
   org_id: string
   individual_id: string | null
   client_id: string | null
-  date: Date | string
+  date: string
   order_lines: OrderLine[]
   delivery: Delivery
   document_type: DocumentType
@@ -23,12 +23,18 @@ export interface Order {
   total_price: number
   tva?: number
   ttc?: number
+  updated_at: string
+  _synced?: boolean
 }
 
 export interface Payment {
   id: string
+  order_id: string
+
   date: Date | string
   amount: number
+  updated_at: string
+  _synced?: boolean
 }
 
 export interface OrderLine {
@@ -39,6 +45,8 @@ export interface OrderLine {
   unit_price: number
   unit_cost_price: number | null
   total_price: number
+  updated_at: string
+  _synced?: boolean
 }
 
 export interface Individual {
@@ -46,6 +54,8 @@ export interface Individual {
   name: string
   phone: string | null
   org_id: string
+  updated_at: string
+  _synced?: boolean
 }
 
 export interface Delivery {
@@ -54,6 +64,8 @@ export interface Delivery {
   phone: string | undefined
   license_plate: string //xxxxx xxx xx
   destination: string
+  updated_at: string
+  _synced?: boolean
 }
 
 export interface Organization {
@@ -67,6 +79,8 @@ export interface Organization {
   address: string | null
   activity: string | null
   org_id: string | null
+  updated_at: string
+  _synced?: boolean
 }
 
 export interface Product {
@@ -88,6 +102,8 @@ export interface StockMovement {
   qte_change: number
   date: Date
   order_id?: string // To track the order related to the stock reduction
+  updated_at: string
+  _synced?: boolean
 }
 
 export enum StockMovementType {
