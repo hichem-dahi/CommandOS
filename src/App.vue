@@ -2,23 +2,17 @@
   <router-view></router-view>
 </template>
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
+import { onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { providePGlite } from '@electric-sql/pglite-vue'
 import { PGliteWorker } from '@electric-sql/pglite/worker'
+import { live } from '@electric-sql/pglite/live'
 
 import { supabase } from './supabase/supabase'
 
 import { useGetProfileApi } from './composables/api/auth/useGetProfileApi'
 
 import self from './composables/localStore/useSelf'
-
-import { upsertOrganization } from './pglite/queries/organizations/upsertOrganization'
-import { live } from '@electric-sql/pglite/live'
-
-const router = useRouter()
-
-const getProfileApi = useGetProfileApi()
 
 const db = new PGliteWorker(
   new Worker(new URL('./pglite/pglite.ts', import.meta.url), {
@@ -33,12 +27,11 @@ const db = new PGliteWorker(
 
 providePGlite(db)
 
+const router = useRouter()
+
+const getProfileApi = useGetProfileApi()
+
 onMounted(async () => {
-  await db.waitReady
-
-  const org = self.value.user?.organization
-  if (org) await upsertOrganization(db, org)
-
   supabase.auth.onAuthStateChange(async (_, _session) => {
     if (_session) {
       self.value.session = _session
