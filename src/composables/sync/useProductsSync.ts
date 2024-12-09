@@ -47,7 +47,7 @@ export function useProductsSync() {
     async (isSuccess) => {
       if (isSuccess && pushProductsApi.data.value) {
         upsertProductsDb.form.value = pushProductsApi.data.value
-        upsertProductsDb.execute(db)
+        upsertProductsDb.execute()
       }
     }
   )
@@ -68,7 +68,7 @@ export function useProductsSync() {
     async (sortedProducts) => {
       if (sortedProducts?.length) {
         upsertProductsDb.form.value = sortedProducts
-        upsertProductsDb.execute(db)
+        upsertProductsDb.execute()
       }
     }
   )
