@@ -41,7 +41,7 @@
                   v-model="newOrderline"
                   :is-new="true"
                   :availableProducts="availableProducts"
-                  :products="getProductsApi.data.value || []"
+                  :products="products || []"
                 >
                   <template v-slot:actions="{ form, v }">
                     <v-card-actions>
@@ -138,27 +138,27 @@ import { format } from 'date-fns'
 import { cloneDeep, isEqual, isNumber, sum } from 'lodash'
 import { mdiDelete, mdiPlus } from '@mdi/js'
 
-import { useUpsertOrderlinesApi } from '@/composables/api/orderlines/useUpsertOrderlinesApi'
-import { useGetProductsApi } from '@/composables/api/products/useGetProductsApi'
-import { useUpdateOrderApi } from '@/composables/api/orders/useUpdateOrderApi'
-import { useDeleteOrderlinesApi } from '@/composables/api/orderlines/useDeleteOrderlinesApi'
+import { useUpsertOrderlinesDb } from '@/composables/db/orderlines/useUpsertOrderlinesDb'
+import { useUpsertOrdersDb } from '@/composables/db/orders/useUpsertOrdersDb'
+import { useDeleteOrderlinesDb } from '@/composables/db/orderlines/useDeleteOrderlinesDb'
+
+import { useProductsSync } from '@/composables/sync/useProductsSync'
 
 import OrderLineForm from '@/views/OrdersView/OrderLineForm.vue'
 import DeleteItemModal from './DeleteItemModal.vue'
 
 import { ConsumerType, OrderStatus } from '@/models/models'
-import type { OrderData, OrderLineData } from '@/composables/api/orders/useGetOrderApi'
 import type { Validation } from '@vuelidate/core'
 import type { TablesInsert } from '@/types/database.types'
+import type { OrderData, OrderLineData } from '@/composables/api/orders/useGetOrderApi'
 
 const order = defineModel<OrderData>('order', { required: true })
 
 const { t } = useI18n()
 
-const deleteOrderlinesApi = useDeleteOrderlinesApi()
-const upsertOrderlinesApi = useUpsertOrderlinesApi()
-const getProductsApi = useGetProductsApi()
-const updateOrderApi = useUpdateOrderApi()
+const deleteOrderlinesDb = useDeleteOrderlinesDb()
+const upsertOrderlinesDb = useUpsertOrderlinesDb()
+const upsertOrderDb = useUpsertOrdersDb()
 
 const newlineDialog = ref(false)
 const deleteDialog = ref(false)
@@ -195,7 +195,7 @@ const headers = computed(
 )
 
 const isLoading = computed(
-  () => deleteOrderlinesApi.isLoading.value || upsertOrderlinesApi.isLoading.value
+  () => deleteOrderlinesDb.isLoading.value || upsertOrderlinesDb.isLoading.value
 )
 
 const isModified = computed(() => !isEqual(order.value.order_lines, proxyOrderlines.value))
@@ -239,7 +239,7 @@ const items = computed(() =>
   })
 )
 
-const products = computed(() => getProductsApi.data.value || [])
+const { products } = useProductsSync()
 
 const availableProducts = computed(() =>
   products.value.filter((e) => {
@@ -280,45 +280,34 @@ function cancelEdit() {
 }
 
 function confirmEdit() {
-  deleteOrderlinesApi.orderId.value = order.value.id
-  deleteOrderlinesApi.execute()
+  deleteOrderlinesDb.ids.value = order.value.order_lines.map((ol) => ol.id)
+  deleteOrderlinesDb.execute()
 }
 
 watch(
-  () => deleteOrderlinesApi.isSuccess.value,
+  () => deleteOrderlinesDb.isSuccess.value,
   (isSuccess) => {
     if (isSuccess) {
-      upsertOrderlinesApi.form.value = proxyOrderlines.value.map(({ product, ...rest }) => {
+      upsertOrderlinesDb.form.value = proxyOrderlines.value.map(({ product, ...rest }) => {
         rest.order_id = order.value.id
         return rest
       })
-      upsertOrderlinesApi.execute()
+      upsertOrderlinesDb.execute()
     }
   }
 )
 
 watch(
-  () => upsertOrderlinesApi.isSuccess.value,
-  (isSuccessApi) => {
-    if (isSuccessApi && upsertOrderlinesApi.data.value) {
-      const total_price = sum(upsertOrderlinesApi.data.value.map((o) => o.total_price))
-      updateOrderApi.form.value = Object.assign({}, updateOrderApi.form.value, {
-        id: order.value.id,
-        total_price,
-        tva: total_price * 0.19,
-        ttc: total_price * 1.19
-      })
-      updateOrderApi.execute()
-    }
-  }
-)
+  () => upsertOrderlinesDb.isSuccess.value,
+  (isSuccessDb) => {
+    if (isSuccessDb && upsertOrderlinesDb.data.value) {
+      const total_price = sum(upsertOrderlinesDb.data.value.map((o) => Number(o.total_price)))
 
-watch(
-  () => updateOrderApi.isSuccess.value,
-  (isSuccessApi) => {
-    if (isSuccessApi && updateOrderApi.data.value) {
-      order.value = updateOrderApi.data.value
-      isSuccess.value = true
+      if (order.value)
+        upsertOrderDb.form.value = [
+          { ...order.value, total_price, tva: total_price * 0.19, ttc: total_price * 1.19 }
+        ]
+      upsertOrderDb.execute()
     }
   }
 )
@@ -345,7 +334,7 @@ defineExpose({
 </script>
 
 <style>
-.v-number-input {
+.number-input {
   max-width: 70px;
   min-width: 50px;
   .v-field__append-inner {
@@ -354,7 +343,7 @@ defineExpose({
 }
 
 .total-info {
-  text-transform: capitalize;
+  text-transform: cDbtalize;
   font-size: 0.85rem;
   padding: 0 1rem;
 }
