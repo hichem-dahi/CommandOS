@@ -60,18 +60,18 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch, watchEffect } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { isString } from 'lodash'
 
-import { useInsertOrderApi } from '@/composables/api/orders/useInsertOrderApi'
-import { useInsertDeliveryApi } from '@/composables/api/deliveries/useInsertDeliveryApi'
-import { useInsertIndividualApi } from '@/composables/api/individuals/useInsertIndividualApi'
-import { useInsertOrderlinesApi } from '@/composables/api/orderlines/useInsertOrderlinesApi'
-import { useInsertPaymentsApi } from '@/composables/api/payments/useInsertPaymentApi'
+import { useUpsertOrdersDb } from '@/composables/db/orders/useUpsertOrdersDb'
+import { useUpsertDeliveriesDb } from '@/composables/db/deliveries/useUpsertDeliveriesDb'
+import { useUpsertOrderlinesDb } from '@/composables/db/orderlines/useUpsertOrderlinesDb'
+import { useUpsertPaymentsDb } from '@/composables/db/payments/useUpsertPaymentsDb'
+import { useUpsertIndividualsDb } from '@/composables/db/individuals/useUpsertIndividualsDb'
 
-import { useGetIndividualsApi } from '@/composables/api/individuals/useGetIndividualsApi'
-import { useGetOrganizationsApi } from '@/composables/api/organizations/useGetOrganizationsApi'
+import { useOrganizationsSync } from '@/composables/sync/useOrganizationsSync'
+import { useIndividualsSync } from '@/composables/sync/useIndividualsSync'
 
 import SelectConsumer from './CreateOrderStepper/SelectConsumer.vue'
 import CreateOrderlines from './CreateOrderStepper/CreateOrderlines.vue'
@@ -107,29 +107,25 @@ defineEmits(['success'])
 const route = useRoute()
 const router = useRouter()
 
-const insertOrderApi = useInsertOrderApi()
-const insertDeliveryApi = useInsertDeliveryApi()
-const insertIndividualApi = useInsertIndividualApi()
-const insertOrderlinesApi = useInsertOrderlinesApi()
-const insertPaymentApi = useInsertPaymentsApi()
-const getOrganizationsApi = useGetOrganizationsApi()
-const getIndividualsApi = useGetIndividualsApi()
-getOrganizationsApi.execute()
-getIndividualsApi.execute()
+const upsertOrdersDb = useUpsertOrdersDb()
+const upsertDeliveriesDb = useUpsertDeliveriesDb()
+const upsertIndividualsDb = useUpsertIndividualsDb()
+const upsertOrderlinesDb = useUpsertOrderlinesDb()
+const upsertPaymentDb = useUpsertPaymentsDb()
+
+const { organizations } = useOrganizationsSync()
+const { individuals } = useIndividualsSync()
 
 const step = ref(Steps.SelectConsumer)
-
-const organizations = computed(() => getOrganizationsApi.data.value || [])
-const individuals = computed(() => getIndividualsApi.data.value || [])
 
 const consumerPicked = computed(() => route.query.consumer)
 
 const isLoading = computed(
   () =>
-    insertOrderApi.isLoading.value ||
-    insertDeliveryApi.isLoading.value ||
-    insertIndividualApi.isLoading.value ||
-    insertOrderlinesApi.isLoading.value
+    upsertOrdersDb.isLoading.value ||
+    upsertDeliveriesDb.isLoading.value ||
+    upsertIndividualsDb.isLoading.value ||
+    upsertOrderlinesDb.isLoading.value
 )
 
 onMounted(() => {
@@ -158,17 +154,17 @@ function nextStep(v: Validation) {
   if (!v.$invalid) {
     if (step.value === Steps.ExtraInfo) {
       cleanForm()
-      insertOrderApi.form.value = { ...(form as TablesInsert<'orders'>) }
+      upsertOrdersDb.form.value = [{ ...(form as TablesInsert<'orders'>), _synced: false }]
       if (form.document_type === DocumentType.DeliveryNote) {
-        insertDelivery(deliveryForm.value)
+        upsertDelivery(deliveryForm.value)
       }
 
-      if (individualForm.value && !insertOrderApi.form.value.individual_id) {
+      if (individualForm.value && !upsertOrdersDb.form.value[0].individual_id) {
         const { id, ...form } = individualForm.value
-        if (form.org_id) insertIndividual(form as TablesInsert<'individuals'>)
+        if (form.org_id) upsertIndividual(form as TablesInsert<'individuals'>)
         return
       }
-      insertOrderApi.execute()
+      upsertOrdersDb.execute()
 
       return
     }
@@ -177,11 +173,11 @@ function nextStep(v: Validation) {
   }
 }
 
-const isReadyInsertOrderApi = computed(() => {
-  const deliveryId = insertDeliveryApi.data.value?.id
-  const deliveryFormId = insertOrderApi.form.value?.delivery_id
-  const individualId = insertIndividualApi.data.value?.id
-  const individualFormId = insertOrderApi.form.value?.individual_id
+const isReadyUpsertOrdersDb = computed(() => {
+  const deliveryId = upsertDeliveriesDb.data.value?.[0]?.id
+  const deliveryFormId = upsertOrdersDb.form.value?.[0]?.delivery_id
+  const individualId = upsertIndividualsDb.data.value?.[0]?.id
+  const individualFormId = upsertOrdersDb.form.value?.[0]?.individual_id
 
   // Check if `delivery_id` is required
   const isDeliveryValid = deliveryId ? !!deliveryFormId : true
@@ -194,42 +190,42 @@ const isReadyInsertOrderApi = computed(() => {
 })
 
 watch(
-  () => insertDeliveryApi.isSuccess.value,
+  () => upsertDeliveriesDb.isSuccess.value,
   (isSuccess) => {
-    if (isSuccess && insertDeliveryApi.data.value) {
-      Object.assign(insertOrderApi.form.value!, {
-        delivery_id: insertDeliveryApi.data.value.id
+    if (isSuccess && upsertDeliveriesDb.data.value?.[0]) {
+      Object.assign({}, upsertOrdersDb.form.value?.[0], {
+        delivery_id: upsertDeliveriesDb.data.value?.[0].id
       })
     }
   }
 )
 
 watch(
-  () => insertIndividualApi.isSuccess.value,
+  () => upsertIndividualsDb.isSuccess.value,
   (isSuccess) => {
-    if (isSuccess && insertIndividualApi.data.value) {
-      if (insertOrderApi.form.value) {
-        Object.assign(insertOrderApi.form.value, {
-          individual_id: insertIndividualApi.data.value.id
+    if (isSuccess && upsertIndividualsDb.data.value) {
+      if (upsertOrdersDb.form.value?.[0]) {
+        Object.assign({}, upsertOrdersDb.form.value?.[0], {
+          individual_id: upsertIndividualsDb.data.value[0].id
         })
       }
     }
   }
 )
 
-watch(isReadyInsertOrderApi, (isReady) => {
-  if (isReady) insertOrderApi.execute()
+watch(isReadyUpsertOrdersDb, (isReady) => {
+  if (isReady) upsertOrdersDb.execute()
 })
 
 watch(
-  () => insertOrderApi.isSuccess.value,
+  () => upsertOrdersDb.isSuccess.value,
   (isSuccess) => {
-    if (isSuccess && insertOrderApi.data.value?.id) {
-      insertOrderlines(orderlinesForm.value)
+    if (isSuccess && upsertOrdersDb.data.value?.[0].id) {
+      upsertOrderlines(orderlinesForm.value)
       if (paymentForm?.amount) {
         const amount = Number(paymentForm.amount) // Default to 0 if conversion fails
-        const order_id = insertOrderApi.data.value?.id
-        insertPayment({ ...paymentForm, order_id, amount })
+        const order_id = upsertOrdersDb.data.value?.[0].id
+        upsertPayment({ ...paymentForm, order_id, amount })
       }
       resetForm()
       resetPayment()
@@ -238,40 +234,41 @@ watch(
 )
 
 watch(
-  [() => insertOrderlinesApi.isSuccess.value, () => insertPaymentApi.isSuccess.value],
+  [() => upsertOrderlinesDb.isSuccess.value, () => upsertPaymentDb.isSuccess.value],
   (isSuccess1, isSuccess2) => {
-    const isSuccess2Valid = insertPaymentApi.data.value?.id ? isSuccess2 : true
+    const isSuccess2Valid = upsertPaymentDb.data.value?.[0].id ? isSuccess2 : true
     if (isSuccess1 && isSuccess2Valid) {
       router.go(-1)
     }
   }
 )
-function insertPayment(form: TablesInsert<'payments'>) {
-  insertPaymentApi.form.value = {
-    ...form
-  }
-  insertPaymentApi.execute()
+
+function upsertPayment(form: TablesInsert<'payments'>) {
+  upsertPaymentDb.form.value = [
+    {
+      ...form,
+      _synced: false
+    }
+  ]
+  upsertPaymentDb.execute()
 }
 
-function insertIndividual(form: TablesInsert<'individuals'>) {
-  insertIndividualApi.form.value = { ...form }
-  insertIndividualApi.execute()
+function upsertIndividual(form: TablesInsert<'individuals'>) {
+  upsertIndividualsDb.form.value = [{ ...form, _synced: false }]
+  upsertIndividualsDb.execute()
 }
 
-function insertOrder() {
-  insertOrderApi.execute()
-}
-
-function insertOrderlines(form: TablesInsert<'order_lines'>[]) {
-  insertOrderlinesApi.form.value = form.map((o) => ({
+function upsertOrderlines(form: TablesInsert<'order_lines'>[]) {
+  upsertOrderlinesDb.form.value = form.map((o) => ({
     ...o,
-    order_id: insertOrderApi.data.value?.id || ''
+    order_id: upsertOrdersDb.data.value?.[0].id || '',
+    _synced: false
   }))
-  insertOrderlinesApi.execute()
+  upsertOrderlinesDb.execute()
 }
 
-function insertDelivery(delivery: TablesInsert<'deliveries'>) {
-  insertDeliveryApi.form.value = { ...delivery }
-  insertDeliveryApi.execute()
+function upsertDelivery(delivery: TablesInsert<'deliveries'>) {
+  upsertDeliveriesDb.form.value = [{ ...delivery, _synced: false }]
+  upsertDeliveriesDb.execute()
 }
 </script>
