@@ -13,9 +13,9 @@ export function useUpsertOrderlinesDb() {
   const q = useAsyncState(upsertOrderlinesDB, undefined, { immediate: false })
 
   const execute = () => {
-    if (form.value) q.execute(0, db, form.value)
+    if (form.value) return q.execute(0, db, form.value)
     else {
-      throw new Error('Form is null or incomplete')
+      return undefined
     }
   }
 

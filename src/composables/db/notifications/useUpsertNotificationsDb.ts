@@ -1,25 +1,26 @@
 import { computed, ref } from 'vue'
 import { useAsyncState } from '@vueuse/core'
 import { injectPGlite } from '@electric-sql/pglite-vue'
-import { upsertOrdersDB } from '@/pglite/queries/orders/upsertOrdersDB'
+
+import { upsertNotificationsDB } from '@/pglite/queries/notifications/upsertNotificationsDB'
 
 import type { Tables, TablesInsert } from '@/types/database.types'
 
-export function useUpsertOrdersDb() {
+export function useUpsertNotificationsDb() {
   const db = injectPGlite()
 
-  const form = ref<(TablesInsert<'orders'> & { _synced?: boolean })[]>()
+  const form = ref<(TablesInsert<'notifications'> & { _synced?: boolean })[]>()
 
-  const q = useAsyncState(upsertOrdersDB, undefined, { immediate: false })
+  const q = useAsyncState(upsertNotificationsDB, undefined, { immediate: false })
 
   const execute = () => {
-    if (form.value) return q.execute(0, db, form.value)
+    if (form.value?.length) return q.execute(0, db, form.value)
     else {
       return undefined
     }
   }
 
-  const data = computed(() => q.state.value?.rows as Tables<'orders'>[])
+  const data = computed(() => q.state.value?.rows as Tables<'notifications'>[])
   const error = computed(() => q.error.value)
   const isSuccess = computed(() => q.isReady.value && !error.value)
 
