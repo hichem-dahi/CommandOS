@@ -290,7 +290,7 @@ watch(
     if (isSuccess) {
       upsertOrderlinesDb.form.value = proxyOrderlines.value.map(({ product, ...rest }) => {
         rest.order_id = order.value.id
-        return rest
+        return { ...rest, _synced: false }
       })
       upsertOrderlinesDb.execute()
     }
@@ -305,7 +305,13 @@ watch(
 
       if (order.value)
         upsertOrderDb.form.value = [
-          { ...order.value, total_price, tva: total_price * 0.19, ttc: total_price * 1.19 }
+          {
+            ...order.value,
+            total_price,
+            tva: total_price * 0.19,
+            ttc: total_price * 1.19,
+            _synced: false
+          }
         ]
       upsertOrderDb.execute()
     }
