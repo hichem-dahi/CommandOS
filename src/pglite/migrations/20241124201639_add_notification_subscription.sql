@@ -21,7 +21,11 @@ CREATE UNIQUE INDEX push_subscriptions_endpoint_key ON public.push_subscriptions
 
 CREATE UNIQUE INDEX push_subscriptions_pkey ON public.push_subscriptions USING btree (id);
 
+CREATE UNIQUE INDEX notifications_pkey ON public.notifications USING btree (id);
+
 alter table "public"."push_subscriptions" add constraint "push_subscriptions_pkey" PRIMARY KEY using index "push_subscriptions_pkey";
+
+alter table "public"."notifications" add constraint "notifications_pkey" PRIMARY KEY using index "notifications_pkey";
 
 alter table "public"."notifications" add constraint "notifications_org_id_fkey" FOREIGN KEY (org_id) REFERENCES public.organizations(id) not valid;
 
@@ -32,3 +36,5 @@ alter table "public"."push_subscriptions" add constraint "push_subscriptions_end
 alter table "public"."push_subscriptions" add constraint "push_subscriptions_organization_id_fkey" FOREIGN KEY (organization_id) REFERENCES public.organizations(id) not valid;
 
 alter table "public"."push_subscriptions" validate constraint "push_subscriptions_organization_id_fkey";
+
+alter table "public"."notifications" drop column "created_at";
