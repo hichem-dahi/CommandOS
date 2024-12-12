@@ -1,7 +1,5 @@
-import { computed, ref, watch } from 'vue'
-import { useLocalStorage, watchOnce } from '@vueuse/core'
+import { computed, watch } from 'vue'
 import { injectPGlite, useLiveQuery } from '@electric-sql/pglite-vue'
-import { max } from 'lodash'
 
 import { useGetProductsApi } from '../api/products/useGetProductsApi'
 import { useUpsertProductsApi } from '../api/products/useUpsertProductsApi'
@@ -10,54 +8,39 @@ import { useUpsertProductsDb } from '../db/products/useUpsertProductsDb'
 
 import type { Product } from '@/models/models'
 
-const productsSync = useLocalStorage('products_sync', { push: '', pull: '' })
-
 export function useProductsSync() {
   const db = injectPGlite()
-
-  const pushAttempted = ref(false)
 
   const pushProductsApi = useUpsertProductsApi()
   const pullProductsApi = useGetProductsApi()
   const upsertProductsDb = useUpsertProductsDb()
 
   const productsQuery = useLiveQuery('SELECT * FROM public.products;', [])
-
-  const products = computed(() => (productsQuery?.rows.value || []) as unknown as Product[])
-  const productsToSync = computed(() =>
-    products.value
-      .filter((p) => p._synced === false)
-      .map(({ _synced, updated_at, ...rest }) => rest)
+  const productsToSyncQuery = useLiveQuery(
+    'SELECT * FROM public.products WHERE _synced = false;',
+    []
   )
-  const maxUpdatedAt = computed(() => {
-    return max(products.value.map((p) => p.updated_at)) || ''
-  })
+
+  const products = computed(() => (productsQuery.rows?.value || []) as unknown as Product[])
+  const productsToSync = computed(
+    () =>
+      (productsToSyncQuery.rows.value?.map(({ _synced, updated_at, ...rest }) => rest) ||
+        []) as unknown as Product[]
+  )
 
   watch(productsToSync, (productsToSync) => {
-    if (productsToSync.length) {
-      pushProductsApi.form.value = productsToSync
-      pushProductsApi.execute()
-    } else {
-      pushAttempted.value = true
-    }
+    pushProductsApi.form.value = productsToSync
+    pushProductsApi.execute()
   })
 
-  watch(
-    () => pushProductsApi.isSuccess.value,
-    async (isSuccess) => {
-      if (isSuccess && pushProductsApi.data.value) {
-        upsertProductsDb.form.value = pushProductsApi.data.value
-        upsertProductsDb.execute()
-      }
-    }
-  )
-
-  watchOnce(
-    [() => upsertProductsDb.isSuccess.value, pushAttempted],
-    async ([isSuccess, pushAttempted]) => {
-      if (isSuccess || pushAttempted) {
-        pullProductsApi.params.date = maxUpdatedAt.value
+  const watcher = watch(
+    () => pushProductsApi.isReady.value,
+    async (isReady) => {
+      const result = await db?.query('SELECT MAX(updated_at) AS max_date FROM public.products;')
+      if (isReady) {
+        pullProductsApi.params.date = result?.rows?.[0]?.max_date || null
         pullProductsApi.execute()
+        watcher()
       }
     }
   )
