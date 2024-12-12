@@ -193,6 +193,7 @@ export type Database = {
           total_price: number
           ttc: number | null
           tva: number | null
+          updated_at: string
         }
         Insert: {
           client_id?: string | null
@@ -210,6 +211,7 @@ export type Database = {
           total_price: number
           ttc?: number | null
           tva?: number | null
+          updated_at?: string
         }
         Update: {
           client_id?: string | null
@@ -227,6 +229,7 @@ export type Database = {
           total_price?: number
           ttc?: number | null
           tva?: number | null
+          updated_at?: string
         }
         Relationships: [
           {
