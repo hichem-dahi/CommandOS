@@ -9,10 +9,10 @@ export function useUpsertOrganizationsApi() {
   const form = ref<TablesInsert<'organizations'>[]>() // Use ref to make it reactive
 
   const query = async () => {
-    if (form.value) {
+    if (form.value?.length) {
       return supabase.from('organizations').upsert(form.value).select()
     } else {
-      throw new Error('Form is null or incomplete')
+      return undefined
     }
   }
 
@@ -22,12 +22,5 @@ export function useUpsertOrganizationsApi() {
   const error = computed(() => q.state.value?.error)
   const isSuccess = computed(() => q.isReady.value && !error.value)
 
-  const onSuccess = (callback: (d: typeof data.value) => void) => {
-    watch(isSuccess, (isSuccess) => {
-      if (isSuccess) {
-        callback(data.value)
-      }
-    })
-  }
-  return { ...q, data, error, form, isSuccess, onSuccess }
+  return { ...q, data, error, form, isSuccess }
 }
