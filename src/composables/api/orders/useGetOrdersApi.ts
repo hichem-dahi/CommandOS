@@ -17,7 +17,15 @@ export function useGetOrdersApi() {
   })
 
   const query = async () => {
-    const queryBuilder = supabase.from('orders').select()
+    const queryBuilder = supabase.from('orders').select(
+      `
+        *,
+        client:organizations!orders_client_id_fkey (*),   
+        order_lines:order_lines (*),  
+        delivery:deliveries (*),
+        individual:individuals (*)
+      `
+    )
 
     if (orgId) {
       queryBuilder.eq('org_id', orgId)
@@ -32,7 +40,7 @@ export function useGetOrdersApi() {
     }
 
     if (params.date) {
-      queryBuilder.eq('updated_at', params.date)
+      queryBuilder.gt('updated_at', params.date)
     }
 
     return queryBuilder
