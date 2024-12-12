@@ -224,12 +224,18 @@ function addPayment(payment: TablesInsert<'payments'>) {
 watch(
   () => UpsertStockMovementsDb.isSuccess.value,
   (isSuccess) => {
+    if (!order.value) return
+
     const moveType = UpsertStockMovementsDb.data.value[0].qte_change > 0 ? 1 : -1
     if (isSuccess && moveType === 1) {
-      UpsertOrdersDb.form.value = [{ ...order.value, status: OrderStatus.Confirmed }]
+      UpsertOrdersDb.form.value = [
+        { ...order.value, status: OrderStatus.Confirmed, _synced: false }
+      ]
       UpsertOrdersDb.execute()
     } else if (isSuccess && moveType === -1) {
-      UpsertOrdersDb.form.value = [{ ...order.value, status: OrderStatus.Cancelled }]
+      UpsertOrdersDb.form.value = [
+        { ...order.value, status: OrderStatus.Cancelled, _synced: false }
+      ]
       UpsertOrdersDb.execute()
     }
   }
@@ -266,11 +272,13 @@ watch(
 watch(
   () => upsertPaymentApi.isSuccess.value,
   (isSuccess) => {
-    if (isSuccess && upsertPaymentApi.data.value?.[0].amount) {
-      UpsertOrdersDb.form.value = {
-        ...order.value,
-        paid_price: (order.value?.paid_price || 0) + upsertPaymentApi.data.value?.[0].amount
-      }
+    if (isSuccess && upsertPaymentApi.data.value?.[0].amount && order.value) {
+      UpsertOrdersDb.form.value = [
+        {
+          ...order.value,
+          paid_price: (order.value?.paid_price || 0) + upsertPaymentApi.data.value?.[0].amount
+        }
+      ]
       UpsertOrdersDb.execute()
     }
   }
