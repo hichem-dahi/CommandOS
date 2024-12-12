@@ -1,7 +1,5 @@
-import { computed, ref, watch } from 'vue'
-import { useLiveQuery } from '@electric-sql/pglite-vue'
-import { watchOnce } from '@vueuse/core'
-import { max } from 'lodash'
+import { computed, watch } from 'vue'
+import { injectPGlite, useLiveQuery } from '@electric-sql/pglite-vue'
 
 import { useGetOrganizationsApi } from '../api/organizations/useGetOrganizationsApi'
 import { useUpsertOrganizationsApi } from '../api/organizations/useUpsertOrganizationsApi'
@@ -11,7 +9,7 @@ import { useUpsertOrganizationsDb } from '../db/organizations/useUpsertOrganizat
 import type { Organization } from '@/models/models'
 
 export function useOrganizationsSync() {
-  const pushAttempted = ref(false)
+  const db = injectPGlite()
 
   const pullOrganizationsApi = useGetOrganizationsApi()
   const pushOrganizationsApi = useUpsertOrganizationsApi()
@@ -25,38 +23,26 @@ export function useOrganizationsSync() {
 
   const organizationsToSync = computed(() =>
     organizations.value
-      .filter((org) => org._synced === false)
+      ?.filter((org) => org._synced === false)
       .map(({ _synced, updated_at, ...rest }) => rest)
   )
 
-  const maxUpdatedAt = computed(() => max(organizations.value.map((o) => o.updated_at)) || '')
-
   //push
   watch(organizationsToSync, async (organizationsToSync) => {
-    if (organizationsToSync.length) {
-      pushOrganizationsApi.form.value = organizationsToSync
-      pushOrganizationsApi.execute()
-    } else {
-      pushAttempted.value = true
-    }
+    pushOrganizationsApi.form.value = organizationsToSync
+    pushOrganizationsApi.execute()
   })
 
-  watch(
-    () => pushOrganizationsApi.isSuccess.value,
-    (isSuccess) => {
-      if (isSuccess && pushOrganizationsApi.data.value) {
-        upsertOrganizationsDb.form.value = pushOrganizationsApi.data.value
-        upsertOrganizationsDb.execute()
-      }
-    }
-  )
-
-  watchOnce(
-    [() => upsertOrganizationsDb.isSuccess.value, pushAttempted],
-    ([isSuccess, pushAttempted]) => {
-      if (isSuccess || pushAttempted) {
-        pullOrganizationsApi.params.date = maxUpdatedAt.value
+  const watcher = watch(
+    () => pushOrganizationsApi.isReady.value,
+    async (isReady) => {
+      const result = await db?.query(
+        'SELECT MAX(updated_at) AS max_date FROM public.organizations;'
+      )
+      if (isReady) {
+        pullOrganizationsApi.params.date = result?.rows?.[0]?.max_date || null
         pullOrganizationsApi.execute()
+        watcher() // Stop the watcher after triggering
       }
     }
   )
