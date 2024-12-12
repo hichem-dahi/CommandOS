@@ -3,7 +3,7 @@ import type { PGlite } from '@electric-sql/pglite'
 
 export async function upsertOrdersDB(
   db: PGlite,
-  orders: (TablesInsert<'orders'> & { _synced: boolean })[]
+  orders: (TablesInsert<'orders'> & { _synced?: boolean })[]
 ) {
   const query = `
     INSERT INTO public.orders (
