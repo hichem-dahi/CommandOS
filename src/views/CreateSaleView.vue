@@ -48,13 +48,17 @@ import { computed, ref, watch } from 'vue'
 import useVuelidate from '@vuelidate/core'
 import { mdiBarcodeScan } from '@mdi/js'
 
+import { useUpsertOrderlinesDb } from '@/composables/db/orderlines/useUpsertOrderlinesDb'
+import { useUpsertOrdersDb } from '@/composables/db/orders/useUpsertOrdersDb'
+import { useUpsertPaymentsDb } from '@/composables/db/payments/useUpsertPaymentsDb'
+import { useUpsertNotificationsDb } from '@/composables/db/notifications/useUpsertNotificationsDb'
+
+import { useProductsSync } from '@/composables/sync/useProductsSync'
+
+import self from '@/composables/localStore/useSelf'
+
 import CreateOrderlines from './OrdersView/CreateOrderStepper/CreateOrderlines.vue'
 import BarcodeScanner from '@/components/BarcodeScanner.vue'
-
-import { useGetProductsApi } from '@/composables/api/products/useGetProductsApi'
-import { useInsertOrderlinesApi } from '@/composables/api/orderlines/useInsertOrderlinesApi'
-import { useInsertOrderApi } from '@/composables/api/orders/useInsertOrderApi'
-import { useInsertPaymentsApi } from '@/composables/api/payments/useInsertPaymentApi'
 
 import {
   cleanForm,
@@ -65,27 +69,25 @@ import {
   resetPayment
 } from './OrdersView/CreateOrderStepper/state'
 
-import type { TablesInsert } from '@/types/database.types'
 import { DocumentType, OrderStatus } from '@/models/models'
-import { useInsertNotificationApi } from '@/composables/api/notifications/useInsertNotificationApi'
-import self from '@/composables/localStore/useSelf'
+import type { TablesInsert } from '@/types/database.types'
 
-const getProductsApi = useGetProductsApi()
-const insertOrderApi = useInsertOrderApi()
-const insertOrderlinesApi = useInsertOrderlinesApi()
-const insertPaymentApi = useInsertPaymentsApi()
-const insertNotificationApi = useInsertNotificationApi()
+const { products } = useProductsSync()
+
+const upsertOrdersDb = useUpsertOrdersDb()
+const upsertOrderlinesDb = useUpsertOrderlinesDb()
+const upsertPaymentsDb = useUpsertPaymentsDb()
+const upsertNotificationsDb = useUpsertNotificationsDb()
 
 const showScanner = ref(false)
 
 const $v = useVuelidate()
 
-const products = computed(() => getProductsApi.data.value || [])
 const isLoading = computed(
   () =>
-    insertOrderlinesApi.isLoading.value ||
-    insertOrderApi.isLoading.value ||
-    insertPaymentApi.isLoading.value
+    upsertOrderlinesDb.isLoading.value ||
+    upsertOrdersDb.isLoading.value ||
+    upsertPaymentsDb.isLoading.value
 )
 
 function selectProduct(barcode: number) {
@@ -127,8 +129,12 @@ function submitSale() {
     cleanForm()
     form.status = OrderStatus.Confirmed
     form.document_type = DocumentType.Voucher
-    insertOrderApi.form.value = { ...(form as TablesInsert<'orders'>) }
-    insertOrderApi.execute()
+    const org_id = self.value.user?.organization_id
+    if (org_id) {
+      debugger
+      upsertOrdersDb.form.value = [{ ...form, org_id, _synced: false }]
+      upsertOrdersDb.execute()
+    }
   }
 }
 
@@ -140,22 +146,20 @@ watch(
 )
 
 watch(
-  () => insertOrderApi.isSuccess.value,
+  () => upsertOrdersDb.isSuccess.value,
   (isSuccess) => {
-    if (isSuccess && insertOrderApi.data.value?.id) {
-      insertOrderlinesApi.form.value = orderlinesForm.value.map((o) => ({
+    const order_id = upsertOrdersDb.data.value?.[0].id
+    if (isSuccess && order_id) {
+      upsertOrderlinesDb.form.value = orderlinesForm.value.map((o) => ({
         ...o,
-        order_id: insertOrderApi.data.value?.id || ''
+        order_id,
+        _synced: false
       }))
 
-      insertOrderlinesApi.execute()
+      upsertOrderlinesDb.execute()
 
-      if (paymentForm?.amount) {
-        insertPaymentApi.form.value = {
-          ...paymentForm,
-          order_id: insertOrderApi.data.value?.id
-        } as TablesInsert<'payments'>
-        insertPaymentApi.execute()
+      if (paymentForm.amount) {
+        insertPayment({ ...paymentForm, amount: paymentForm.amount ?? 0, order_id })
       }
 
       resetForm()
@@ -165,33 +169,45 @@ watch(
 )
 
 watch(
-  [() => insertOrderlinesApi.isSuccess.value, () => insertOrderApi.isSuccess.value],
+  [() => upsertOrderlinesDb.isSuccess.value, () => upsertOrdersDb.isSuccess.value],
   ([isSuccess1, isSuccess2]) => {
-    const orderlines = insertOrderlinesApi.data.value
+    const orderlines = upsertOrderlinesDb.data.value
     const org_id = self.value.user?.organization_id
-    const order = insertOrderApi.data.value
+    const order = upsertOrdersDb.data.value[0]
 
     if (isSuccess1 && isSuccess2 && orderlines && org_id && order) {
       const body =
         orderlines
           .map((line) => {
-            const product = products.value.find((prod) => prod.id === line.product_id)
+            const product = products.value.find((p) => p.id === line.product_id)
             return product ? `${line.qte} ${product.name}` : `${line.qte} Unknown Product`
           })
           .join(', ') + ` — ${order.total_price} DA`
 
-      sendNotification('Vente réalisée', body, org_id)
+      insertNotification('Vente réalisée', body, org_id)
     }
   }
 )
 
-function sendNotification(title: string, body: string, org_id: string) {
-  insertNotificationApi.form.value = {
-    title,
-    body,
-    org_id
-  }
+function insertPayment(payment: TablesInsert<'payments'>) {
+  upsertPaymentsDb.form.value = [
+    {
+      ...payment,
+      _synced: false
+    }
+  ]
+  upsertPaymentsDb.execute()
+}
 
-  insertNotificationApi.execute()
+function insertNotification(title: string, body: string, org_id: string) {
+  upsertNotificationsDb.form.value = [
+    {
+      title,
+      body,
+      org_id,
+      _synced: false
+    }
+  ]
+  upsertNotificationsDb.execute()
 }
 </script>
