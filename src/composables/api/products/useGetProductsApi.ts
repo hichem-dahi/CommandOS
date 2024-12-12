@@ -14,14 +14,14 @@ export function useGetProductsApi() {
 
   const query = async () => {
     if (orgId) {
-      let query = supabase
+      const query = supabase
         .from('products')
         .select()
         .eq('org_id', orgId)
         .order('updated_at', { ascending: false }) // Use ascending: true for ascending order
 
       if (params.date) {
-        query = query.gt('updated_at', params.date)
+        query.gt('updated_at', params.date)
       }
 
       return query
