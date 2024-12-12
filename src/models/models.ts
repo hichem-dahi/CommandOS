@@ -30,7 +30,6 @@ export interface Order {
 export interface Payment {
   id: string
   order_id: string
-
   date: Date | string
   amount: number
   updated_at: string
@@ -102,6 +101,16 @@ export interface StockMovement {
   qte_change: number
   date: Date
   order_id?: string // To track the order related to the stock reduction
+  updated_at: string
+  _synced?: boolean
+}
+
+export interface Notification {
+  id: string
+  body: string
+  org_id: string
+  title: string
+  created_at: string
   updated_at: string
   _synced?: boolean
 }
