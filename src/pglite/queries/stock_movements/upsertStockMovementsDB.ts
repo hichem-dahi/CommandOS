@@ -7,6 +7,7 @@ export async function upsertStockMovementsDB(
     _synced?: boolean
   })[]
 ) {
+  if (!stockMovements?.length) return
   const query = `
     INSERT INTO public.stock_movements (
       id,
@@ -14,19 +15,21 @@ export async function upsertStockMovementsDB(
       qte_change,
       date,
       order_id,
+      org_id,
       updated_at,
       _synced
     )
     VALUES ${stockMovements
       .map(
         (_, i) => `(
-          COALESCE($${i * 7 + 1}, gen_random_uuid()), 
-          $${i * 7 + 2}, 
-          $${i * 7 + 3}, 
-          $${i * 7 + 4}, 
-          $${i * 7 + 5}, 
-          $${i * 7 + 6}, 
-          COALESCE($${i * 7 + 7}, true)
+          COALESCE($${i * 8 + 1}, gen_random_uuid()), 
+          $${i * 8 + 2}, 
+          $${i * 8 + 3}, 
+          $${i * 8 + 4}, 
+          $${i * 8 + 5}, 
+          $${i * 8 + 6}, 
+          $${i * 8 + 7}, 
+          COALESCE($${i * 8 + 8}, true)
         )`
       )
       .join(', ')}
@@ -37,6 +40,7 @@ export async function upsertStockMovementsDB(
       date = EXCLUDED.date,
       order_id = EXCLUDED.order_id,
       updated_at = EXCLUDED.updated_at,
+      org_id = EXCLUDED.org_id,
       _synced = COALESCE(EXCLUDED._synced, true)
     RETURNING *;
   `
@@ -47,12 +51,13 @@ export async function upsertStockMovementsDB(
     movement.qte_change,
     movement.date,
     movement.order_id || null, // Allow null for orders
+    movement.org_id,
     movement.updated_at,
     movement._synced ?? true // Default to true if not provided
   ])
 
   try {
-    return await db.query(query, values)
+    return db.query(query, values)
   } catch (error) {
     console.error('Error upserting stock movements:', error)
     throw error

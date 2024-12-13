@@ -96,7 +96,6 @@ export type Database = {
       notifications: {
         Row: {
           body: string
-          created_at: string
           id: string
           org_id: string
           title: string
@@ -104,7 +103,6 @@ export type Database = {
         }
         Insert: {
           body: string
-          created_at?: string
           id?: string
           org_id: string
           title: string
@@ -112,7 +110,6 @@ export type Database = {
         }
         Update: {
           body?: string
-          created_at?: string
           id?: string
           org_id?: string
           title?: string
@@ -457,6 +454,7 @@ export type Database = {
           date: string
           id: string
           order_id: string | null
+          org_id: string
           product_id: string
           qte_change: number
           updated_at: string
@@ -465,6 +463,7 @@ export type Database = {
           date: string
           id?: string
           order_id?: string | null
+          org_id: string
           product_id: string
           qte_change: number
           updated_at?: string
@@ -473,6 +472,7 @@ export type Database = {
           date?: string
           id?: string
           order_id?: string | null
+          org_id?: string
           product_id?: string
           qte_change?: number
           updated_at?: string
@@ -490,6 +490,13 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
