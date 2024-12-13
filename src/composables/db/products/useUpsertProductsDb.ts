@@ -14,10 +14,7 @@ export function useUpsertProductsDb() {
   const q = useAsyncState(upsertProductsDB, undefined, { immediate: false })
 
   const execute = () => {
-    if (form.value) q.execute(0, db, form.value)
-    else {
-      throw new Error('Form is null or incomplete')
-    }
+    return q.execute(0, db, form.value || [])
   }
   const data = computed(() => q.state.value?.rows)
   const error = computed(() => q.error.value)
