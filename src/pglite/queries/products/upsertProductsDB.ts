@@ -5,6 +5,7 @@ export async function upsertProductsDB(
   db: PGlite,
   products: (TablesInsert<'products'> & { _synced?: boolean })[]
 ) {
+  if (!products?.length) return
   // Build the query for bulk upsert
   const query = `
     INSERT INTO public.products (id, code, name, price, cost_price, qte, org_id, bar_code, updated_at, _synced)
@@ -53,7 +54,7 @@ export async function upsertProductsDB(
     product._synced ?? true // Default to true if not provided
   ])
   try {
-    return await db.query(query, queryValues)
+    return db.query(query, queryValues)
   } catch (error) {
     throw new Error('Products not inserted/upserted successfully.')
   }
