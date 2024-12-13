@@ -1,10 +1,8 @@
 import { computed, watch } from 'vue'
 import { injectPGlite, useLiveQuery } from '@electric-sql/pglite-vue'
-import { max } from 'lodash'
 
 import { useGetOrdersApi } from '../api/orders/useGetOrdersApi'
 import { useUpsertOrdersApi } from '../api/orders/useUpsertOrdersApi'
-
 import { useUpsertOrderlinesApi } from '../api/orderlines/useUpsertOrderlinesApi'
 
 import { useUpsertOrdersDb } from '../db/orders/useUpsertOrdersDb'
@@ -18,9 +16,9 @@ export function useOrdersSync() {
   // APIs
   const pushOrdersApi = useUpsertOrdersApi()
   const pullOrdersApi = useGetOrdersApi()
-  const upsertOrdersDb = useUpsertOrdersDb()
-
   const pushOrderlinesApi = useUpsertOrderlinesApi()
+
+  const upsertOrdersDb = useUpsertOrdersDb()
   const upsertOrderlinesDb = useUpsertOrderlinesDb()
 
   // Queries
@@ -57,21 +55,24 @@ export function useOrdersSync() {
 
   // Watch for OrderLines to Sync
   watch([orderlinesToSync, () => pushOrdersApi.isReady.value], ([orderlinesToSync, isReady]) => {
-    if (isReady && orderlinesToSync) {
+    if (isReady) {
       pushOrderlinesApi.form.value = orderlinesToSync
       pushOrderlinesApi.execute()
     }
   })
 
   // Pull Orders After Sync
-  const watcher = watch([() => pushOrderlinesApi.isReady.value], async (isReady) => {
-    const result = await db?.query('SELECT MAX(updated_at) AS max_date FROM public.orders;')
-    if (isReady) {
-      pullOrdersApi.params.date = result?.rows?.[0]?.max_date || null
-      pullOrdersApi.execute()
-      watcher()
+  const watcher = watch(
+    () => pushOrderlinesApi.isReady.value,
+    async (isReady) => {
+      const result = await db?.query('SELECT MAX(updated_at) AS max_date FROM public.orders;')
+      if (isReady) {
+        pullOrdersApi.params.date = result?.rows?.[0]?.max_date || null
+        pullOrdersApi.execute()
+        watcher()
+      }
     }
-  })
+  )
 
   // Pull Orders Data Watch
   watch(
@@ -80,6 +81,7 @@ export function useOrdersSync() {
       if (sortedOrders?.length) {
         upsertOrdersDb.form.value = sortedOrders
         await upsertOrdersDb.execute()
+
         upsertOrderlinesDb.form.value = sortedOrders.flatMap((o) => o.order_lines)
         await upsertOrderlinesDb.execute()
       }
