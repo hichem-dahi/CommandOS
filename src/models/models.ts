@@ -99,7 +99,8 @@ export interface StockMovement {
   id: string
   product_id: string
   qte_change: number
-  date: Date
+  date: string
+  org_id: string
   order_id?: string // To track the order related to the stock reduction
   updated_at: string
   _synced?: boolean
