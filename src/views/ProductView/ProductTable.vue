@@ -55,14 +55,12 @@
   </v-data-table>
 </template>
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { format } from 'date-fns'
 import { sortBy } from 'lodash'
-
+import { useLiveQuery } from '@electric-sql/pglite-vue'
 import { mdiOpenInNew } from '@mdi/js'
-
-import { useGetStockMovementsApi } from '@/composables/api/stockMovements/useGetStockMovementsApi'
 
 import ModifyStock from './ModifyStock.vue'
 
@@ -72,20 +70,16 @@ const props = defineProps<{ product: Product }>()
 
 const { t } = useI18n()
 
-const getStockMovementsApi = useGetStockMovementsApi()
-
+const stockMovementsQuery = useLiveQuery(
+  'SELECT * FROM public.stock_movements WHERE product_id = $1;',
+  [props.product.id]
+)
+const stockMovements = computed(() => stockMovementsQuery.rows.value)
 const modifyStockDialog = ref(false)
-
-onMounted(() => {
-  getStockMovementsApi.productId.value = props.product.id
-  getStockMovementsApi.execute()
-})
-
-const stockMovements = computed(() => getStockMovementsApi.data.value)
 
 const items = computed(() =>
   sortBy(
-    stockMovements.value?.map((s, i) => {
+    stockMovements.value?.map((s) => {
       return {
         id: s.id,
         date: s.date,
