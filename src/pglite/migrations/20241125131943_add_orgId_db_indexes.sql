@@ -54,5 +54,11 @@ alter table "public"."push_subscriptions" add constraint "push_subscriptions_org
 
 alter table "public"."push_subscriptions" validate constraint "push_subscriptions_org_id_fkey";
 
+alter table "public"."stock_movements" add column "org_id" uuid not null;
+
+alter table "public"."stock_movements" add constraint "stock_movements_org_id_fkey" FOREIGN KEY (org_id) REFERENCES  public.organizations(id) not valid;
+
+alter table "public"."stock_movements" validate constraint "stock_movements_org_id_fkey";
+
 
 
