@@ -72,6 +72,8 @@ import { useLiveQuery } from '@electric-sql/pglite-vue'
 
 import { generateStockMovementsForOrder, restoreStockFromOrder } from '@/composables/useStockManage'
 
+import self from '@/composables/localStore/useSelf'
+
 import { useUpsertOrdersDb } from '@/composables/db/orders/useUpsertOrdersDb'
 import { useUpsertPaymentsDb } from '@/composables/db/payments/useUpsertPaymentsDb'
 import { useUpsertStockMovementsDb } from '@/composables/db/stockMovements/useUpsertStockMovementsDb'
@@ -177,8 +179,13 @@ function processOrder() {
     confirmDialog.value = true
     return
   }
-  if (isPending.value) {
-    UpsertStockMovementsDb.form.value = generateStockMovementsForOrder(order.value!)
+  const org_id = self.value.user?.organization_id
+  if (isPending.value && org_id) {
+    UpsertStockMovementsDb.form.value = generateStockMovementsForOrder(order.value!).map((s) => ({
+      ...s,
+      org_id,
+      _synced: false // Add the synced property
+    }))
     UpsertStockMovementsDb.execute()
     return
   }
@@ -212,8 +219,15 @@ function getRouteNameByDocumentType(documentType: DocumentType) {
 }
 
 function cancelOrder() {
-  UpsertStockMovementsDb.form.value = restoreStockFromOrder(order.value!)
-  UpsertStockMovementsDb.execute()
+  const org_id = self.value.user?.organization_id
+  if (org_id) {
+    UpsertStockMovementsDb.form.value = restoreStockFromOrder(order.value!).map((s) => ({
+      ...s,
+      org_id,
+      _synced: false // Add the synced property
+    }))
+    UpsertStockMovementsDb.execute()
+  }
 }
 
 function addPayment(payment: TablesInsert<'payments'>) {
@@ -226,13 +240,13 @@ watch(
   (isSuccess) => {
     if (!order.value) return
 
-    const moveType = UpsertStockMovementsDb.data.value[0].qte_change > 0 ? 1 : -1
-    if (isSuccess && moveType === 1) {
+    const moveType = UpsertStockMovementsDb.data.value[0].qte_change > 0 ? 'add' : 'sub'
+    if (isSuccess && moveType === 'sub') {
       UpsertOrdersDb.form.value = [
         { ...order.value, status: OrderStatus.Confirmed, _synced: false }
       ]
       UpsertOrdersDb.execute()
-    } else if (isSuccess && moveType === -1) {
+    } else if (isSuccess && moveType === 'add') {
       UpsertOrdersDb.form.value = [
         { ...order.value, status: OrderStatus.Cancelled, _synced: false }
       ]
