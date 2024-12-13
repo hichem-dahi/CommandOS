@@ -16,25 +16,21 @@
   </div>
 </template>
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed } from 'vue'
 import { useRoute } from 'vue-router'
+import { useLiveQuery } from '@electric-sql/pglite-vue'
 
 import { mdiChevronLeft } from '@mdi/js'
 
-import { useGetProductApi } from '@/composables/api/products/useGetProductApi'
-
 import ProductTable from './ProductView/ProductTable.vue'
+import type { Product } from '@/models/models'
 
 const route = useRoute()
 
-const getProductApi = useGetProductApi()
-
-const product = computed(() => getProductApi.data.value)
-
-onMounted(() => {
-  getProductApi.params.id = route.params.product_id as string
-  getProductApi.execute()
-})
+const productQuery = useLiveQuery('SELECT * FROM public.products WHERE id = $1;', [
+  route.params.product_id as string
+])
+const product = computed(() => (productQuery.rows.value?.[0] as unknown as Product) || undefined)
 </script>
 
 <style>
