@@ -137,22 +137,23 @@ import { useI18n } from 'vue-i18n'
 import { format } from 'date-fns'
 import { cloneDeep, isEqual, isNumber, sum } from 'lodash'
 import { mdiDelete, mdiPlus } from '@mdi/js'
+import { useLiveQuery } from '@electric-sql/pglite-vue'
 
 import { useUpsertOrderlinesDb } from '@/composables/db/orderlines/useUpsertOrderlinesDb'
 import { useUpsertOrdersDb } from '@/composables/db/orders/useUpsertOrdersDb'
 import { useDeleteOrderlinesDb } from '@/composables/db/orderlines/useDeleteOrderlinesDb'
 
-import { useProductsSync } from '@/composables/sync/useProductsSync'
-
 import OrderLineForm from '@/views/OrdersView/OrderLineForm.vue'
 import DeleteItemModal from './DeleteItemModal.vue'
 
-import { ConsumerType, OrderStatus } from '@/models/models'
+import { ConsumerType, OrderStatus, type Product } from '@/models/models'
 import type { Validation } from '@vuelidate/core'
 import type { TablesInsert } from '@/types/database.types'
 import type { OrderData, OrderLineData } from '@/composables/api/orders/useGetOrderApi'
 
 const order = defineModel<OrderData>('order', { required: true })
+
+const productsQuery = useLiveQuery('SELECT * FROM public.products;', [])
 
 const { t } = useI18n()
 
@@ -239,7 +240,7 @@ const items = computed(() =>
   })
 )
 
-const { products } = useProductsSync()
+const products = computed(() => (productsQuery.rows?.value || []) as unknown as Product[])
 
 const availableProducts = computed(() =>
   products.value.filter((e) => {
