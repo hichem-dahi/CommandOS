@@ -14,11 +14,11 @@
 
 <script setup lang="ts">
 import { mdiInvoice, mdiReceiptText, mdiTruckCheck, mdiNote } from '@mdi/js'
-import { DocumentType, type Order } from '@/models/models'
+import { DocumentType } from '@/models/models'
 
 import type { OrderData } from '@/composables/api/orders/useGetOrderApi'
 
-const props = defineProps<{ order: OrderData; isConfirmable: boolean }>()
+defineProps<{ order: OrderData; isConfirmable: boolean }>()
 
 const emit = defineEmits(['go-doc-page'])
 
