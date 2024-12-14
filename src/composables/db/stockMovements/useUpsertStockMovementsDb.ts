@@ -15,7 +15,7 @@ export function useUpsertStockMovementsDb() {
   const execute = () => {
     if (form.value) q.execute(0, db, form.value)
     else {
-      throw new Error('Form is null or incomplete')
+      return undefined
     }
   }
 

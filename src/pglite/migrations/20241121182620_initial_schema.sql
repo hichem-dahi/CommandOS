@@ -32,20 +32,7 @@ alter table "public"."orders" validate constraint "orders_client_id_fkey";
 
 set check_function_bodies = off;
 
-CREATE OR REPLACE FUNCTION public.adjust_product_qte()
- RETURNS trigger
- LANGUAGE plpgsql
-AS $function$
-BEGIN
-  -- Update the product quantity based on the qte_change from the stock_movements table
-  UPDATE products
-  SET qte = GREATEST(COALESCE(qte, 0) + NEW.qte_change, 0)
-  WHERE id = NEW.product_id;
 
-  RETURN NEW;
-END;
-$function$
-;
 
 CREATE OR REPLACE FUNCTION public.increment_doc_index()
  RETURNS trigger
@@ -75,6 +62,5 @@ $function$
 
 CREATE TRIGGER trigger_increment_doc_index BEFORE UPDATE ON public.orders FOR EACH ROW WHEN (((new.status = 1) AND (old.status = 0))) EXECUTE FUNCTION public.increment_doc_index();
 
-CREATE TRIGGER update_product_qte_trigger AFTER INSERT ON public.stock_movements FOR EACH ROW EXECUTE FUNCTION public.adjust_product_qte();
 
 

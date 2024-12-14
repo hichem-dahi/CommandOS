@@ -52,12 +52,12 @@
     />
     <ConfirmModal
       v-model="confirmDialog"
-      :is-loading="UpsertOrdersDb.isLoading.value"
+      :is-loading="upsertOrdersDb.isLoading.value"
       @confirm="processOrder"
     />
     <CancelModal
       v-model="cancelDialog"
-      :is-loading="UpsertOrdersDb.isLoading.value"
+      :is-loading="upsertOrdersDb.isLoading.value"
       @confirm="cancelOrder"
     />
   </div>
@@ -77,6 +77,7 @@ import self from '@/composables/localStore/useSelf'
 import { useUpsertOrdersDb } from '@/composables/db/orders/useUpsertOrdersDb'
 import { useUpsertPaymentsDb } from '@/composables/db/payments/useUpsertPaymentsDb'
 import { useUpsertStockMovementsDb } from '@/composables/db/stockMovements/useUpsertStockMovementsDb'
+import { useUpdateProductsQtyDb } from '@/composables/db/products/useUpdateProductsQtyDb'
 
 import OrderTable from './OrderView/OrderTable.vue'
 import CreateDelivery from './OrdersView/CreateDelivery.vue'
@@ -96,8 +97,8 @@ const route = useRoute()
 const router = useRouter()
 
 const orderQuery = useLiveQuery(
-  `SELECT 
-    o.*, 
+  `SELECT
+    o.*,
     -- Fetching individual data as a separate field
     (
         SELECT to_jsonb(i)
@@ -149,9 +150,10 @@ const orderQuery = useLiveQuery(
 
 const order = computed(() => orderQuery.rows.value?.[0] as unknown as OrderData | undefined)
 
-const UpsertOrdersDb = useUpsertOrdersDb()
-const UpsertStockMovementsDb = useUpsertStockMovementsDb()
+const upsertOrdersDb = useUpsertOrdersDb()
+const upsertStockMovementsDb = useUpsertStockMovementsDb()
 const upsertPaymentApi = useUpsertPaymentsDb()
+const updateProductsQtyDb = useUpdateProductsQtyDb()
 
 const paymentDialog = ref(false)
 const deliveryDialog = ref(false)
@@ -181,12 +183,12 @@ function processOrder() {
   }
   const org_id = self.value.user?.organization_id
   if (isPending.value && org_id) {
-    UpsertStockMovementsDb.form.value = generateStockMovementsForOrder(order.value!).map((s) => ({
+    upsertStockMovementsDb.form.value = generateStockMovementsForOrder(order.value!).map((s) => ({
       ...s,
       org_id,
       _synced: false // Add the synced property
     }))
-    UpsertStockMovementsDb.execute()
+    upsertStockMovementsDb.execute()
     return
   }
   goDocPage()
@@ -221,12 +223,12 @@ function getRouteNameByDocumentType(documentType: DocumentType) {
 function cancelOrder() {
   const org_id = self.value.user?.organization_id
   if (org_id) {
-    UpsertStockMovementsDb.form.value = restoreStockFromOrder(order.value!).map((s) => ({
+    upsertStockMovementsDb.form.value = restoreStockFromOrder(order.value!).map((s) => ({
       ...s,
       org_id,
       _synced: false // Add the synced property
     }))
-    UpsertStockMovementsDb.execute()
+    upsertStockMovementsDb.execute()
   }
 }
 
@@ -235,32 +237,40 @@ function addPayment(payment: TablesInsert<'payments'>) {
   upsertPaymentApi.execute()
 }
 
-watch(
-  () => UpsertStockMovementsDb.isSuccess.value,
-  (isSuccess) => {
-    if (!order.value) return
+function updateProductQuantities(updates: { product_id: string; qte_change: number }[]) {
+  if (!order.value) return
+  updateProductsQtyDb.form.value = updates
+  updateProductsQtyDb.execute()
+}
 
-    const moveType = UpsertStockMovementsDb.data.value[0].qte_change > 0 ? 'add' : 'sub'
-    if (isSuccess && moveType === 'sub') {
-      UpsertOrdersDb.form.value = [
-        { ...order.value, status: OrderStatus.Confirmed, _synced: false }
-      ]
-      UpsertOrdersDb.execute()
-    } else if (isSuccess && moveType === 'add') {
-      UpsertOrdersDb.form.value = [
-        { ...order.value, status: OrderStatus.Cancelled, _synced: false }
-      ]
-      UpsertOrdersDb.execute()
+function updateOrderStatus(moveType: 'add' | 'sub') {
+  const orderStatus = moveType === 'sub' ? OrderStatus.Confirmed : OrderStatus.Cancelled
+  upsertOrdersDb.form.value = [{ ...order.value!, status: orderStatus, _synced: false }]
+  upsertOrdersDb.execute()
+}
+
+watch(
+  () => upsertStockMovementsDb.isSuccess.value,
+  (isSuccess) => {
+    if (isSuccess) {
+      const updates = upsertStockMovementsDb.data.value.map((s) => ({
+        product_id: s.product_id,
+        qte_change: s.qte_change
+      }))
+      updateProductQuantities(updates)
+
+      const moveType = upsertStockMovementsDb.data.value[0].qte_change > 0 ? 'add' : 'sub'
+      updateOrderStatus(moveType)
     }
   }
 )
 
 watch(
-  () => UpsertOrdersDb.isSuccess.value,
-  (isSuccess) => {
-    if (!isSuccess) return
+  [() => upsertOrdersDb.isSuccess.value, () => updateProductsQtyDb.isSuccess.value],
+  ([isSuccess1, isSuccess2]) => {
+    if (!isSuccess1 || !isSuccess2) return
 
-    const form = UpsertOrdersDb.form.value?.[0]
+    const form = upsertOrdersDb.form.value?.[0]
     const status = form?.status
 
     //order.value = UpsertOrdersDb.data.value
@@ -287,13 +297,13 @@ watch(
   () => upsertPaymentApi.isSuccess.value,
   (isSuccess) => {
     if (isSuccess && upsertPaymentApi.data.value?.[0].amount && order.value) {
-      UpsertOrdersDb.form.value = [
+      upsertOrdersDb.form.value = [
         {
           ...order.value,
           paid_price: (order.value?.paid_price || 0) + upsertPaymentApi.data.value?.[0].amount
         }
       ]
-      UpsertOrdersDb.execute()
+      upsertOrdersDb.execute()
     }
   }
 )
