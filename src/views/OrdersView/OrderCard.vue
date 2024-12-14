@@ -61,7 +61,7 @@
     </template>
     <DeleteItemModal
       v-model="deleteDialog"
-      :isLoading="deleteOrderApi.isLoading.value"
+      :isLoading="deleteOrdersDb.isLoading.value"
       @confirm="deleteOrder"
       @close="deleteDialog = false"
     />
@@ -70,25 +70,25 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { format } from 'date-fns'
 import { kebabCase } from 'lodash'
 import { mdiDotsVertical } from '@mdi/js'
 
-import { useDeleteOrderApi } from '@/composables/api/orders/useDeleteOrderApi'
+import { useDeleteOrdersDb } from '@/composables/db/orders/useDeleteOrderDb'
 
 import DeleteItemModal from '@/views/OrderView/DeleteItemModal.vue'
 
 import { DocumentType, OrderStatus } from '@/models/models'
 import type { OrderData } from '@/composables/api/orders/useGetOrdersApi'
-import { useRouter } from 'vue-router'
 
 const order = defineModel<OrderData>('order', { required: true })
 
 const { t } = useI18n()
 const router = useRouter()
 
-const deleteOrderApi = useDeleteOrderApi()
+const deleteOrdersDb = useDeleteOrdersDb()
 
 const deleteDialog = ref(false)
 
@@ -104,15 +104,14 @@ const isConfirmed = computed(() => order.value?.status === OrderStatus.Confirmed
 const isCancelled = computed(() => order.value?.status === OrderStatus.Cancelled)
 
 function deleteOrder() {
-  deleteOrderApi.orderId.value = order.value.id
-  deleteOrderApi.execute()
+  deleteOrdersDb.ids.value = [order.value.id]
+  deleteOrdersDb.execute()
 }
 
 watch(
-  () => deleteOrderApi.isSuccess.value,
+  () => deleteOrdersDb.isSuccess.value,
   (isSuccess) => {
     if (isSuccess) {
-      router.go(0)
       deleteDialog.value = false
     }
   }
