@@ -1,6 +1,5 @@
 import type { PGlite } from '@electric-sql/pglite'
 import type { Tables, TablesInsert } from '@/types/database.types'
-import type { Individual } from '@/models/models'
 
 export async function upsertIndividualsDB(
   db: PGlite,
@@ -9,7 +8,7 @@ export async function upsertIndividualsDB(
   })[]
 ) {
   const query = `
-    INSERT INTO public.organizations (id, name, phone, org_id, updated_at, _synced)
+    INSERT INTO public.individuals (id, name, phone, org_id, updated_at, _synced)
     VALUES ${individuals
       .map(
         (_, i) => `(
