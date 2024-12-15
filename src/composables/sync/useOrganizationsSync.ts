@@ -15,48 +15,53 @@ export function useOrganizationsSync() {
   const pushOrganizationsApi = useUpsertOrganizationsApi()
   const upsertOrganizationsDb = useUpsertOrganizationsDb()
 
-  const organizationsQuery = useLiveQuery('SELECT * FROM public.organizations;', [])
-
-  const organizations = computed(
-    () => (organizationsQuery?.rows.value || []) as unknown as Organization[]
+  const organizationsQuery = useLiveQuery(
+    'SELECT * FROM public.organizations WHERE _synced = false;',
+    []
   )
 
-  const organizationsToSync = computed(() =>
-    organizations.value
-      ?.filter((org) => org._synced === false)
-      .map(({ _synced, updated_at, ...rest }) => rest)
+  const organizationsToSync = computed(
+    () =>
+      organizationsQuery.rows.value?.map(
+        ({ _synced, updated_at, ...rest }) => rest
+      ) as unknown as Organization[]
   )
 
-  //push
-  watch(organizationsToSync, async (organizationsToSync) => {
-    pushOrganizationsApi.form.value = organizationsToSync
-    pushOrganizationsApi.execute()
-  })
+  const queriesReady = computed(() => organizationsQuery.rows.value !== null)
 
-  const watcher = watch(
-    () => pushOrganizationsApi.isReady.value,
-    async (isReady) => {
-      const result = await db?.query(
-        'SELECT MAX(updated_at) AS max_date FROM public.organizations;'
-      )
+  async function sync() {
+    // Push organizations to API
+    pushOrganizationsApi.form.value = organizationsToSync.value
+    await pushOrganizationsApi.execute()
+
+    // Pull updated organizations from API
+    const result = await db?.query('SELECT MAX(updated_at) AS max_date FROM public.organizations;')
+    pullOrganizationsApi.params.date = result?.rows?.[0]?.max_date || null
+    await pullOrganizationsApi.execute()
+
+    // Update local DB with pulled organizations
+    const organizations = pullOrganizationsApi.data.value || []
+    if (organizations.length) {
+      upsertOrganizationsDb.form.value = organizations
+      await upsertOrganizationsDb.execute()
+    }
+  }
+
+  // Watch queries and trigger launch when ready
+  const launch = () => {
+    watch(queriesReady, (isReady) => {
       if (isReady) {
-        pullOrganizationsApi.params.date = result?.rows?.[0]?.max_date || null
-        pullOrganizationsApi.execute()
-        watcher() // Stop the watcher after triggering
+        sync()
       }
-    }
+    })
+  }
+
+  const inFinished = computed(
+    () =>
+      pullOrganizationsApi.isReady.value &&
+      pushOrganizationsApi.isReady.value &&
+      upsertOrganizationsDb.isReady.value
   )
 
-  //pull
-  watch(
-    () => pullOrganizationsApi.data.value,
-    async (sortedProducts) => {
-      if (sortedProducts?.length) {
-        upsertOrganizationsDb.form.value = sortedProducts
-        upsertOrganizationsDb.execute()
-      }
-    }
-  )
-
-  return { organizations }
+  return { inFinished, launch, sync }
 }

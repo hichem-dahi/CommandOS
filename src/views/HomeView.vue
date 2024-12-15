@@ -79,6 +79,7 @@ onMounted(async () => {
   if (org) {
     await upsertOrganizationDB(db, org)
   }
+
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault()
     deferredPrompt.value = e

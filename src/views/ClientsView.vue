@@ -20,6 +20,8 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useLiveQuery } from '@electric-sql/pglite-vue'
 import { mdiPlus } from '@mdi/js'
 
 import { useOrganizationsSync } from '@/composables/sync/useOrganizationsSync'
@@ -27,6 +29,14 @@ import { useIndividualsSync } from '@/composables/sync/useIndividualsSync'
 
 import ClientCard from '@/views/ClientsView/ClientCard.vue'
 
-const { organizations } = useOrganizationsSync()
-const { individuals } = useIndividualsSync()
+import type { Individual, Organization } from '@/models/models'
+
+useOrganizationsSync().launch()
+useIndividualsSync().launch()
+
+const organizationsQuery = useLiveQuery('SELECT * FROM public.organizations;', [])
+const individualsQuery = useLiveQuery('SELECT * FROM public.individuals;', [])
+
+const individuals = computed(() => individualsQuery.rows.value as unknown as Individual[])
+const organizations = computed(() => organizationsQuery.rows.value as unknown as Organization[])
 </script>

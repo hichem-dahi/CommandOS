@@ -56,7 +56,8 @@ const orders = useLiveQuery(
   []
 )
 
-useOrdersSync()
+const ordersSync = useOrdersSync()
+ordersSync.launch()
 
 const filters = reactive<Filters>({
   docType: null,

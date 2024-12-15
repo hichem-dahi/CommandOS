@@ -4,34 +4,38 @@ import { injectPGlite, useLiveQuery } from '@electric-sql/pglite-vue'
 import { useGetOrdersApi } from '../api/orders/useGetOrdersApi'
 import { useUpsertOrdersApi } from '../api/orders/useUpsertOrdersApi'
 import { useUpsertOrderlinesApi } from '../api/orderlines/useUpsertOrderlinesApi'
+import { useUpsertPaymentsApi } from '../api/payments/useUpsertPaymentsApi'
 
 import { useUpsertOrdersDb } from '../db/orders/useUpsertOrdersDb'
 import { useUpsertOrderlinesDb } from '../db/orderlines/useUpsertOrderlinesDb'
+import { useUpsertPaymentsDb } from '../db/payments/useUpsertPaymentsDb'
 
-import type { Tables, TablesInsert } from '@/types/database.types'
+import type { TablesInsert } from '@/types/database.types'
 
 export function useOrdersSync() {
   const db = injectPGlite()
 
   // APIs
-  const pushOrdersApi = useUpsertOrdersApi()
   const pullOrdersApi = useGetOrdersApi()
+
+  const pushOrdersApi = useUpsertOrdersApi()
   const pushOrderlinesApi = useUpsertOrderlinesApi()
+  const pushPaymentsApi = useUpsertPaymentsApi()
 
   const upsertOrdersDb = useUpsertOrdersDb()
   const upsertOrderlinesDb = useUpsertOrderlinesDb()
+  const upsertPaymentsDb = useUpsertPaymentsDb()
 
   // Queries
-  const ordersQuery = useLiveQuery('SELECT * FROM public.orders;', [])
-
   const ordersToSyncQuery = useLiveQuery('SELECT * FROM public.orders WHERE _synced = false;', [])
   const orderlinesToSyncQuery = useLiveQuery(
     'SELECT * FROM public.order_lines WHERE _synced = false;',
     []
   )
-
-  // Orders
-  const orders = computed(() => (ordersQuery?.rows.value || []) as unknown as Tables<'orders'>[])
+  const paymentsToSyncQuery = useLiveQuery(
+    'SELECT * FROM public.payments WHERE _synced = false;',
+    []
+  )
 
   const ordersToSync = computed(
     () =>
@@ -47,46 +51,74 @@ export function useOrdersSync() {
       ) as unknown as TablesInsert<'order_lines'>[]
   )
 
-  // Watch for Orders to Sync
-  watch(ordersToSync, (ordersToSync) => {
-    pushOrdersApi.form.value = ordersToSync
-    pushOrdersApi.execute()
-  })
+  const paymentsToSync = computed(
+    () =>
+      paymentsToSyncQuery.rows.value?.map(
+        ({ _synced, updated_at, ...rest }) => rest
+      ) as unknown as TablesInsert<'payments'>[]
+  )
 
-  // Watch for OrderLines to Sync
-  watch([orderlinesToSync, () => pushOrdersApi.isReady.value], ([orderlinesToSync, isReady]) => {
-    if (isReady) {
-      pushOrderlinesApi.form.value = orderlinesToSync
-      pushOrderlinesApi.execute()
+  const queriesReady = computed(
+    () =>
+      ordersToSyncQuery.rows.value &&
+      orderlinesToSyncQuery.rows.value &&
+      paymentsToSyncQuery.rows.value
+  )
+
+  const inFinished = computed(
+    () =>
+      pullOrdersApi.isReady.value &&
+      pushOrdersApi.isReady.value &&
+      pushOrderlinesApi.isReady.value &&
+      pushPaymentsApi.isReady.value &&
+      upsertOrdersDb.isReady.value &&
+      upsertOrderlinesDb.isReady.value &&
+      upsertPaymentsDb.isReady.value
+  )
+
+  async function sync() {
+    // Push orders to API
+    pushOrdersApi.form.value = ordersToSync.value
+    await pushOrdersApi.execute()
+
+    // Push orderlines if orders are successfully pushed
+    if (pushOrdersApi.isReady.value) {
+      pushOrderlinesApi.form.value = orderlinesToSync.value
+      await pushOrderlinesApi.execute()
+      pushPaymentsApi.form.value = paymentsToSync.value
+      await pushPaymentsApi.execute()
     }
-  })
 
-  // Pull Orders After Sync
-  const watcher = watch(
-    () => pushOrderlinesApi.isReady.value,
-    async (isReady) => {
-      const result = await db?.query('SELECT MAX(updated_at) AS max_date FROM public.orders;')
+    // Pull updated orders from API
+    const result = await db?.query('SELECT MAX(updated_at) AS max_date FROM public.orders;')
+    pullOrdersApi.params.date = result?.rows?.[0]?.max_date || null
+    await pullOrdersApi.execute()
+
+    // Update local DB with pulled orders and orderlines
+    const orders = pullOrdersApi.data.value || []
+    if (orders.length) {
+      upsertOrdersDb.form.value = orders
+      await upsertOrdersDb.execute()
+
+      const orderlines = orders.flatMap((o) => o.order_lines || [])
+      upsertOrderlinesDb.form.value = orderlines
+      await upsertOrderlinesDb.execute()
+
+      const payments = orders.flatMap((o) => o.payments || [])
+      upsertPaymentsDb.form.value = payments
+      await upsertPaymentsDb.execute()
+    }
+  }
+
+  // Watch queries and trigger launch when ready
+  const launch = () => {
+    const watcher = watch(queriesReady, async (isReady) => {
       if (isReady) {
-        pullOrdersApi.params.date = result?.rows?.[0]?.max_date || null
-        pullOrdersApi.execute()
+        await sync()
         watcher()
       }
-    }
-  )
+    })
+  }
 
-  // Pull Orders Data Watch
-  watch(
-    () => pullOrdersApi.data.value,
-    async (sortedOrders) => {
-      if (sortedOrders?.length) {
-        upsertOrdersDb.form.value = sortedOrders
-        await upsertOrdersDb.execute()
-
-        upsertOrderlinesDb.form.value = sortedOrders.flatMap((o) => o.order_lines)
-        await upsertOrderlinesDb.execute()
-      }
-    }
-  )
-
-  return { orders }
+  return { inFinished, sync, launch }
 }

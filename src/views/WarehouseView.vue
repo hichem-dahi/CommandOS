@@ -27,20 +27,39 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue'
 import { useVuelidate } from '@vuelidate/core'
+import { useLiveQuery } from '@electric-sql/pglite-vue'
 import { mdiPlus } from '@mdi/js'
 
 import self from '@/composables/localStore/useSelf'
 
 import { useProductsSync } from '@/composables/sync/useProductsSync'
+import { useStockMovementsSync } from '@/composables/sync/useStockMovementsSync'
 import { useUpsertProductsDb } from '@/composables/db/products/useUpsertProductsDb'
 
 import ProductForm from '@/views/WarehouseView/ProductForm.vue'
 import ProductCard from '@/views/WarehouseView/ProductCard.vue'
 import FilterBar from './WarehouseView/FilterBar.vue'
 
+import type { Product } from '@/models/models'
+
 const $v = useVuelidate()
 
-const { products } = useProductsSync()
+const productsSync = useProductsSync()
+const stockMovementsSync = useStockMovementsSync()
+
+productsSync.launch()
+
+watch(
+  () => productsSync.inFinished.value,
+  (inFinished) => {
+    if (inFinished) {
+      stockMovementsSync.launch()
+    }
+  }
+)
+const productsQuery = useLiveQuery('SELECT * FROM public.products;', [])
+
+const products = computed(() => (productsQuery.rows.value || []) as unknown as Product[])
 
 const upsertProductsDb = useUpsertProductsDb()
 

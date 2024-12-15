@@ -15,46 +15,48 @@ export function useIndividualsSync() {
   const pushIndividualsApi = useUpsertIndividualsApi()
   const upsertIndividualsDb = useUpsertIndividualsDb()
 
-  const individualsQuery = useLiveQuery('SELECT * FROM public.individuals;', [])
-
-  const individuals = computed(
-    () => (individualsQuery?.rows.value || []) as unknown as Individual[]
+  const individualsToSyncQuery = useLiveQuery(
+    'SELECT * FROM public.individuals WHERE _synced = false;',
+    []
   )
 
-  const individualsToSync = computed(() =>
-    individuals.value
-      ?.filter((org) => org._synced === false)
-      .map(({ _synced, updated_at, ...rest }) => rest)
+  const individualsToSync = computed(
+    () =>
+      individualsToSyncQuery.rows.value
+        ?.filter((org) => org._synced === false)
+        .map(({ _synced, updated_at, ...rest }) => rest) as unknown as Individual[]
   )
 
-  //push
-  watch(individualsToSync, (individualsToSync) => {
-    pushIndividualsApi.form.value = individualsToSync
-    pushIndividualsApi.execute()
-  })
+  // Wait for queries to finish
+  const areQueriesReady = computed(() => individualsToSyncQuery?.rows.value !== undefined)
 
-  const watcher = watch(
-    () => pushIndividualsApi.isReady.value,
-    async (isReady) => {
-      const result = await db?.query('SELECT MAX(updated_at) AS max_date FROM public.individuals;')
+  async function sync() {
+    // Push unsynced individuals
+    pushIndividualsApi.form.value = individualsToSync.value
+    await pushIndividualsApi.execute()
+
+    // Pull updated individuals
+    const result = await db?.query('SELECT MAX(updated_at) AS max_date FROM public.individuals;')
+    pullIndividualsApi.params.date = result?.rows?.[0]?.max_date || null
+    await pullIndividualsApi.execute()
+
+    // Update the local database
+    const updatedIndividuals = pullIndividualsApi.data.value || []
+    if (updatedIndividuals.length) {
+      upsertIndividualsDb.form.value = updatedIndividuals
+      await upsertIndividualsDb.execute()
+    }
+  }
+
+  // Watch queries and trigger launch when ready
+  const launch = () => {
+    const watcher = watch(areQueriesReady, async (isReady) => {
       if (isReady) {
-        pullIndividualsApi.params.date = result?.rows?.[0]?.max_date || null
-        pullIndividualsApi.execute()
+        await sync()
         watcher()
       }
-    }
-  )
+    })
+  }
 
-  //pull
-  watch(
-    () => pullIndividualsApi.data.value,
-    async (sortedProducts) => {
-      if (sortedProducts?.length) {
-        upsertIndividualsDb.form.value = sortedProducts
-        upsertIndividualsDb.execute()
-      }
-    }
-  )
-
-  return { individuals }
+  return { sync, launch, areQueriesReady }
 }
