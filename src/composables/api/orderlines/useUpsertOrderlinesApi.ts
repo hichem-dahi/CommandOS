@@ -9,8 +9,8 @@ export function useUpsertOrderlinesApi() {
   const form = ref<TablesInsert<'order_lines'>[]>() // Use ref to make it reactive
 
   const query = async () => {
-    if (form.value?.length) {
-      return supabase.from('order_lines').upsert(form.value, { defaultToNull: false }).select()
+    if (form.value) {
+      return supabase.from('order_lines').upsert(form.value).select()
     } else {
       return undefined
     }

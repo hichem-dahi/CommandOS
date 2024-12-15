@@ -14,7 +14,7 @@ export function useInsertStockMovementsApi() {
     if (form.value) {
       return supabase.from('stock_movements').insert(form.value).select()
     } else {
-      throw new Error('Form is null or incomplete')
+      return undefined
     }
   }
 

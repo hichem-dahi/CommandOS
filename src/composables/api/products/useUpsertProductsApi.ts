@@ -9,14 +9,14 @@ export function useUpsertProductsApi() {
   const form = ref<TablesInsert<'products'>[]>() // Use ref to make it reactive
 
   const query = async () => {
-    if (form.value?.length) {
+    if (form.value) {
       return supabase.from('products').upsert(form.value).select()
     } else {
       return undefined
     }
   }
 
-  const q = useAsyncState(query, undefined) // Invoke query properly
+  const q = useAsyncState(query, undefined, { immediate: false }) // Invoke query properly
 
   const data = computed(() => q.state.value?.data)
   const error = computed(() => q.state.value?.error)

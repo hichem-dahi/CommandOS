@@ -16,7 +16,7 @@ export function useUpsertStockMovementsApi() {
     }
   }
 
-  const q = useAsyncState(query, undefined) // Invoke query properly
+  const q = useAsyncState(query, undefined, { immediate: false }) // Invoke query properly
 
   const data = computed(() => q.state.value?.data)
   const error = computed(() => q.state.value?.error)
