@@ -13,11 +13,9 @@ export function useUpsertOrganizationsDb() {
   const q = useAsyncState(upsertOrganizationsDB, undefined, { immediate: false })
 
   const execute = () => {
-    if (form.value) q.execute(0, db, form.value)
-    else {
-      throw new Error('Form is null or incomplete')
-    }
+    if (form.value) return q.execute(0, db, form.value)
   }
+
   const data = computed(() => q.state.value?.rows)
   const error = computed(() => q.error.value)
   const isSuccess = computed(() => q.isReady.value && !error.value)

@@ -12,11 +12,8 @@ export function useUpsertStockMovementsDb() {
 
   const q = useAsyncState(upsertStockMovementsDB, undefined, { immediate: false })
 
-  const execute = () => {
-    if (form.value) q.execute(0, db, form.value)
-    else {
-      return undefined
-    }
+  const execute = async () => {
+    if (form.value) return q.execute(0, db, form.value)
   }
 
   const data = computed(() => q.state.value?.rows as Tables<'stock_movements'>[])
