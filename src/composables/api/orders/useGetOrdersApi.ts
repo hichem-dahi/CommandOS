@@ -23,7 +23,8 @@ export function useGetOrdersApi() {
         client:organizations!orders_client_id_fkey (*),   
         order_lines:order_lines (*),  
         delivery:deliveries (*),
-        individual:individuals (*)
+        individual:individuals (*),
+        payments:payments (*)
       `
     )
 
