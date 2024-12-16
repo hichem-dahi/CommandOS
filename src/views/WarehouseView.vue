@@ -57,7 +57,7 @@ watch(
     }
   }
 )
-const productsQuery = useLiveQuery('SELECT * FROM public.products;', [])
+const productsQuery = useLiveQuery('SELECT * FROM public.products WHERE _deleted = false;', [])
 
 const products = computed(() => (productsQuery.rows.value || []) as unknown as Product[])
 

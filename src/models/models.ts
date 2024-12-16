@@ -93,6 +93,7 @@ export interface Product {
   bar_code: number | null
   updated_at: string
   _synced?: boolean
+  _deleted: boolean
 }
 
 export interface StockMovement {

@@ -1,28 +1,30 @@
 import type { PGlite } from '@electric-sql/pglite'
 import type { TablesInsert } from '@/types/database.types'
+import type { Product } from '@/models/models'
 
 export async function upsertProductsDB(
   db: PGlite,
-  products: (TablesInsert<'products'> & { _synced?: boolean })[]
+  products: (TablesInsert<'products'> & { _synced?: boolean; _deleted?: boolean })[]
 ) {
   if (!products?.length) return
   // Build the query for bulk upsert
   const query = `
-    INSERT INTO public.products (id, code, name, price, cost_price, qte, org_id, bar_code, updated_at, _synced)
+    INSERT INTO public.products (id, code, name, price, cost_price, qte, org_id, bar_code, updated_at, _synced, _deleted)
     VALUES
     ${products
       .map(
         (_, i) => `(
-          COALESCE($${i * 10 + 1}, gen_random_uuid()), 
-          $${i * 10 + 2}, 
-          $${i * 10 + 3}, 
-          $${i * 10 + 4}, 
-          $${i * 10 + 5}, 
-          $${i * 10 + 6}, 
-          $${i * 10 + 7}, 
-          $${i * 10 + 8}, 
-          $${i * 10 + 9},
-          COALESCE($${i * 10 + 10}, true)
+          COALESCE($${i * 11 + 1}, gen_random_uuid()), 
+          $${i * 11 + 2}, 
+          $${i * 11 + 3}, 
+          $${i * 11 + 4}, 
+          $${i * 11 + 5}, 
+          $${i * 11 + 6}, 
+          $${i * 11 + 7}, 
+          $${i * 11 + 8}, 
+          $${i * 11 + 9}, 
+          COALESCE($${i * 11 + 10}, true),
+          COALESCE($${i * 11 + 11}, false)
         )`
       )
       .join(', ')}
@@ -36,7 +38,8 @@ export async function upsertProductsDB(
       org_id = EXCLUDED.org_id,
       bar_code = EXCLUDED.bar_code,
       updated_at = EXCLUDED.updated_at,
-      _synced = COALESCE(EXCLUDED._synced, true)
+      _synced = COALESCE(EXCLUDED._synced, true),
+      _deleted = COALESCE(EXCLUDED._deleted, false)
       RETURNING *;
   `
 
@@ -49,12 +52,13 @@ export async function upsertProductsDB(
     product.cost_price,
     product.qte,
     product.org_id,
-    product.bar_code || null,
+    product.bar_code || null, // Default to NULL if not provided
     product.updated_at || null, // Default to NULL if not provided
-    product._synced ?? true // Default to true if not provided
+    product._synced ?? true, // Default to true if not provided
+    product._deleted ?? false // Default to false if not provided
   ])
   try {
-    return db.query(query, queryValues)
+    return db.query<Product>(query, queryValues)
   } catch (error) {
     throw new Error('Products not inserted/upserted successfully.')
   }

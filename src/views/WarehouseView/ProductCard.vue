@@ -67,7 +67,7 @@ import useVuelidate from '@vuelidate/core'
 import { injectPGlite } from '@electric-sql/pglite-vue'
 
 import { useUpsertProductsDb } from '@/composables/db/products/useUpsertProductsDb'
-import { useDeleteProductDb } from '@/composables/db/products/useDeleteProductDb'
+import { useSoftDeleteProductsDB } from '@/composables/db/products/useSoftDeleteProductsDb'
 
 import DeleteItemModal from '@/views/OrderView/DeleteItemModal.vue'
 import ProductForm from './ProductForm.vue'
@@ -82,7 +82,7 @@ const product = defineModel<Product>()
 const proxyForm = ref(clone(product.value))
 
 const upsertProductsDb = useUpsertProductsDb()
-const deleteProductDB = useDeleteProductDb()
+const softDeleteProductDB = useSoftDeleteProductsDB()
 
 const deleteDialog = ref(false)
 const editDialog = ref(false)
@@ -96,8 +96,8 @@ async function editProduct() {
 }
 
 async function deleteProduct() {
-  deleteProductDB.productId.value = product.value?.id
-  deleteProductDB.execute(db)
+  softDeleteProductDB.ids.value = [product.value?.id || '']
+  softDeleteProductDB.execute()
 }
 
 watch(
