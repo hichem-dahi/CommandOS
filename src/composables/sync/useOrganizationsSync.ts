@@ -27,7 +27,7 @@ export function useOrganizationsSync() {
       ) as unknown as Organization[]
   )
 
-  const queriesReady = computed(() => organizationsQuery.rows.value !== null)
+  const queriesReady = computed(() => organizationsQuery.rows.value !== undefined)
 
   async function sync() {
     // Push organizations to API
@@ -49,9 +49,9 @@ export function useOrganizationsSync() {
 
   // Watch queries and trigger launch when ready
   const launch = () => {
-    watch(queriesReady, (isReady) => {
+    watch(queriesReady, async (isReady) => {
       if (isReady) {
-        sync()
+        await sync()
       }
     })
   }
