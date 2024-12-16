@@ -103,21 +103,21 @@ const orderQuery = useLiveQuery(
     (
         SELECT to_jsonb(i)
         FROM public.individuals i
-        WHERE i.id = o.individual_id
+        WHERE i.id = o.individual_id AND i._deleted = false
         LIMIT 1
     ) AS individual,
     -- Fetching client data as a separate field
     (
         SELECT to_jsonb(org)
         FROM public.organizations org
-        WHERE org.id = o.client_id
+        WHERE org.id = o.client_id AND org._deleted = false
         LIMIT 1
     ) AS client,
     -- Fetching payments as an array of JSON objects
     (
         SELECT jsonb_agg(p)
         FROM public.payments p
-        WHERE p.order_id = o.id
+        WHERE p.order_id = o.id AND p._deleted = false
     ) AS payments,
     -- Fetching order lines as an array of JSON objects with product details
     (
@@ -131,19 +131,20 @@ const orderQuery = useLiveQuery(
                 'unit_cost_price', ol.unit_cost_price,
                 'total_price', ol.total_price,
                 'updated_at', ol.updated_at,
+                '_deleted', ol._deleted,
                 '_synced', ol._synced,
                 'product', (
                     SELECT to_jsonb(p)
                     FROM public.products p
-                    WHERE p.id = ol.product_id
+                    WHERE p.id = ol.product_id AND p._deleted = false
                 )
             )
         )
         FROM public.order_lines ol
-        WHERE ol.order_id = o.id
+        WHERE ol.order_id = o.id AND ol._deleted = false
     ) AS order_lines
   FROM public.orders o
-  WHERE o.id = $1;
+  WHERE o.id = $1 AND o._deleted = false;
   `,
   [route.params.order_id] // Pass route.params.order_id as the parameter
 )
