@@ -50,12 +50,16 @@ export function useIndividualsSync() {
 
   // Watch queries and trigger launch when ready
   const launch = () => {
-    const watcher = watch(areQueriesReady, async (isReady) => {
-      if (isReady) {
-        await sync()
-        watcher()
-      }
-    })
+    const watcher = watch(
+      areQueriesReady,
+      async (isReady) => {
+        if (isReady) {
+          await sync()
+          watcher()
+        }
+      },
+      { immediate: true }
+    )
   }
 
   return { sync, launch, areQueriesReady }

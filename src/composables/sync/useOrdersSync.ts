@@ -131,12 +131,16 @@ export function useOrdersSync() {
 
   // Watch queries and trigger launch when ready
   const launch = () => {
-    const watcher = watch(queriesReady, async (isReady) => {
-      if (isReady) {
-        await sync()
-        watcher()
-      }
-    })
+    const watcher = watch(
+      queriesReady,
+      async (isReady) => {
+        if (isReady) {
+          await sync()
+          watcher()
+        }
+      },
+      { immediate: true }
+    )
   }
 
   return { inFinished, sync, launch }

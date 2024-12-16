@@ -49,11 +49,15 @@ export function useOrganizationsSync() {
 
   // Watch queries and trigger launch when ready
   const launch = () => {
-    watch(queriesReady, async (isReady) => {
-      if (isReady) {
-        await sync()
-      }
-    })
+    watch(
+      queriesReady,
+      async (isReady) => {
+        if (isReady) {
+          await sync()
+        }
+      },
+      { immediate: true }
+    )
   }
 
   const inFinished = computed(
