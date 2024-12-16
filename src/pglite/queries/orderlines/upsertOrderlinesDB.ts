@@ -5,6 +5,7 @@ export async function upsertOrderlinesDB(
   db: PGlite,
   orderlines: (TablesInsert<'order_lines'> & {
     _synced?: boolean
+    _deleted?: boolean
   })[]
 ) {
   const query = `
@@ -17,20 +18,22 @@ export async function upsertOrderlinesDB(
       unit_cost_price,
       unit_price,
       updated_at,
-      _synced
+      _synced,
+      _deleted
     )
     VALUES ${orderlines
       .map(
         (_, i) => `(
-          COALESCE($${i * 9 + 1}, gen_random_uuid()), 
-          $${i * 9 + 2}, 
-          $${i * 9 + 3}, 
-          $${i * 9 + 4}, 
-          $${i * 9 + 5}, 
-          $${i * 9 + 6}, 
-          $${i * 9 + 7}, 
-          $${i * 9 + 8}, 
-          COALESCE($${i * 9 + 9}, true)
+          COALESCE($${i * 10 + 1}, gen_random_uuid()), 
+          $${i * 10 + 2}, 
+          $${i * 10 + 3}, 
+          $${i * 10 + 4}, 
+          $${i * 10 + 5}, 
+          $${i * 10 + 6}, 
+          $${i * 10 + 7}, 
+          $${i * 10 + 8}, 
+          COALESCE($${i * 10 + 9}, true),
+          COALESCE($${i * 10 + 10}, false)
         )`
       )
       .join(', ')}
@@ -43,8 +46,9 @@ export async function upsertOrderlinesDB(
       unit_cost_price = EXCLUDED.unit_cost_price,
       unit_price = EXCLUDED.unit_price,
       updated_at = EXCLUDED.updated_at,
-      _synced = COALESCE(EXCLUDED._synced, true)
-      RETURNING *;
+      _synced = COALESCE(EXCLUDED._synced, true),
+      _deleted = COALESCE(EXCLUDED._deleted, false)
+    RETURNING *;
   `
 
   const values = orderlines.flatMap((orderline) => [
@@ -56,7 +60,8 @@ export async function upsertOrderlinesDB(
     orderline.unit_cost_price ?? null, // Default to null if not provided
     orderline.unit_price,
     orderline.updated_at,
-    orderline._synced ?? true // Default to true if not provided
+    orderline._synced ?? true, // Default to true if not provided
+    orderline._deleted ?? false // Default to false if not provided
   ])
 
   try {

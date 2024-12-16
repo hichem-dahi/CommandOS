@@ -11,6 +11,9 @@ import { useUpsertOrderlinesDb } from '../db/orderlines/useUpsertOrderlinesDb'
 import { useUpsertPaymentsDb } from '../db/payments/useUpsertPaymentsDb'
 
 import type { TablesInsert } from '@/types/database.types'
+import { useDeleteOrdersDb } from '../db/orders/useDeleteOrderDb'
+import { useDeleteOrderlinesDb } from '../db/notifications/useDeleteNotificationsDb'
+import { useDeletePaymentsDb } from '../db/payments/useDeletePaymentsDb'
 
 export function useOrdersSync() {
   const db = injectPGlite()
@@ -25,6 +28,10 @@ export function useOrdersSync() {
   const upsertOrdersDb = useUpsertOrdersDb()
   const upsertOrderlinesDb = useUpsertOrderlinesDb()
   const upsertPaymentsDb = useUpsertPaymentsDb()
+
+  const deleteOrdersDb = useDeleteOrdersDb()
+  const deleteOrderlinesDb = useDeleteOrderlinesDb()
+  const deletePaymentsDb = useDeletePaymentsDb()
 
   // Queries
   const ordersToSyncQuery = useLiveQuery('SELECT * FROM public.orders WHERE _synced = false;', [])
@@ -107,6 +114,18 @@ export function useOrdersSync() {
       const payments = orders.flatMap((o) => o.payments || [])
       upsertPaymentsDb.form.value = payments
       await upsertPaymentsDb.execute()
+
+      // Collect IDs of deleted orders
+      deleteOrdersDb.ids.value = orders.filter((o) => o._deleted).map((o) => o.id)
+      await deleteOrdersDb.execute()
+
+      // Collect IDs of deleted order lines
+      deleteOrderlinesDb.ids.value = orderlines.filter((ol) => ol._deleted).map((ol) => ol.id)
+      await deleteOrderlinesDb.execute()
+
+      // Collect IDs of deleted payments
+      deletePaymentsDb.ids.value = payments.filter((p) => p._deleted).map((p) => p.id)
+      await deletePaymentsDb.execute()
     }
   }
 

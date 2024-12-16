@@ -141,7 +141,7 @@ import { useLiveQuery } from '@electric-sql/pglite-vue'
 
 import { useUpsertOrderlinesDb } from '@/composables/db/orderlines/useUpsertOrderlinesDb'
 import { useUpsertOrdersDb } from '@/composables/db/orders/useUpsertOrdersDb'
-import { useDeleteOrderlinesDb } from '@/composables/db/orderlines/useDeleteOrderlinesDb'
+import { useSoftDeleteOrderlinesDb } from '@/composables/db/orderlines/useSoftDeleteOrderlinesDb'
 
 import OrderLineForm from '@/views/OrdersView/OrderLineForm.vue'
 import DeleteItemModal from './DeleteItemModal.vue'
@@ -157,7 +157,7 @@ const productsQuery = useLiveQuery('SELECT * FROM public.products;', [])
 
 const { t } = useI18n()
 
-const deleteOrderlinesDb = useDeleteOrderlinesDb()
+const softDeleteOrderlinesDb = useSoftDeleteOrderlinesDb()
 const upsertOrderlinesDb = useUpsertOrderlinesDb()
 const upsertOrderDb = useUpsertOrdersDb()
 
@@ -196,7 +196,7 @@ const headers = computed(
 )
 
 const isLoading = computed(
-  () => deleteOrderlinesDb.isLoading.value || upsertOrderlinesDb.isLoading.value
+  () => softDeleteOrderlinesDb.isLoading.value || upsertOrderlinesDb.isLoading.value
 )
 
 const isModified = computed(() => !isEqual(order.value.order_lines, proxyOrderlines.value))
@@ -281,18 +281,20 @@ function cancelEdit() {
 }
 
 function confirmEdit() {
-  deleteOrderlinesDb.ids.value = order.value.order_lines.map((ol) => ol.id)
-  deleteOrderlinesDb.execute()
+  softDeleteOrderlinesDb.ids.value = order.value.order_lines.map((ol) => ol.id)
+  softDeleteOrderlinesDb.execute()
 }
 
 watch(
-  () => deleteOrderlinesDb.isSuccess.value,
+  () => softDeleteOrderlinesDb.isSuccess.value,
   (isSuccess) => {
     if (isSuccess) {
       upsertOrderlinesDb.form.value = proxyOrderlines.value.map(({ product, ...rest }) => {
         rest.order_id = order.value.id
-        return { ...rest, _synced: false }
+        return { ...rest, _synced: false, _deleted: false }
       })
+      console.log(softDeleteOrderlinesDb)
+
       upsertOrderlinesDb.execute()
     }
   }
@@ -300,9 +302,10 @@ watch(
 
 watch(
   () => upsertOrderlinesDb.isSuccess.value,
-  (isSuccessDb) => {
-    if (isSuccessDb && upsertOrderlinesDb.data.value) {
+  (isSuccess) => {
+    if (isSuccess && upsertOrderlinesDb.data.value) {
       const total_price = sum(upsertOrderlinesDb.data.value.map((o) => Number(o.total_price)))
+      console.log(upsertOrderlinesDb)
 
       if (order.value)
         upsertOrderDb.form.value = [

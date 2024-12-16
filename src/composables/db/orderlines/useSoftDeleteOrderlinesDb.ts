@@ -2,14 +2,14 @@ import { computed, ref } from 'vue'
 import { useAsyncState } from '@vueuse/core'
 import { injectPGlite } from '@electric-sql/pglite-vue'
 
-import { deletePaymentsDB } from '@/pglite/queries/payments/deletePaymentsDB'
+import { softDeleteOrderlinesDB } from '@/pglite/queries/orderlines/softDeleteOrderlinesDB'
 
-export function useDeletePaymentsDb() {
+export function useSoftDeleteOrderlinesDb() {
   const db = injectPGlite()
 
   const ids = ref<string[]>()
 
-  const q = useAsyncState(deletePaymentsDB, undefined, { immediate: false })
+  const q = useAsyncState(softDeleteOrderlinesDB, undefined, { immediate: false })
 
   const execute = () => {
     if (ids.value) return q.execute(0, db, ids.value)

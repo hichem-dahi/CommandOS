@@ -36,6 +36,7 @@ export type Database = {
     Tables: {
       deliveries: {
         Row: {
+          _deleted: boolean | null
           destination: string
           driver_name: string
           id: string
@@ -44,6 +45,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          _deleted?: boolean | null
           destination: string
           driver_name: string
           id?: string
@@ -52,6 +54,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          _deleted?: boolean | null
           destination?: string
           driver_name?: string
           id?: string
@@ -63,6 +66,7 @@ export type Database = {
       }
       individuals: {
         Row: {
+          _deleted: boolean | null
           id: string
           name: string
           org_id: string
@@ -70,6 +74,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          _deleted?: boolean | null
           id?: string
           name: string
           org_id: string
@@ -77,6 +82,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          _deleted?: boolean | null
           id?: string
           name?: string
           org_id?: string
@@ -95,6 +101,7 @@ export type Database = {
       }
       notifications: {
         Row: {
+          _deleted: boolean | null
           body: string
           id: string
           org_id: string
@@ -102,6 +109,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          _deleted?: boolean | null
           body: string
           id?: string
           org_id: string
@@ -109,6 +117,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          _deleted?: boolean | null
           body?: string
           id?: string
           org_id?: string
@@ -127,6 +136,7 @@ export type Database = {
       }
       order_lines: {
         Row: {
+          _deleted: boolean | null
           id: string
           order_id: string
           product_id: string
@@ -137,6 +147,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          _deleted?: boolean | null
           id?: string
           order_id: string
           product_id: string
@@ -147,6 +158,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          _deleted?: boolean | null
           id?: string
           order_id?: string
           product_id?: string
@@ -175,6 +187,7 @@ export type Database = {
       }
       orders: {
         Row: {
+          _deleted: boolean
           client_id: string | null
           date: string
           delivery_id: string | null
@@ -193,6 +206,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          _deleted?: boolean
           client_id?: string | null
           date: string
           delivery_id?: string | null
@@ -211,6 +225,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          _deleted?: boolean
           client_id?: string | null
           date?: string
           delivery_id?: string | null
@@ -261,6 +276,7 @@ export type Database = {
       }
       organizations: {
         Row: {
+          _deleted: boolean | null
           activity: string | null
           address: string | null
           art: number | null
@@ -274,6 +290,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          _deleted?: boolean | null
           activity?: string | null
           address?: string | null
           art?: number | null
@@ -287,6 +304,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          _deleted?: boolean | null
           activity?: string | null
           address?: string | null
           art?: number | null
@@ -311,22 +329,28 @@ export type Database = {
       }
       payments: {
         Row: {
+          _deleted: boolean | null
           amount: number
           date: string
           id: string
           order_id: string
+          updated_at: string
         }
         Insert: {
+          _deleted?: boolean | null
           amount: number
           date: string
           id?: string
           order_id: string
+          updated_at?: string
         }
         Update: {
+          _deleted?: boolean | null
           amount?: number
           date?: string
           id?: string
           order_id?: string
+          updated_at?: string
         }
         Relationships: [
           {
@@ -340,6 +364,7 @@ export type Database = {
       }
       products: {
         Row: {
+          _deleted: boolean | null
           bar_code: number | null
           code: string
           cost_price: number | null
@@ -351,6 +376,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          _deleted?: boolean | null
           bar_code?: number | null
           code: string
           cost_price?: number | null
@@ -362,6 +388,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          _deleted?: boolean | null
           bar_code?: number | null
           code?: string
           cost_price?: number | null
@@ -384,6 +411,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          _deleted: boolean | null
           email: string | null
           full_name: string | null
           id: string
@@ -391,6 +419,7 @@ export type Database = {
           phone: string | null
         }
         Insert: {
+          _deleted?: boolean | null
           email?: string | null
           full_name?: string | null
           id?: string
@@ -398,6 +427,7 @@ export type Database = {
           phone?: string | null
         }
         Update: {
+          _deleted?: boolean | null
           email?: string | null
           full_name?: string | null
           id?: string
@@ -416,6 +446,7 @@ export type Database = {
       }
       push_subscriptions: {
         Row: {
+          _deleted: boolean | null
           auth: string
           created_at: string | null
           endpoint: string
@@ -424,6 +455,7 @@ export type Database = {
           p256dh: string
         }
         Insert: {
+          _deleted?: boolean | null
           auth: string
           created_at?: string | null
           endpoint: string
@@ -432,6 +464,7 @@ export type Database = {
           p256dh: string
         }
         Update: {
+          _deleted?: boolean | null
           auth?: string
           created_at?: string | null
           endpoint?: string
@@ -451,6 +484,7 @@ export type Database = {
       }
       stock_movements: {
         Row: {
+          _deleted: boolean | null
           date: string
           id: string
           order_id: string | null
@@ -460,6 +494,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          _deleted?: boolean | null
           date: string
           id?: string
           order_id?: string | null
@@ -469,6 +504,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          _deleted?: boolean | null
           date?: string
           id?: string
           order_id?: string | null
