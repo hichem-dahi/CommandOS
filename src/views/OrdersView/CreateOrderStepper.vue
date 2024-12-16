@@ -63,15 +63,13 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { isString } from 'lodash'
+import { useLiveQuery } from '@electric-sql/pglite-vue'
 
 import { useUpsertOrdersDb } from '@/composables/db/orders/useUpsertOrdersDb'
 import { useUpsertDeliveriesDb } from '@/composables/db/deliveries/useUpsertDeliveriesDb'
 import { useUpsertOrderlinesDb } from '@/composables/db/orderlines/useUpsertOrderlinesDb'
 import { useUpsertPaymentsDb } from '@/composables/db/payments/useUpsertPaymentsDb'
 import { useUpsertIndividualsDb } from '@/composables/db/individuals/useUpsertIndividualsDb'
-
-import { useOrganizationsSync } from '@/composables/sync/useOrganizationsSync'
-import { useIndividualsSync } from '@/composables/sync/useIndividualsSync'
 
 import SelectConsumer from './CreateOrderStepper/SelectConsumer.vue'
 import CreateOrderlines from './CreateOrderStepper/CreateOrderlines.vue'
@@ -89,7 +87,7 @@ import {
 } from './CreateOrderStepper/state'
 
 import type { Validation } from '@vuelidate/core'
-import { DocumentType } from '@/models/models'
+import { DocumentType, type Individual, type Organization } from '@/models/models'
 import type { TablesInsert } from '@/types/database.types'
 
 enum Steps {
@@ -113,8 +111,11 @@ const upsertIndividualsDb = useUpsertIndividualsDb()
 const upsertOrderlinesDb = useUpsertOrderlinesDb()
 const upsertPaymentDb = useUpsertPaymentsDb()
 
-const { organizations } = useOrganizationsSync()
-const { individuals } = useIndividualsSync()
+const organizationsQuery = useLiveQuery('SELECT * FROM public.organizations;', [])
+const individualsQuery = useLiveQuery('SELECT * FROM public.individuals;', [])
+
+const individuals = computed(() => individualsQuery.rows.value as unknown as Individual[])
+const organizations = computed(() => organizationsQuery.rows.value as unknown as Organization[])
 
 const step = ref(Steps.SelectConsumer)
 
