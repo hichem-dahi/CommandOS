@@ -1,36 +1,32 @@
-import type { Product } from '@/models/models'
+import self from './localStore/useSelf'
+
+import type { OrderLine, Product } from '@/models/models'
 import type { TablesInsert } from '@/types/database.types'
-import type { OrderData } from './api/orders/useGetOrderApi'
 
-// Generate stock movements for a given order based on its order lines
-export function generateStockMovementsForOrder(
-  order: OrderData
-): TablesInsert<'stock_movements'>[] {
-  const stockMovements: TablesInsert<'stock_movements'>[] = []
-
-  order.order_lines.forEach((orderLine) => {
-    const product = orderLine.product
-    if (product && product.qte !== null && orderLine.qte !== null) {
-      if (product.qte >= orderLine.qte) {
-        product.qte -= orderLine.qte // Deduct stock
-        stockMovements.push(createStockMovement(product.id, -orderLine.qte, order.id))
-      }
-    }
-  })
-
-  return stockMovements
+// Define the minimal OrderData type
+type OrderData = {
+  id: string
+  order_lines: OrderLine[]
 }
 
-// Restore stock quantities from a reversed order
-export function restoreStockFromOrder(order: OrderData): TablesInsert<'stock_movements'>[] {
+const org_id = self.value.user?.organization_id
+
+export function processStockMovementsForOrder(
+  order: OrderData,
+  operation: 'deduct' | 'restore',
+  products: Product[]
+) {
   const stockMovements: TablesInsert<'stock_movements'>[] = []
 
   order.order_lines.forEach((orderLine) => {
-    const product = orderLine.product
+    const product = products.find((p) => p.id === orderLine.product_id)
     if (product && product.qte !== null && orderLine.qte !== null) {
-      if (product.qte >= orderLine.qte) {
-        product.qte += orderLine.qte // Add back stock
-        stockMovements.push(createStockMovement(product.id, orderLine.qte, order.id))
+      const qteChange = operation === 'deduct' ? -orderLine.qte : orderLine.qte
+
+      // Ensure stock quantity does not go negative for deduction
+      if (operation === 'restore' || product.qte >= orderLine.qte) {
+        product.qte += qteChange // Adjust stock based on the operation
+        stockMovements.push(createStockMovement(product.id, qteChange, order.id))
       }
     }
   })
@@ -56,6 +52,7 @@ export function createStockMovement(
   return {
     product_id,
     qte_change,
+    org_id: org_id || '',
     date: new Date().toISOString(),
     order_id
   }
