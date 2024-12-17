@@ -1,9 +1,9 @@
-import type { TablesInsert } from '@/types/database.types'
 import type { PGlite } from '@electric-sql/pglite'
+import type { Tables, TablesInsert } from '@/types/database.types'
 
 export async function upsertOrdersDB(
   db: PGlite,
-  orders: (TablesInsert<'orders'> & { _synced?: boolean })[]
+  orders: (TablesInsert<'orders'> & { _synced?: boolean; _deleted?: boolean })[]
 ) {
   const query = `
     INSERT INTO public.orders (
@@ -23,28 +23,30 @@ export async function upsertOrdersDB(
       ttc,
       tva,
       updated_at,
-      _synced
+      _synced,
+      _deleted
     )
     VALUES ${orders
       .map(
         (_, i) => `(
-          COALESCE($${i * 17 + 1}, gen_random_uuid()),
-          $${i * 17 + 2},
-          $${i * 17 + 3},
-          $${i * 17 + 4},
-          $${i * 17 + 5},
-          $${i * 17 + 6},
-          $${i * 17 + 7},
-          $${i * 17 + 8},
-          $${i * 17 + 9},
-          $${i * 17 + 10},
-          $${i * 17 + 11},
-          $${i * 17 + 12},
-          $${i * 17 + 13},
-          $${i * 17 + 14},
-          $${i * 17 + 15},
-          $${i * 17 + 16},
-          COALESCE($${i * 17 + 17}, true)
+          COALESCE($${i * 18 + 1}, gen_random_uuid()),
+          $${i * 18 + 2},
+          $${i * 18 + 3},
+          $${i * 18 + 4},
+          $${i * 18 + 5},
+          $${i * 18 + 6},
+          $${i * 18 + 7},
+          $${i * 18 + 8},
+          $${i * 18 + 9},
+          $${i * 18 + 10},
+          $${i * 18 + 11},
+          $${i * 18 + 12},
+          $${i * 18 + 13},
+          $${i * 18 + 14},
+          $${i * 18 + 15},
+          $${i * 18 + 16},
+          COALESCE($${i * 18 + 17}, true),
+          COALESCE($${i * 18 + 18}, false)
         )`
       )
       .join(', ')}
@@ -65,8 +67,9 @@ export async function upsertOrdersDB(
       ttc = EXCLUDED.ttc,
       tva = EXCLUDED.tva,
       updated_at = EXCLUDED.updated_at,
-      _synced = COALESCE(EXCLUDED._synced, true)
-      RETURNING *;
+      _synced = COALESCE(EXCLUDED._synced, true),
+      _deleted = COALESCE(EXCLUDED._deleted, false)
+    RETURNING *;
   `
 
   const values = orders.flatMap((order) => [
@@ -86,11 +89,12 @@ export async function upsertOrdersDB(
     order.ttc || null,
     order.tva || null,
     order.updated_at || null,
-    order._synced ?? true
+    order._synced ?? true,
+    order._deleted ?? false
   ])
 
   try {
-    return db.query(query, values)
+    return db.query<Tables<'orders'>>(query, values)
   } catch (error) {
     console.error('Error upserting orders:', error)
   }
