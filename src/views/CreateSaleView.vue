@@ -46,14 +46,17 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import useVuelidate from '@vuelidate/core'
+import { useLiveQuery } from '@electric-sql/pglite-vue'
 import { mdiBarcodeScan } from '@mdi/js'
 
 import { useUpsertOrderlinesDb } from '@/composables/db/orderlines/useUpsertOrderlinesDb'
 import { useUpsertOrdersDb } from '@/composables/db/orders/useUpsertOrdersDb'
 import { useUpsertPaymentsDb } from '@/composables/db/payments/useUpsertPaymentsDb'
 import { useUpsertNotificationsDb } from '@/composables/db/notifications/useUpsertNotificationsDb'
+import { useUpdateProductsQtyDb } from '@/composables/db/products/useUpdateProductsQtyDb'
+import { useUpsertStockMovementsDb } from '@/composables/db/stockMovements/useUpsertStockMovementsDb'
 
-import { useProductsSync } from '@/composables/sync/useProductsSync'
+import { processStockMovementsForOrder } from '@/composables/useStockManage'
 
 import self from '@/composables/localStore/useSelf'
 
@@ -69,14 +72,21 @@ import {
   resetPayment
 } from './OrdersView/CreateOrderStepper/state'
 
-import { DocumentType, OrderStatus } from '@/models/models'
+import { DocumentType, OrderStatus, type Product } from '@/models/models'
 import type { TablesInsert } from '@/types/database.types'
 
-const { products } = useProductsSync()
+const productsQuery = useLiveQuery('SELECT * FROM public.products WHERE _deleted = false;', [])
+
+const products = computed(() => (productsQuery.rows.value || []) as unknown as Product[])
 
 const upsertOrdersDb = useUpsertOrdersDb()
 const upsertOrderlinesDb = useUpsertOrderlinesDb()
 const upsertPaymentsDb = useUpsertPaymentsDb()
+
+const upsertStockMovementsDb = useUpsertStockMovementsDb()
+const upsertPaymentDb = useUpsertPaymentsDb()
+const updateProductsQtyDb = useUpdateProductsQtyDb()
+
 const upsertNotificationsDb = useUpsertNotificationsDb()
 
 const showScanner = ref(false)
@@ -131,12 +141,52 @@ function submitSale() {
     form.document_type = DocumentType.Voucher
     const org_id = self.value.user?.organization_id
     if (org_id) {
-      debugger
       upsertOrdersDb.form.value = [{ ...form, org_id, _synced: false }]
       upsertOrdersDb.execute()
     }
   }
 }
+
+function insertPayment(payment: TablesInsert<'payments'>) {
+  upsertPaymentsDb.form.value = [
+    {
+      ...payment,
+      _synced: false
+    }
+  ]
+  upsertPaymentsDb.execute()
+}
+
+function insertNotification(title: string, body: string) {
+  const org_id = self.value.user?.organization_id || ''
+  upsertNotificationsDb.form.value = [
+    {
+      title,
+      body,
+      org_id,
+      _synced: false
+    }
+  ]
+  upsertNotificationsDb.execute()
+}
+
+function updateProductQuantities(updates: { product_id: string; qte_change: number }[]) {
+  updateProductsQtyDb.form.value = updates
+  updateProductsQtyDb.execute()
+}
+
+watch(
+  () => upsertStockMovementsDb.isSuccess.value,
+  (isSuccess) => {
+    if (isSuccess) {
+      const updates = upsertStockMovementsDb.data.value.map((s) => ({
+        product_id: s.product_id,
+        qte_change: s.qte_change
+      }))
+      updateProductQuantities(updates)
+    }
+  }
+)
 
 watch(
   () => form.total_price,
@@ -155,7 +205,6 @@ watch(
         order_id,
         _synced: false
       }))
-
       upsertOrderlinesDb.execute()
 
       if (paymentForm.amount) {
@@ -170,44 +219,31 @@ watch(
 
 watch(
   [() => upsertOrderlinesDb.isSuccess.value, () => upsertOrdersDb.isSuccess.value],
-  ([isSuccess1, isSuccess2]) => {
-    const orderlines = upsertOrderlinesDb.data.value
-    const org_id = self.value.user?.organization_id
-    const order = upsertOrdersDb.data.value[0]
+  async ([isSuccess1, isSuccess2]) => {
+    const order_lines = upsertOrderlinesDb.data.value
+    const order = upsertOrdersDb.data.value?.[0]
 
-    if (isSuccess1 && isSuccess2 && orderlines && org_id && order) {
+    if (isSuccess1 && isSuccess2 && order_lines && order) {
+      const data = {
+        order_lines,
+        id: order.id
+      }
+      const stockMovements = processStockMovementsForOrder(data, 'deduct', products.value)
+      upsertStockMovementsDb.form.value = stockMovements.map((s) => ({
+        ...s,
+        _synced: false // Add the synced property
+      }))
+      upsertStockMovementsDb.execute()
       const body =
-        orderlines
+        order_lines
           .map((line) => {
             const product = products.value.find((p) => p.id === line.product_id)
             return product ? `${line.qte} ${product.name}` : `${line.qte} Unknown Product`
           })
           .join(', ') + ` — ${order.total_price} DA`
 
-      insertNotification('Vente réalisée', body, org_id)
+      insertNotification('Vente réalisée', body)
     }
   }
 )
-
-function insertPayment(payment: TablesInsert<'payments'>) {
-  upsertPaymentsDb.form.value = [
-    {
-      ...payment,
-      _synced: false
-    }
-  ]
-  upsertPaymentsDb.execute()
-}
-
-function insertNotification(title: string, body: string, org_id: string) {
-  upsertNotificationsDb.form.value = [
-    {
-      title,
-      body,
-      org_id,
-      _synced: false
-    }
-  ]
-  upsertNotificationsDb.execute()
-}
 </script>

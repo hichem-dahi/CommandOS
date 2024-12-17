@@ -47,7 +47,7 @@
     <PaymentModal
       v-model:order="order"
       v-model:dialog="paymentDialog"
-      :is-loading="upsertPaymentApi.isLoading.value"
+      :is-loading="upsertPaymentDb.isLoading.value"
       @confirm="addPayment"
     />
     <ConfirmModal
@@ -58,7 +58,7 @@
     <CancelModal
       v-model="cancelDialog"
       :is-loading="upsertOrdersDb.isLoading.value"
-      @confirm="cancelOrder"
+      @confirm="upsertStockMovements('restore')"
     />
   </div>
 </template>
@@ -70,14 +70,14 @@ import { useI18n } from 'vue-i18n'
 import { mdiCashSync, mdiChevronLeft, mdiCancel } from '@mdi/js'
 import { useLiveQuery } from '@electric-sql/pglite-vue'
 
-import { generateStockMovementsForOrder, restoreStockFromOrder } from '@/composables/useStockManage'
-
-import self from '@/composables/localStore/useSelf'
-
 import { useUpsertOrdersDb } from '@/composables/db/orders/useUpsertOrdersDb'
 import { useUpsertPaymentsDb } from '@/composables/db/payments/useUpsertPaymentsDb'
 import { useUpsertStockMovementsDb } from '@/composables/db/stockMovements/useUpsertStockMovementsDb'
 import { useUpdateProductsQtyDb } from '@/composables/db/products/useUpdateProductsQtyDb'
+import { useUpsertNotificationsDb } from '@/composables/db/notifications/useUpsertNotificationsDb'
+import { processStockMovementsForOrder } from '@/composables/useStockManage'
+
+import self from '@/composables/localStore/useSelf'
 
 import OrderTable from './OrderView/OrderTable.vue'
 import CreateDelivery from './OrdersView/CreateDelivery.vue'
@@ -88,7 +88,7 @@ import CancelModal from './OrdersView/CancelModal.vue'
 import PaymentsCard from './OrderView/PaymentsCard.vue'
 import DocumentButtons from './OrderView/DocumentButtons.vue'
 
-import { DocumentType, OrderStatus } from '@/models/models'
+import { DocumentType, OrderStatus, type Product } from '@/models/models'
 import type { TablesInsert } from '@/types/database.types'
 import type { OrderData } from '@/composables/api/orders/useGetOrderApi'
 
@@ -149,12 +149,16 @@ const orderQuery = useLiveQuery(
   [route.params.order_id] // Pass route.params.order_id as the parameter
 )
 
+const productsQuery = useLiveQuery('SELECT * FROM public.products WHERE _deleted = false;', [])
+
+const products = computed(() => (productsQuery.rows.value || []) as unknown as Product[])
 const order = computed(() => orderQuery.rows.value?.[0] as unknown as OrderData | undefined)
 
 const upsertOrdersDb = useUpsertOrdersDb()
 const upsertStockMovementsDb = useUpsertStockMovementsDb()
-const upsertPaymentApi = useUpsertPaymentsDb()
+const upsertPaymentDb = useUpsertPaymentsDb()
 const updateProductsQtyDb = useUpdateProductsQtyDb()
+const upsertNotificationsDb = useUpsertNotificationsDb()
 
 const paymentDialog = ref(false)
 const deliveryDialog = ref(false)
@@ -182,14 +186,8 @@ function processOrder() {
     confirmDialog.value = true
     return
   }
-  const org_id = self.value.user?.organization_id
-  if (isPending.value && org_id) {
-    upsertStockMovementsDb.form.value = generateStockMovementsForOrder(order.value!).map((s) => ({
-      ...s,
-      org_id,
-      _synced: false // Add the synced property
-    }))
-    upsertStockMovementsDb.execute()
+  if (isPending.value) {
+    upsertStockMovements('deduct')
     return
   }
   goDocPage()
@@ -221,12 +219,15 @@ function getRouteNameByDocumentType(documentType: DocumentType) {
   }
 }
 
-function cancelOrder() {
-  const org_id = self.value.user?.organization_id
-  if (org_id) {
-    upsertStockMovementsDb.form.value = restoreStockFromOrder(order.value!).map((s) => ({
+function upsertStockMovements(operation: 'deduct' | 'restore') {
+  if (order.value) {
+    const data = {
+      order_lines: order.value?.order_lines,
+      id: order.value?.id
+    }
+    const stockMovements = processStockMovementsForOrder(data, operation, products.value)
+    upsertStockMovementsDb.form.value = stockMovements.map((s) => ({
       ...s,
-      org_id,
       _synced: false // Add the synced property
     }))
     upsertStockMovementsDb.execute()
@@ -234,8 +235,8 @@ function cancelOrder() {
 }
 
 function addPayment(payment: TablesInsert<'payments'>) {
-  upsertPaymentApi.form.value = [payment]
-  upsertPaymentApi.execute()
+  upsertPaymentDb.form.value = [payment]
+  upsertPaymentDb.execute()
 }
 
 function updateProductQuantities(updates: { product_id: string; qte_change: number }[]) {
@@ -248,6 +249,19 @@ function updateOrderStatus(moveType: 'add' | 'sub') {
   const orderStatus = moveType === 'sub' ? OrderStatus.Confirmed : OrderStatus.Cancelled
   upsertOrdersDb.form.value = [{ ...order.value!, status: orderStatus, _synced: false }]
   upsertOrdersDb.execute()
+}
+
+function insertNotification(title: string, body: string) {
+  const org_id = self.value.user?.organization_id || ''
+  upsertNotificationsDb.form.value = [
+    {
+      title,
+      body,
+      org_id,
+      _synced: false
+    }
+  ]
+  upsertNotificationsDb.execute()
 }
 
 watch(
@@ -271,12 +285,22 @@ watch(
   ([isSuccess1, isSuccess2]) => {
     if (!isSuccess1 || !isSuccess2) return
 
-    const form = upsertOrdersDb.form.value?.[0]
-    const status = form?.status
+    const data = upsertOrdersDb.data.value?.[0]
+    console.log(data)
 
-    //order.value = UpsertOrdersDb.data.value
+    const status = data?.status
+    const body =
+      order.value?.order_lines
+        .map((line) => {
+          const product = products.value.find((p) => p.id === line.product_id)
+          return product ? `${line.qte} ${product.name}` : `${line.qte} Unknown Product`
+        })
+        .join(', ') + ` — ${order.value?.total_price} DA`
+    const title = status === OrderStatus.Confirmed ? 'Vente réalisée' : 'Vente annulée'
 
-    if (form?.paid_price) {
+    insertNotification(title, body)
+
+    if (data?.paid_price) {
       paymentDialog.value = false
       return
     }
@@ -295,13 +319,13 @@ watch(
 )
 
 watch(
-  () => upsertPaymentApi.isSuccess.value,
+  () => upsertPaymentDb.isSuccess.value,
   (isSuccess) => {
-    if (isSuccess && upsertPaymentApi.data.value?.[0].amount && order.value) {
+    if (isSuccess && upsertPaymentDb.data.value?.[0].amount && order.value) {
       upsertOrdersDb.form.value = [
         {
           ...order.value,
-          paid_price: (order.value?.paid_price || 0) + upsertPaymentApi.data.value?.[0].amount
+          paid_price: (order.value?.paid_price || 0) + upsertPaymentDb.data.value?.[0].amount
         }
       ]
       upsertOrdersDb.execute()
