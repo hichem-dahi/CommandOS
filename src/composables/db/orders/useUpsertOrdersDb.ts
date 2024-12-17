@@ -3,7 +3,7 @@ import { useAsyncState } from '@vueuse/core'
 import { injectPGlite } from '@electric-sql/pglite-vue'
 import { upsertOrdersDB } from '@/pglite/queries/orders/upsertOrdersDB'
 
-import type { Tables, TablesInsert } from '@/types/database.types'
+import type { TablesInsert } from '@/types/database.types'
 
 export function useUpsertOrdersDb() {
   const db = injectPGlite()
@@ -19,7 +19,7 @@ export function useUpsertOrdersDb() {
     }
   }
 
-  const data = computed(() => q.state.value?.rows as Tables<'orders'>[])
+  const data = computed(() => q.state.value?.rows)
   const error = computed(() => q.error.value)
   const isSuccess = computed(() => q.isReady.value && !error.value)
 
