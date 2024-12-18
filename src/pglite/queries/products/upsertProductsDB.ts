@@ -1,9 +1,9 @@
-import type { PGlite } from '@electric-sql/pglite'
 import type { TablesInsert } from '@/types/database.types'
 import type { Product } from '@/models/models'
+import type { PGliteWithLive } from '@electric-sql/pglite/live'
 
 export async function upsertProductsDB(
-  db: PGlite,
+  db: PGliteWithLive,
   products: (TablesInsert<'products'> & { _synced?: boolean; _deleted?: boolean })[]
 ) {
   if (!products?.length) return

@@ -1,6 +1,6 @@
-import type { PGlite } from '@electric-sql/pglite'
+import type { PGliteWithLive } from '@electric-sql/pglite/live'
 
-export async function deletePaymentsDB(db: PGlite, ids: string[]) {
+export async function deletePaymentsDB(db: PGliteWithLive, ids: string[]) {
   const query = `
     DELETE FROM public.payments
     WHERE id = ANY($1::uuid[])

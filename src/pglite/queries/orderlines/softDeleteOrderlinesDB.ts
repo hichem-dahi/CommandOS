@@ -1,6 +1,6 @@
-import type { PGlite } from '@electric-sql/pglite'
+import type { PGliteWithLive } from '@electric-sql/pglite/live'
 
-export async function softDeleteOrderlinesDB(db: PGlite, ids: string[]) {
+export async function softDeleteOrderlinesDB(db: PGliteWithLive, ids: string[]) {
   const query = `
     UPDATE public.order_lines
     SET _deleted = TRUE, 

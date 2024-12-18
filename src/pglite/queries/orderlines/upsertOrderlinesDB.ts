@@ -1,8 +1,8 @@
-import type { PGlite } from '@electric-sql/pglite'
 import type { TablesInsert } from '@/types/database.types'
+import type { PGliteWithLive } from '@electric-sql/pglite/live'
 
 export async function upsertOrderlinesDB(
-  db: PGlite,
+  db: PGliteWithLive,
   orderlines: (TablesInsert<'order_lines'> & {
     _synced?: boolean
     _deleted?: boolean

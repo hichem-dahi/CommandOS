@@ -1,7 +1,7 @@
-import type { PGlite } from '@electric-sql/pglite'
+import type { PGliteWithLive } from '@electric-sql/pglite/live'
 
 export async function updateProductsQtyDb(
-  db: PGlite, // Database connection
+  db: PGliteWithLive, // Database connection
   updates: { product_id: string; qte_change: number }[] // Array of updates
 ) {
   if (updates.length === 0) return

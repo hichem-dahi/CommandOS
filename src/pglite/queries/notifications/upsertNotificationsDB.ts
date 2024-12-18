@@ -1,8 +1,8 @@
 import type { TablesInsert } from '@/types/database.types'
-import type { PGlite } from '@electric-sql/pglite'
+import type { PGliteWithLive } from '@electric-sql/pglite/live'
 
 export async function upsertNotificationsDB(
-  db: PGlite,
+  db: PGliteWithLive,
   notifications: (TablesInsert<'notifications'> & {
     _synced?: boolean
   })[]

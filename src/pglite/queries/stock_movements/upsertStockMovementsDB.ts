@@ -1,8 +1,8 @@
-import type { PGlite } from '@electric-sql/pglite'
 import type { TablesInsert } from '@/types/database.types'
+import type { PGliteWithLive } from '@electric-sql/pglite/live'
 
 export async function upsertStockMovementsDB(
-  db: PGlite,
+  db: PGliteWithLive,
   stockMovements: (TablesInsert<'stock_movements'> & {
     _synced?: boolean
   })[]

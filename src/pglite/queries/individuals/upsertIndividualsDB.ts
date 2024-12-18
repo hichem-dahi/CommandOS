@@ -1,8 +1,8 @@
-import type { PGlite } from '@electric-sql/pglite'
 import type { Tables, TablesInsert } from '@/types/database.types'
+import type { PGliteWithLive } from '@electric-sql/pglite/live'
 
 export async function upsertIndividualsDB(
-  db: PGlite,
+  db: PGliteWithLive,
   individuals: (TablesInsert<'individuals'> & {
     _synced?: boolean
   })[]
@@ -41,7 +41,7 @@ export async function upsertIndividualsDB(
   ])
 
   try {
-    return await db.query<Tables<'individuals'>>(query, values)
+    return db.query<Tables<'individuals'>>(query, values)
   } catch (error) {
     console.error('Error upserting organizations:', error)
   }

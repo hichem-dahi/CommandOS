@@ -1,6 +1,6 @@
-import type { PGlite } from '@electric-sql/pglite'
+import type { PGliteWithLive } from '@electric-sql/pglite/live'
 
-export async function softDeleteOrganizationsDB(db: PGlite, ids: string[]) {
+export async function softDeleteOrganizationsDB(db: PGliteWithLive, ids: string[]) {
   const query = `
     UPDATE public.organizations
     SET _deleted = TRUE, 

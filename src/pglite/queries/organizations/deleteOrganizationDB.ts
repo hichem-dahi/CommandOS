@@ -1,6 +1,6 @@
-import type { PGlite } from '@electric-sql/pglite'
+import type { PGliteWithLive } from '@electric-sql/pglite/live'
 
-export async function deleteOrganizationDB(db: PGlite, organizationId: string) {
+export async function deleteOrganizationDB(db: PGliteWithLive, organizationId: string) {
   const query = `
     DELETE FROM public.organizations
     WHERE id = $1

@@ -1,12 +1,12 @@
-import type { PGlite } from '@electric-sql/pglite'
+import type { PGliteWithLive } from '@electric-sql/pglite/live'
 import type { TablesInsert } from '@/types/database.types'
 
 export function upsertOrganizationDB(
-  db: PGlite,
-  organization: TablesInsert<'organizations'> & { _synced?: boolean }
+  db: PGliteWithLive,
+  organization: TablesInsert<'organizations'> & { _synced?: boolean; _deleted?: boolean }
 ) {
   const query = `
-    INSERT INTO public.organizations (id, name, phone, rc, nif, nis, art, address, activity, org_id, _synced)
+    INSERT INTO public.organizations (id, name, phone, rc, nif, nis, art, address, activity, org_id, _synced, _deleted)
     VALUES (
       COALESCE($1, gen_random_uuid()), 
       $2, 
@@ -18,7 +18,8 @@ export function upsertOrganizationDB(
       $8, 
       $9, 
       $10, 
-      COALESCE($11, true)
+      COALESCE($11, true),
+      COALESCE($12, false)
     )
     ON CONFLICT (id)
     DO UPDATE SET
@@ -31,7 +32,8 @@ export function upsertOrganizationDB(
       address = EXCLUDED.address,
       activity = EXCLUDED.activity,
       org_id = EXCLUDED.org_id,
-      _synced = COALESCE(EXCLUDED._synced, true)
+      _synced = COALESCE(EXCLUDED._synced, true),
+      _deleted = COALESCE(EXCLUDED._deleted, false)
       RETURNING *;
   `
 
@@ -46,12 +48,12 @@ export function upsertOrganizationDB(
     organization.address || null, // $8
     organization.activity || null, // $9
     organization.org_id || null, // $10
-    organization._synced ?? true // $11
+    organization._synced ?? true, // $11
+    organization._deleted ?? false // $12
   ]
 
   try {
     return db.query(query, values)
-    console.log('Organization upserted successfully.')
   } catch (error) {
     console.error('Error upserting organization:', error)
   }

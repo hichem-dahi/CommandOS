@@ -1,7 +1,7 @@
-import type { PGlite } from '@electric-sql/pglite'
 import type { StockMovement } from '@/models/models'
+import type { PGliteWithLive } from '@electric-sql/pglite/live'
 
-export async function deleteStockMovementsDB(db: PGlite, ids: string[]) {
+export async function deleteStockMovementsDB(db: PGliteWithLive, ids: string[]) {
   const query = `
     DELETE public.stock_movements
     WHERE id = ANY($1::uuid[])

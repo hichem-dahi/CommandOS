@@ -1,6 +1,6 @@
-import type { PGlite } from '@electric-sql/pglite'
+import type { PGliteWithLive } from '@electric-sql/pglite/live'
 
-export async function softDeleteStockMovementsDB(db: PGlite, ids: string[]) {
+export async function softDeleteStockMovementsDB(db: PGliteWithLive, ids: string[]) {
   const query = `
     UPDATE public.stock_movements
     SET _deleted = TRUE, 
