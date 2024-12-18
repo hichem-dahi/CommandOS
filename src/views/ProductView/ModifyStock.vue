@@ -15,7 +15,7 @@
         <v-btn
           variant="text"
           color="primary"
-          :loading="insertStockMovementsApi.isLoading.value"
+          :loading="upsertStockMovementsDb.isLoading.value"
           @click="saveStock"
           >{{ $t('confirm') }}
         </v-btn>
@@ -30,8 +30,7 @@ import useVuelidate from '@vuelidate/core'
 import { required } from '@vuelidate/validators'
 
 import { updateProductStock } from '@/composables/useStockManage'
-
-import { useInsertStockMovementsApi } from '@/composables/api/stockMovements/useInsertStockMovementsApi'
+import { useUpsertStockMovementsDb } from '@/composables/db/stockMovements/useUpsertStockMovementsDb'
 
 import type { Product } from '@/models/models'
 
@@ -39,7 +38,7 @@ const emits = defineEmits(['success'])
 const dialog = defineModel<boolean>()
 const props = defineProps<{ product: Product }>()
 
-const insertStockMovementsApi = useInsertStockMovementsApi()
+const upsertStockMovementsDb = useUpsertStockMovementsDb()
 
 const notZero = (value: any) => value !== null && value !== undefined && value !== 0
 
@@ -57,13 +56,13 @@ function saveStock() {
   $v.value.$touch()
   if (!$v.value.$invalid && form.qte) {
     const stockMovements = updateProductStock(props.product, form.qte)
-    insertStockMovementsApi.form.value = [stockMovements]
-    insertStockMovementsApi.execute()
+    upsertStockMovementsDb.form.value = [stockMovements]
+    upsertStockMovementsDb.execute()
   }
 }
 
 watch(
-  () => insertStockMovementsApi.isSuccess.value,
+  () => upsertStockMovementsDb.isSuccess.value,
   (isSuccess) => {
     if (isSuccess) {
       emits('success')
