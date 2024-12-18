@@ -18,7 +18,7 @@ import { DocumentType } from '@/models/models'
 
 import type { OrderData } from '@/composables/api/orders/useGetOrderApi'
 
-defineProps<{ order: OrderData; isConfirmable: boolean }>()
+defineProps<{ readonly order: OrderData; isConfirmable: boolean }>()
 
 const emit = defineEmits(['go-doc-page'])
 
