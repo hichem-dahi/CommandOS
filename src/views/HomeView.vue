@@ -73,10 +73,10 @@ const deferredPrompt = ref()
 const isPermissionGranted = ref(Notification.permission === 'granted')
 
 onMounted(async () => {
-  await db.waitReady
+  await db?.waitReady
 
-  const org = { ...self.value.user?.organization }
-  if (org) {
+  const org = self.value.user?.organization
+  if (org && db) {
     await upsertOrganizationDB(db, org)
   }
 
