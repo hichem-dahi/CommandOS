@@ -30,12 +30,19 @@ import { useIndividualsSync } from '@/composables/sync/useIndividualsSync'
 import ClientCard from '@/views/ClientsView/ClientCard.vue'
 
 import type { Individual, Organization } from '@/models/models'
+import type { Tables } from '@/types/database.types'
 
 useOrganizationsSync().launch()
 useIndividualsSync().launch()
 
-const organizationsQuery = useLiveQuery('SELECT * FROM public.organizations;', [])
-const individualsQuery = useLiveQuery('SELECT * FROM public.individuals;', [])
+const organizationsQuery = useLiveQuery<Tables<'organizations'>>(
+  'SELECT * FROM public.organizations;',
+  []
+)
+const individualsQuery = useLiveQuery<Tables<'individuals'>>(
+  'SELECT * FROM public.individuals;',
+  []
+)
 
 const individuals = computed(() => individualsQuery.rows.value as unknown as Individual[])
 const organizations = computed(() => organizationsQuery.rows.value as unknown as Organization[])

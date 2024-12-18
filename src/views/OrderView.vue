@@ -88,15 +88,15 @@ import CancelModal from './OrdersView/CancelModal.vue'
 import PaymentsCard from './OrderView/PaymentsCard.vue'
 import DocumentButtons from './OrderView/DocumentButtons.vue'
 
-import { DocumentType, OrderStatus, type Product } from '@/models/models'
-import type { TablesInsert } from '@/types/database.types'
+import { DocumentType, OrderStatus } from '@/models/models'
+import type { Tables, TablesInsert } from '@/types/database.types'
 import type { OrderData } from '@/composables/api/orders/useGetOrderApi'
 
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 
-const orderQuery = useLiveQuery(
+const orderQuery = useLiveQuery<OrderData>(
   `SELECT
     o.*,
     -- Fetching individual data as a separate field
@@ -149,9 +149,14 @@ const orderQuery = useLiveQuery(
   [route.params.order_id] // Pass route.params.order_id as the parameter
 )
 
-const productsQuery = useLiveQuery('SELECT * FROM public.products WHERE _deleted = false;', [])
+const productsQuery = useLiveQuery<Tables<'products'>>(
+  'SELECT * FROM public.products WHERE _deleted = false;',
+  []
+)
 
-const products = computed(() => (productsQuery.rows.value || []) as unknown as Product[])
+const products = computed(
+  () => (productsQuery.rows.value as unknown as Tables<'products'>[] | undefined) || []
+)
 const order = computed(() => orderQuery.rows.value?.[0] as unknown as OrderData | undefined)
 
 const upsertOrdersDb = useUpsertOrdersDb()

@@ -10,10 +10,11 @@ import { useUpsertOrdersDb } from '../db/orders/useUpsertOrdersDb'
 import { useUpsertOrderlinesDb } from '../db/orderlines/useUpsertOrderlinesDb'
 import { useUpsertPaymentsDb } from '../db/payments/useUpsertPaymentsDb'
 
-import type { TablesInsert } from '@/types/database.types'
 import { useDeleteOrdersDb } from '../db/orders/useDeleteOrderDb'
 import { useDeleteOrderlinesDb } from '../db/notifications/useDeleteNotificationsDb'
 import { useDeletePaymentsDb } from '../db/payments/useDeletePaymentsDb'
+
+import type { Tables, TablesInsert } from '@/types/database.types'
 
 export function useOrdersSync() {
   const db = injectPGlite()
@@ -34,12 +35,15 @@ export function useOrdersSync() {
   const deletePaymentsDb = useDeletePaymentsDb()
 
   // Queries
-  const ordersToSyncQuery = useLiveQuery('SELECT * FROM public.orders WHERE _synced = false;', [])
-  const orderlinesToSyncQuery = useLiveQuery(
+  const ordersToSyncQuery = useLiveQuery<Tables<'orders'>>(
+    'SELECT * FROM public.orders WHERE _synced = false;',
+    []
+  )
+  const orderlinesToSyncQuery = useLiveQuery<Tables<'order_lines'>>(
     'SELECT * FROM public.order_lines WHERE _synced = false;',
     []
   )
-  const paymentsToSyncQuery = useLiveQuery(
+  const paymentsToSyncQuery = useLiveQuery<Tables<'payments'>>(
     'SELECT * FROM public.payments WHERE _synced = false;',
     []
   )

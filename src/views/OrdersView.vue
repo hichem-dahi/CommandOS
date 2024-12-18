@@ -33,8 +33,9 @@ import OrderCard from '@/views/OrdersView/OrderCard.vue'
 import FilterBar from './OrdersView/FilterBar.vue'
 
 import type { Filters } from './OrdersView/models/models'
+import type { OrderData } from '@/composables/api/orders/useGetOrdersApi'
 
-const orders = useLiveQuery(
+const orders = useLiveQuery<OrderData>(
   `SELECT 
     o.*, 
     -- Fetching individual data as a separate field

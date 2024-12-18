@@ -29,11 +29,7 @@
           <v-btn variant="text" color="primary" size="small" @click="modifyStockDialog = true">
             {{ $t('modify-stock') }}
           </v-btn>
-          <ModifyStock
-            v-model="modifyStockDialog"
-            :product="product"
-            @success="getStockMovementsApi.execute()"
-          />
+          <ModifyStock v-model="modifyStockDialog" :product="product" />
         </div>
       </v-card>
     </template>
@@ -65,12 +61,13 @@ import { mdiOpenInNew } from '@mdi/js'
 import ModifyStock from './ModifyStock.vue'
 
 import type { Product } from '@/models/models'
+import type { Tables } from '@/types/database.types'
 
 const props = defineProps<{ product: Product }>()
 
 const { t } = useI18n()
 
-const stockMovementsQuery = useLiveQuery(
+const stockMovementsQuery = useLiveQuery<Tables<'stock_movements'>>(
   'SELECT * FROM public.stock_movements WHERE product_id = $1;',
   [props.product.id]
 )

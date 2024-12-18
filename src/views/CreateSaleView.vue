@@ -73,9 +73,12 @@ import {
 } from './OrdersView/CreateOrderStepper/state'
 
 import { DocumentType, OrderStatus, type Product } from '@/models/models'
-import type { TablesInsert } from '@/types/database.types'
+import type { Tables, TablesInsert } from '@/types/database.types'
 
-const productsQuery = useLiveQuery('SELECT * FROM public.products WHERE _deleted = false;', [])
+const productsQuery = useLiveQuery<Tables<'products'>>(
+  'SELECT * FROM public.products WHERE _deleted = false;',
+  []
+)
 
 const products = computed(() => (productsQuery.rows.value || []) as unknown as Product[])
 

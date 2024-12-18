@@ -5,6 +5,7 @@ import { useUpsertNotificationsApi } from '../api/notifications/useInsertNotific
 import { useUpsertNotificationsDb } from '../db/notifications/useUpsertNotificationsDb'
 
 import type { Notification } from '@/models/models'
+import type { Tables } from '@/types/database.types'
 
 export function useNotificationsSync() {
   const pushNotificationsApi = useUpsertNotificationsApi()
@@ -17,7 +18,7 @@ export function useNotificationsSync() {
         .map(({ _synced, updated_at, ...rest }) => rest) as unknown as Notification[]
   )
 
-  const notificationsToSyncQuery = useLiveQuery(
+  const notificationsToSyncQuery = useLiveQuery<Tables<'notifications'>>(
     'SELECT * FROM public.notifications WHERE _synced = false;',
     []
   )

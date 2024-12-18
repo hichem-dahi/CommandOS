@@ -45,8 +45,8 @@ import type { Tables } from '@/types/database.types'
 import { form, consumerType, individualForm } from './state'
 
 const props = defineProps<{
-  individuals: Tables<'individuals'>[]
-  clients: Tables<'organizations'>[]
+  readonly individuals: ReadonlyArray<Tables<'individuals'>>
+  readonly clients: ReadonlyArray<Tables<'organizations'>>
 }>()
 
 const formClient = reactive({

@@ -88,7 +88,7 @@ import {
 
 import type { Validation } from '@vuelidate/core'
 import { DocumentType, type Individual, type Organization } from '@/models/models'
-import type { TablesInsert } from '@/types/database.types'
+import type { Tables, TablesInsert } from '@/types/database.types'
 
 enum Steps {
   SelectConsumer = 1,
@@ -111,11 +111,17 @@ const upsertIndividualsDb = useUpsertIndividualsDb()
 const upsertOrderlinesDb = useUpsertOrderlinesDb()
 const upsertPaymentDb = useUpsertPaymentsDb()
 
-const organizationsQuery = useLiveQuery('SELECT * FROM public.organizations;', [])
-const individualsQuery = useLiveQuery('SELECT * FROM public.individuals;', [])
+const organizationsQuery = useLiveQuery<Tables<'organizations'>>(
+  'SELECT * FROM public.organizations;',
+  []
+)
+const individualsQuery = useLiveQuery<Tables<'individuals'>>(
+  'SELECT * FROM public.individuals;',
+  []
+)
 
-const individuals = computed(() => individualsQuery.rows.value as unknown as Individual[])
-const organizations = computed(() => organizationsQuery.rows.value as unknown as Organization[])
+const individuals = computed(() => individualsQuery.rows.value || [])
+const organizations = computed(() => organizationsQuery.rows.value || [])
 
 const step = ref(Steps.SelectConsumer)
 
@@ -134,12 +140,12 @@ onMounted(() => {
 
   if (isString(consumer)) {
     // Check if the consumer is a company
-    const organization = organizations.value.find((c) => c.id === consumer)
+    const organization = organizations.value?.find((c) => c.id === consumer)
     if (organization) {
       form.org_id = organization.id
     } else {
       // Check if the consumer is an individual
-      const individual = individuals.value.find((i) => i.id === consumer)
+      const individual = individuals.value?.find((i) => i.id === consumer)
       if (individual) {
         individualForm.value = individual
       }

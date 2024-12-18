@@ -148,12 +148,12 @@ import DeleteItemModal from './DeleteItemModal.vue'
 
 import { ConsumerType, OrderStatus, type Product } from '@/models/models'
 import type { Validation } from '@vuelidate/core'
-import type { TablesInsert } from '@/types/database.types'
+import type { Tables, TablesInsert } from '@/types/database.types'
 import type { OrderData, OrderLineData } from '@/composables/api/orders/useGetOrderApi'
 
 const order = defineModel<OrderData>('order', { required: true })
 
-const productsQuery = useLiveQuery('SELECT * FROM public.products;', [])
+const productsQuery = useLiveQuery<Tables<'products'>>('SELECT * FROM public.products;', [])
 
 const { t } = useI18n()
 
@@ -293,7 +293,6 @@ watch(
         rest.order_id = order.value.id
         return { ...rest, _synced: false, _deleted: false }
       })
-      console.log(softDeleteOrderlinesDb)
 
       upsertOrderlinesDb.execute()
     }
@@ -305,7 +304,6 @@ watch(
   (isSuccess) => {
     if (isSuccess && upsertOrderlinesDb.data.value) {
       const total_price = sum(upsertOrderlinesDb.data.value.map((o) => Number(o.total_price)))
-      console.log(upsertOrderlinesDb)
 
       if (order.value)
         upsertOrderDb.form.value = [

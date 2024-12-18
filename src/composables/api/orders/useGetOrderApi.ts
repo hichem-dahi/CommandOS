@@ -2,9 +2,10 @@ import { computed, ref } from 'vue'
 import { useAsyncState } from '@vueuse/core'
 import { supabase } from '@/supabase/supabase'
 
-// Define types outside the function for reuse
 export type OrderData = NonNullable<ReturnType<typeof useGetOrderApi>['data']['value']>
-export type OrderLineData = OrderData['order_lines'][0]
+export type OrderLineData = NonNullable<
+  ReturnType<typeof useGetOrderApi>['data']['value']
+>['order_lines'][0]
 
 // Composition function to fetch an order
 export function useGetOrderApi() {

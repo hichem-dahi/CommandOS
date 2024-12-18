@@ -8,6 +8,7 @@ import { useDeleteProductsDb } from '../db/products/useDeleteProductsDb'
 import { useUpsertProductsDb } from '../db/products/useUpsertProductsDb'
 
 import type { Product } from '@/models/models'
+import type { Tables } from '@/types/database.types'
 
 export function useProductsSync() {
   const db = injectPGlite()
@@ -18,12 +19,12 @@ export function useProductsSync() {
 
   const deleteProductsDb = useDeleteProductsDb()
 
-  const productsToSyncQuery = useLiveQuery(
+  const productsToSyncQuery = useLiveQuery<Tables<'products'>>(
     'SELECT * FROM public.products WHERE _synced = false;',
     []
   )
 
-  const productsToDeleteQuery = useLiveQuery(
+  const productsToDeleteQuery = useLiveQuery<Tables<'products'>>(
     'SELECT * FROM public.products WHERE _deleted = true AND _synced = true;',
     []
   )

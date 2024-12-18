@@ -8,6 +8,7 @@ import { useUpsertStockMovementsDb } from '../db/stockMovements/useUpsertStockMo
 import { useDeleteStockMovementsDB } from '../db/stockMovements/useDeleteStockMovementsDB'
 
 import type { StockMovement } from '@/models/models'
+import type { Tables } from '@/types/database.types'
 
 export function useStockMovementsSync() {
   const db = injectPGlite()
@@ -18,7 +19,7 @@ export function useStockMovementsSync() {
 
   const deleteStockMovementsDb = useDeleteStockMovementsDB()
 
-  const stockMovementsToSyncQuery = useLiveQuery(
+  const stockMovementsToSyncQuery = useLiveQuery<Tables<'stock_movements'>>(
     'SELECT * FROM public.stock_movements WHERE _synced = false;',
     []
   )

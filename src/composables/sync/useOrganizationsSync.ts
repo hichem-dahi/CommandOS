@@ -7,6 +7,7 @@ import { useUpsertOrganizationsApi } from '../api/organizations/useUpsertOrganiz
 import { useUpsertOrganizationsDb } from '../db/organizations/useUpsertOrganizationsDb'
 
 import type { Organization } from '@/models/models'
+import type { Tables } from '@/types/database.types'
 
 export function useOrganizationsSync() {
   const db = injectPGlite()
@@ -15,7 +16,7 @@ export function useOrganizationsSync() {
   const pushOrganizationsApi = useUpsertOrganizationsApi()
   const upsertOrganizationsDb = useUpsertOrganizationsDb()
 
-  const organizationsQuery = useLiveQuery(
+  const organizationsQuery = useLiveQuery<Tables<'organizations'>>(
     'SELECT * FROM public.organizations WHERE _synced = false;',
     []
   )

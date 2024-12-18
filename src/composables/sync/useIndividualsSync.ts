@@ -7,6 +7,7 @@ import { useUpsertIndividualsApi } from '../api/individuals/useUpsertIndividuals
 import { useUpsertIndividualsDb } from '../db/individuals/useUpsertIndividualsDb'
 
 import type { Individual } from '@/models/models'
+import type { Tables } from '@/types/database.types'
 
 export function useIndividualsSync() {
   const db = injectPGlite()
@@ -15,7 +16,7 @@ export function useIndividualsSync() {
   const pushIndividualsApi = useUpsertIndividualsApi()
   const upsertIndividualsDb = useUpsertIndividualsDb()
 
-  const individualsToSyncQuery = useLiveQuery(
+  const individualsToSyncQuery = useLiveQuery<Tables<'individuals'>>(
     'SELECT * FROM public.individuals WHERE _synced = false;',
     []
   )

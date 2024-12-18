@@ -41,6 +41,7 @@ import ProductCard from '@/views/WarehouseView/ProductCard.vue'
 import FilterBar from './WarehouseView/FilterBar.vue'
 
 import type { Product } from '@/models/models'
+import type { Tables } from '@/types/database.types'
 
 const $v = useVuelidate()
 
@@ -57,7 +58,10 @@ watch(
     }
   }
 )
-const productsQuery = useLiveQuery('SELECT * FROM public.products WHERE _deleted = false;', [])
+const productsQuery = useLiveQuery<Tables<'products'>>(
+  'SELECT * FROM public.products WHERE _deleted = false;',
+  []
+)
 
 const products = computed(() => (productsQuery.rows.value || []) as unknown as Product[])
 
