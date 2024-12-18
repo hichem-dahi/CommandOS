@@ -64,7 +64,6 @@ import { ref, watch } from 'vue'
 import { mdiDotsVertical } from '@mdi/js'
 import { clone } from 'lodash'
 import useVuelidate from '@vuelidate/core'
-import { injectPGlite } from '@electric-sql/pglite-vue'
 
 import { useUpsertProductsDb } from '@/composables/db/products/useUpsertProductsDb'
 import { useSoftDeleteProductsDB } from '@/composables/db/products/useSoftDeleteProductsDb'
@@ -73,8 +72,6 @@ import DeleteItemModal from '@/views/OrderView/DeleteItemModal.vue'
 import ProductForm from './ProductForm.vue'
 
 import type { Product } from '@/models/models'
-
-const db = injectPGlite()
 
 const $v = useVuelidate()
 
@@ -91,7 +88,7 @@ async function editProduct() {
   $v.value.$touch()
   if (!$v.value.$invalid && proxyForm.value) {
     upsertProductsDb.form.value = [{ ...proxyForm.value, _synced: false }]
-    upsertProductsDb.execute(db)
+    upsertProductsDb.execute()
   }
 }
 
