@@ -46,7 +46,7 @@ export function useStockMovementsSync() {
       upsertStockMovementsDb.form.value = stockMovements
       await upsertStockMovementsDb.execute()
 
-      deleteStockMovementsDb.ids.value = upsertStockMovementsDb.data.value
+      deleteStockMovementsDb.ids.value = (upsertStockMovementsDb.data.value || [])
         .filter((s) => s._deleted)
         .map((s) => s.id)
       await deleteStockMovementsDb.execute()
@@ -59,7 +59,7 @@ export function useStockMovementsSync() {
       queriesReady,
       async (isReady) => {
         if (isReady) {
-          await sync()
+          sync()
           watcher()
         }
       },

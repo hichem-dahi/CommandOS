@@ -39,12 +39,16 @@ export function useNotificationsSync() {
   }
 
   const launch = () => {
-    const watcher = watch(areQueriesReady, async (isReady) => {
-      if (isReady) {
-        await sync()
-        watcher()
-      }
-    })
+    const watcher = watch(
+      areQueriesReady,
+      async (isReady) => {
+        if (isReady) {
+          sync()
+          watcher()
+        }
+      },
+      { immediate: true }
+    )
   }
 
   return { sync, launch, areQueriesReady }

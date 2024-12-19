@@ -75,7 +75,7 @@ export function useProductsSync() {
       queriesReady,
       async (isReady) => {
         if (isReady) {
-          await sync()
+          sync()
           watcher()
         }
       },

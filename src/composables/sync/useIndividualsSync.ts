@@ -55,7 +55,7 @@ export function useIndividualsSync() {
       areQueriesReady,
       async (isReady) => {
         if (isReady) {
-          await sync()
+          sync()
           watcher()
         }
       },

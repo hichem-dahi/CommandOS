@@ -137,9 +137,9 @@ export function useOrdersSync() {
   const launch = () => {
     const watcher = watch(
       queriesReady,
-      async (isReady) => {
+      (isReady) => {
         if (isReady) {
-          await sync()
+          sync()
           watcher()
         }
       },
