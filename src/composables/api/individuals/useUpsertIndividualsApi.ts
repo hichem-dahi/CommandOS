@@ -9,7 +9,7 @@ export function useUpsertIndividualsApi() {
   const form = ref<TablesInsert<'individuals'>[]>() // Use ref to make it reactive
 
   const query = async () => {
-    if (form.value?.length) {
+    if (form.value) {
       return supabase.from('individuals').upsert(form.value).select()
     } else {
       return undefined

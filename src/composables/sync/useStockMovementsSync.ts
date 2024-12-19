@@ -43,16 +43,15 @@ export function useStockMovementsSync() {
     pullStockMovementsApi.params.date = result?.rows?.[0]?.max_date || null
     await pullStockMovementsApi.execute()
 
-    const stockMovements = pullStockMovementsApi.data.value
-    if (stockMovements) {
-      upsertStockMovementsDb.form.value = stockMovements
-      await upsertStockMovementsDb.execute()
+    const stockMovements = pullStockMovementsApi.data.value || []
+    upsertStockMovementsDb.form.value = stockMovements
+    await upsertStockMovementsDb.execute()
 
-      deleteStockMovementsDb.ids.value = (upsertStockMovementsDb.data.value || [])
-        .filter((s) => s._deleted)
-        .map((s) => s.id)
-      await deleteStockMovementsDb.execute()
-    }
+    deleteStockMovementsDb.ids.value = (upsertStockMovementsDb.data.value || [])
+      .filter((s) => s._deleted)
+      .map((s) => s.id)
+    await deleteStockMovementsDb.execute()
+
     isFinished.value = true
   }
 

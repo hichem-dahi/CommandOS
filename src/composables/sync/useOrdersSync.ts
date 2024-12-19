@@ -98,30 +98,28 @@ export function useOrdersSync() {
 
     // Update local DB with pulled orders and orderlines
     const orders = pullOrdersApi.data.value || []
-    if (orders.length) {
-      upsertOrdersDb.form.value = orders
-      await upsertOrdersDb.execute()
+    upsertOrdersDb.form.value = orders
+    await upsertOrdersDb.execute()
 
-      const orderlines = orders.flatMap((o) => o.order_lines || [])
-      upsertOrderlinesDb.form.value = orderlines
-      await upsertOrderlinesDb.execute()
+    const orderlines = orders.flatMap((o) => o.order_lines || [])
+    upsertOrderlinesDb.form.value = orderlines
+    await upsertOrderlinesDb.execute()
 
-      const payments = orders.flatMap((o) => o.payments || [])
-      upsertPaymentsDb.form.value = payments
-      await upsertPaymentsDb.execute()
+    const payments = orders.flatMap((o) => o.payments || [])
+    upsertPaymentsDb.form.value = payments
+    await upsertPaymentsDb.execute()
 
-      // Collect IDs of deleted orders
-      deleteOrdersDb.ids.value = orders.filter((o) => o._deleted).map((o) => o.id)
-      await deleteOrdersDb.execute()
+    // Collect IDs of deleted orders
+    deleteOrdersDb.ids.value = orders.filter((o) => o._deleted).map((o) => o.id)
+    await deleteOrdersDb.execute()
 
-      // Collect IDs of deleted order lines
-      deleteOrderlinesDb.ids.value = orderlines.filter((ol) => ol._deleted).map((ol) => ol.id)
-      await deleteOrderlinesDb.execute()
+    // Collect IDs of deleted order lines
+    deleteOrderlinesDb.ids.value = orderlines.filter((ol) => ol._deleted).map((ol) => ol.id)
+    await deleteOrderlinesDb.execute()
 
-      // Collect IDs of deleted payments
-      deletePaymentsDb.ids.value = payments.filter((p) => p._deleted).map((p) => p.id)
-      await deletePaymentsDb.execute()
-    }
+    // Collect IDs of deleted payments
+    deletePaymentsDb.ids.value = payments.filter((p) => p._deleted).map((p) => p.id)
+    await deletePaymentsDb.execute()
 
     isFinished.value = true
   }

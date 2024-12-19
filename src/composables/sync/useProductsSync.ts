@@ -62,12 +62,13 @@ export function useProductsSync() {
       ?.filter((o) => o._deleted)
       .map((o) => o.id)
     await deleteProductsDb.execute()
+
     isFinished.value = true
   }
 
   // Watch queries and trigger launch when ready
   const launch = () => {
-    const watcher = watch(
+    watch(
       queriesReady,
       (isReady, _, stop) => {
         if (isReady) {

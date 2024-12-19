@@ -44,17 +44,15 @@ export function useOrganizationsSync() {
 
     // Update local DB with pulled organizations
     const organizations = pullOrganizationsApi.data.value || []
-    if (organizations.length) {
-      upsertOrganizationsDb.form.value = organizations
-      await upsertOrganizationsDb.execute()
-    }
+    upsertOrganizationsDb.form.value = organizations
+    await upsertOrganizationsDb.execute()
 
     isFinished.value = true
   }
 
   // Watch queries and trigger launch when ready
   const launch = () => {
-    const watcher = watch(
+    watch(
       queriesReady,
       (isReady, _, stop) => {
         if (isReady) {

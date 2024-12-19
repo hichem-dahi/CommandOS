@@ -45,16 +45,15 @@ export function useIndividualsSync() {
 
     // Update the local database
     const updatedIndividuals = pullIndividualsApi.data.value || []
-    if (updatedIndividuals.length) {
-      upsertIndividualsDb.form.value = updatedIndividuals
-      await upsertIndividualsDb.execute()
-    }
+    upsertIndividualsDb.form.value = updatedIndividuals
+    await upsertIndividualsDb.execute()
+
     isFinished.value = true
   }
 
   // Watch queries and trigger launch when ready
   const launch = () => {
-    const watcher = watch(
+    watch(
       areQueriesReady,
       (isReady, _, stop) => {
         if (isReady) {

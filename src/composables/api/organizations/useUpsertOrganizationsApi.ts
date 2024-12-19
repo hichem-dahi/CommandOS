@@ -9,7 +9,7 @@ export function useUpsertOrganizationsApi() {
   const form = ref<TablesInsert<'organizations'>[]>() // Use ref to make it reactive
 
   const query = async () => {
-    if (form.value?.length) {
+    if (form.value) {
       return supabase.from('organizations').upsert(form.value).select()
     } else {
       return undefined
