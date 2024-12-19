@@ -1,4 +1,4 @@
-import { computed, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { injectPGlite, useLiveQuery } from '@electric-sql/pglite-vue'
 
 import { useGetOrganizationsApi } from '../api/organizations/useGetOrganizationsApi'
@@ -11,6 +11,8 @@ import type { Tables } from '@/types/database.types'
 
 export function useOrganizationsSync() {
   const db = injectPGlite()
+
+  const isFinished = ref(false)
 
   const pullOrganizationsApi = useGetOrganizationsApi()
   const pushOrganizationsApi = useUpsertOrganizationsApi()
@@ -46,28 +48,23 @@ export function useOrganizationsSync() {
       upsertOrganizationsDb.form.value = organizations
       await upsertOrganizationsDb.execute()
     }
+
+    isFinished.value = true
   }
 
   // Watch queries and trigger launch when ready
   const launch = () => {
     const watcher = watch(
       queriesReady,
-      async (isReady) => {
+      (isReady, _, stop) => {
         if (isReady) {
           sync()
-          watcher()
+          stop(() => {})
         }
       },
       { immediate: true }
     )
   }
 
-  const inFinished = computed(
-    () =>
-      pullOrganizationsApi.isReady.value &&
-      pushOrganizationsApi.isReady.value &&
-      upsertOrganizationsDb.isReady.value
-  )
-
-  return { inFinished, launch, sync }
+  return { isFinished, launch, sync }
 }

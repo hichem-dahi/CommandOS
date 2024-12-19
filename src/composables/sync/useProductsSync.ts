@@ -1,4 +1,4 @@
-import { computed, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { injectPGlite, useLiveQuery } from '@electric-sql/pglite-vue'
 
 import { useGetProductsApi } from '../api/products/useGetProductsApi'
@@ -12,6 +12,8 @@ import type { Tables } from '@/types/database.types'
 
 export function useProductsSync() {
   const db = injectPGlite()
+
+  const isFinished = ref(false)
 
   const pullProductsApi = useGetProductsApi()
   const pushProductsApi = useUpsertProductsApi()
@@ -41,13 +43,6 @@ export function useProductsSync() {
         []) as unknown as Product[]
   )
 
-  const inFinished = computed(
-    () =>
-      pullProductsApi.isReady.value &&
-      pushProductsApi.isReady.value &&
-      upsertProductsDb.isReady.value
-  )
-
   const queriesReady = computed(() => productsToSyncQuery.rows.value !== undefined)
 
   async function sync() {
@@ -67,21 +62,22 @@ export function useProductsSync() {
       ?.filter((o) => o._deleted)
       .map((o) => o.id)
     await deleteProductsDb.execute()
+    isFinished.value = true
   }
 
   // Watch queries and trigger launch when ready
   const launch = () => {
     const watcher = watch(
       queriesReady,
-      async (isReady) => {
+      (isReady, _, stop) => {
         if (isReady) {
           sync()
-          watcher()
+          stop(() => {})
         }
       },
       { immediate: true }
     )
   }
 
-  return { inFinished, launch }
+  return { isFinished, launch }
 }

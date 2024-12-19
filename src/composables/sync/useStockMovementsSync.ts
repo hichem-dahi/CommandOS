@@ -1,4 +1,4 @@
-import { computed, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { injectPGlite, useLiveQuery } from '@electric-sql/pglite-vue'
 
 import { useGetStockMovementsApi } from '../api/stockMovements/useGetStockMovementsApi'
@@ -12,6 +12,8 @@ import type { Tables } from '@/types/database.types'
 
 export function useStockMovementsSync() {
   const db = injectPGlite()
+
+  const isFinished = ref(false)
 
   const pullStockMovementsApi = useGetStockMovementsApi()
   const pushStockMovementsApi = useInsertStockMovementsApi()
@@ -51,28 +53,22 @@ export function useStockMovementsSync() {
         .map((s) => s.id)
       await deleteStockMovementsDb.execute()
     }
+    isFinished.value = true
   }
 
   // Watch queries and trigger launch when ready
   const launch = () => {
-    const watcher = watch(
+    watch(
       queriesReady,
-      async (isReady) => {
+      (isReady, _, stop) => {
         if (isReady) {
           sync()
-          watcher()
+          stop(() => {})
         }
       },
       { immediate: true }
     )
   }
 
-  const inFinished = computed(
-    () =>
-      pullStockMovementsApi.isReady.value &&
-      pushStockMovementsApi.isReady.value &&
-      upsertStockMovementsDb.isReady.value
-  )
-
-  return { inFinished, launch, sync }
+  return { isFinished, launch, sync }
 }

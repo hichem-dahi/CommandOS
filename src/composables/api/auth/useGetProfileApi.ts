@@ -19,8 +19,7 @@ export function useGetProfileApi() {
               full_name, 
               email, 
               phone, 
-              organization_id,
-              organization: organizations(*)
+              organizations: organizations(*)
             `
           )
           .eq('id', userId.value)

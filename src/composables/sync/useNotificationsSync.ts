@@ -1,4 +1,4 @@
-import { computed, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useLiveQuery } from '@electric-sql/pglite-vue'
 
 import { useUpsertNotificationsApi } from '../api/notifications/useInsertNotificationApi'
@@ -8,6 +8,8 @@ import type { Notification } from '@/models/models'
 import type { Tables } from '@/types/database.types'
 
 export function useNotificationsSync() {
+  const isFinished = ref(false)
+
   const pushNotificationsApi = useUpsertNotificationsApi()
   const upsertNotificationsDb = useUpsertNotificationsDb()
 
@@ -36,15 +38,16 @@ export function useNotificationsSync() {
       upsertNotificationsDb.form.value = pushNotificationsApi.data.value
       await upsertNotificationsDb.execute()
     }
+    isFinished.value = true
   }
 
   const launch = () => {
-    const watcher = watch(
+    watch(
       areQueriesReady,
-      async (isReady) => {
+      (isReady, _, stop) => {
         if (isReady) {
           sync()
-          watcher()
+          stop(() => {})
         }
       },
       { immediate: true }

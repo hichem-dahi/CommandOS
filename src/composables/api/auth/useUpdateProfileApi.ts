@@ -10,7 +10,17 @@ export function useUpdateProfileApi() {
 
   const query = async () =>
     form.value?.id
-      ? supabase.from('profiles').update(form.value).eq('id', form.value.id).select().single()
+      ? supabase
+          .from('profiles')
+          .update(form.value)
+          .eq('id', form.value.id)
+          .select(
+            `
+              *, 
+              organizations: organizations(*)
+            `
+          )
+          .single()
       : undefined
 
   const q = useAsyncState(query, undefined, { immediate: false })

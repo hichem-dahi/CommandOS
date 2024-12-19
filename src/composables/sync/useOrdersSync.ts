@@ -1,4 +1,4 @@
-import { computed, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { injectPGlite, useLiveQuery } from '@electric-sql/pglite-vue'
 
 import { useGetOrdersApi } from '../api/orders/useGetOrdersApi'
@@ -18,6 +18,8 @@ import type { Tables, TablesInsert } from '@/types/database.types'
 
 export function useOrdersSync() {
   const db = injectPGlite()
+
+  const isFinished = ref(false)
 
   // APIs
   const pullOrdersApi = useGetOrdersApi()
@@ -71,20 +73,9 @@ export function useOrdersSync() {
 
   const queriesReady = computed(
     () =>
-      ordersToSyncQuery.rows.value &&
-      orderlinesToSyncQuery.rows.value &&
-      paymentsToSyncQuery.rows.value
-  )
-
-  const inFinished = computed(
-    () =>
-      pullOrdersApi.isReady.value &&
-      pushOrdersApi.isReady.value &&
-      pushOrderlinesApi.isReady.value &&
-      pushPaymentsApi.isReady.value &&
-      upsertOrdersDb.isReady.value &&
-      upsertOrderlinesDb.isReady.value &&
-      upsertPaymentsDb.isReady.value
+      ordersToSyncQuery.rows.value !== undefined &&
+      orderlinesToSyncQuery.rows.value !== undefined &&
+      paymentsToSyncQuery.rows.value !== undefined
   )
 
   async function sync() {
@@ -131,21 +122,23 @@ export function useOrdersSync() {
       deletePaymentsDb.ids.value = payments.filter((p) => p._deleted).map((p) => p.id)
       await deletePaymentsDb.execute()
     }
+
+    isFinished.value = true
   }
 
   // Watch queries and trigger launch when ready
   const launch = () => {
-    const watcher = watch(
+    watch(
       queriesReady,
-      (isReady) => {
+      (isReady, _, stop) => {
         if (isReady) {
           sync()
-          watcher()
+          stop(() => {})
         }
       },
       { immediate: true }
     )
   }
 
-  return { inFinished, sync, launch }
+  return { isFinished, sync, launch }
 }

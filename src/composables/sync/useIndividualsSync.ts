@@ -1,4 +1,4 @@
-import { computed, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { injectPGlite, useLiveQuery } from '@electric-sql/pglite-vue'
 
 import { useGetIndividualsApi } from '../api/individuals/useGetIndividualsApi'
@@ -11,6 +11,8 @@ import type { Tables } from '@/types/database.types'
 
 export function useIndividualsSync() {
   const db = injectPGlite()
+
+  const isFinished = ref(false)
 
   const pullIndividualsApi = useGetIndividualsApi()
   const pushIndividualsApi = useUpsertIndividualsApi()
@@ -47,21 +49,22 @@ export function useIndividualsSync() {
       upsertIndividualsDb.form.value = updatedIndividuals
       await upsertIndividualsDb.execute()
     }
+    isFinished.value = true
   }
 
   // Watch queries and trigger launch when ready
   const launch = () => {
     const watcher = watch(
       areQueriesReady,
-      async (isReady) => {
+      (isReady, _, stop) => {
         if (isReady) {
           sync()
-          watcher()
+          stop(() => {})
         }
       },
       { immediate: true }
     )
   }
 
-  return { sync, launch, areQueriesReady }
+  return { sync, launch, areQueriesReady, isFinished }
 }
