@@ -1,6 +1,9 @@
 <template>
   <div class="d-flex justify-center align-center pa-4" style="height: 100vh">
-    <div class="inner flex-grow-1" :class="{ 'w-50': $vuetify.display.lgAndUp }">
+    <div
+      class="inner"
+      :class="{ 'w-33': $vuetify.display.lgAndUp, 'w-100': !$vuetify.display.lgAndUp }"
+    >
       <div v-if="step === Steps.SendEmail">
         <v-text-field label="email" v-model="form.email" />
         <v-btn block :loading="signUpApi.isLoading.value" @click="submitEmail">
