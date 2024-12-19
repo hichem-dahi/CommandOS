@@ -43,4 +43,49 @@ alter table "public"."stock_movements" add constraint "stock_movements_org_id_fk
 
 alter table "public"."stock_movements" validate constraint "stock_movements_org_id_fkey";
 
+alter table "public"."deliveries" add column "_deleted" boolean not null default false;
+
+alter table "public"."individuals" add column "_deleted" boolean not null default false;
+
+alter table "public"."notifications" add column "_deleted" boolean default false;
+
+alter table "public"."order_lines" add column "_deleted" boolean not null default false;
+
+alter table "public"."orders" add column "_deleted" boolean not null default false;
+
+alter table "public"."organizations" add column "_deleted" boolean not null default false;
+
+alter table "public"."payments" add column "_deleted" boolean not null default false;
+
+alter table "public"."payments" add column "updated_at" timestamp with time zone not null default (now() AT TIME ZONE 'utc'::text);
+
+alter table "public"."products" add column "_deleted" boolean not null default false;
+
+alter table "public"."profiles" add column "_deleted" boolean default false;
+
+
+alter table "public"."stock_movements" add column "_deleted" boolean not null default false;
+
+set check_function_bodies = off;
+
+CREATE OR REPLACE FUNCTION public.set_order_index()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$DECLARE
+  max_index INTEGER;
+BEGIN
+   -- Ensure the trigger is only executed for inserts, not conflict resolution updates
+    IF NOT EXISTS (SELECT 1 FROM orders WHERE id = NEW.id) THEN
+      -- Get the highest index for the organization (org_id)
+      SELECT COALESCE(MAX(index), 0) INTO max_index
+      FROM orders
+      WHERE org_id = NEW.org_id;
+
+      -- Set the NEW index value to be the max index + 1
+      NEW.index := max_index + 1;
+    END IF;
+   RETURN NEW;
+END;$function$
+;
+
 
