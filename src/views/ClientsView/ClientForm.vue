@@ -1,6 +1,7 @@
 <template>
   <v-card :title="title" class="pa-4">
     <v-text-field
+      density="compact"
       :label="$t('name')"
       v-model="model.name"
       :error-messages="
@@ -14,6 +15,7 @@
       @blur="$v.name.$touch()"
     />
     <v-text-field
+      density="compact"
       :label="$t('phone')"
       v-model.trim="model.phone"
       :error-messages="
@@ -27,12 +29,12 @@
       "
       @blur="$v.phone.$touch()"
     />
-    <v-text-field :label="$t('R.C')" v-model.trim="model.rc" />
-    <v-text-field :label="$t('NIF')" v-model.trim="model.nif" />
-    <v-text-field :label="$t('NIS')" v-model.trim="model.nis" />
-    <v-text-field :label="$t('N.ART')" v-model.trim="model.art" />
-    <v-text-field :label="$t('address')" v-model.trim="model.address" />
-    <v-text-field :label="$t('activity')" v-model.trim="model.activity" />
+    <v-text-field density="compact" :label="$t('R.C')" v-model.trim="model.rc" />
+    <v-text-field density="compact" :label="$t('NIF')" v-model.trim="model.nif" />
+    <v-text-field density="compact" :label="$t('NIS')" v-model.trim="model.nis" />
+    <v-text-field density="compact" :label="$t('N.ART')" v-model.trim="model.art" />
+    <v-text-field density="compact" :label="$t('address')" v-model.trim="model.address" />
+    <v-text-field density="compact" :label="$t('activity')" v-model.trim="model.activity" />
 
     <!-- Pass the form and validation as slot props -->
     <slot name="actions"></slot>
