@@ -24,12 +24,12 @@ export default defineConfig({
       },
       injectRegister: 'auto',
       workbox: {
-        globPatterns: ['**/*']
+        globPatterns: ['**/*.{js,css,html,png}']
       },
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
       manifest: {
         name: 'CommandOS',
-        short_name: 'MyApp',
+        short_name: 'COS',
         description: 'CommandOS description',
         theme_color: '#ffffff',
         icons: [
