@@ -2,10 +2,7 @@ import type { TablesInsert } from '@/types/database.types'
 import type { Product } from '@/models/models'
 import type { PGliteWithLive } from '@electric-sql/pglite/live'
 
-export async function upsertProductsDB(
-  db: PGliteWithLive,
-  products: (TablesInsert<'products'> & { _synced?: boolean; _deleted?: boolean })[]
-) {
+export async function upsertProductsDB(db: PGliteWithLive, products: TablesInsert<'products'>[]) {
   if (!products?.length) return
   // Build the query for bulk upsert
   const query = `

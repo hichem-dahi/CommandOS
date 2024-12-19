@@ -3,9 +3,7 @@ import type { PGliteWithLive } from '@electric-sql/pglite/live'
 
 export async function upsertNotificationsDB(
   db: PGliteWithLive,
-  notifications: (TablesInsert<'notifications'> & {
-    _synced?: boolean
-  })[]
+  notifications: TablesInsert<'notifications'>[]
 ) {
   const query = `
     INSERT INTO public.notifications (
@@ -14,17 +12,19 @@ export async function upsertNotificationsDB(
       title,
       body,
       updated_at,
-      _synced
+      _synced,
+      _deleted
     )
     VALUES ${notifications
       .map(
         (_, i) => `(
-          COALESCE($${i * 6 + 1}, gen_random_uuid()),
-          $${i * 6 + 2},
-          $${i * 6 + 3},
-          $${i * 6 + 4},
-          $${i * 6 + 5},
-          COALESCE($${i * 6 + 6}, true)
+          COALESCE($${i * 7 + 1}, gen_random_uuid()),
+          $${i * 7 + 2},
+          $${i * 7 + 3},
+          $${i * 7 + 4},
+          $${i * 7 + 5},
+          COALESCE($${i * 7 + 6}, true),
+          COALESCE($${i * 7 + 7}, false)  -- Default _deleted to false if not provided
         )`
       )
       .join(', ')}
@@ -34,7 +34,8 @@ export async function upsertNotificationsDB(
       title = EXCLUDED.title,
       body = EXCLUDED.body,
       updated_at = EXCLUDED.updated_at,
-      _synced = COALESCE(EXCLUDED._synced, true)
+      _synced = COALESCE(EXCLUDED._synced, true),
+      _deleted = COALESCE(EXCLUDED._deleted, false) -- Update _deleted on conflict
     RETURNING *;
   `
 
@@ -44,7 +45,8 @@ export async function upsertNotificationsDB(
     notification.title,
     notification.body,
     notification.updated_at || null, // Defaults to NOW() in query if NULL
-    notification._synced ?? true // Defaults to TRUE if not provided
+    notification._synced ?? true, // Defaults to TRUE if not provided
+    notification._deleted ?? false // Default _deleted to false if not provided
   ])
 
   try {

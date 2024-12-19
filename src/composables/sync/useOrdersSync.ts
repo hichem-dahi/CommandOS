@@ -15,6 +15,7 @@ import { useDeleteOrderlinesDb } from '../db/notifications/useDeleteNotification
 import { useDeletePaymentsDb } from '../db/payments/useDeletePaymentsDb'
 
 import type { Tables, TablesInsert } from '@/types/database.types'
+import type { MaxDateResult } from './useSync'
 
 export function useOrdersSync() {
   const db = injectPGlite()
@@ -92,8 +93,10 @@ export function useOrdersSync() {
     }
 
     // Pull updated orders from API
-    const result = await db?.query('SELECT MAX(updated_at) AS max_date FROM public.orders;')
-    pullOrdersApi.params.date = result?.rows?.[0]?.max_date || null
+    const result = await db?.query<MaxDateResult>(
+      'SELECT MAX(updated_at) AS max_date FROM public.orders;'
+    )
+    pullOrdersApi.params.date = result?.rows?.[0]?.max_date || ''
     await pullOrdersApi.execute()
 
     // Update local DB with pulled orders and orderlines

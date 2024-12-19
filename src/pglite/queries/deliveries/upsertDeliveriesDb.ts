@@ -3,9 +3,7 @@ import type { PGliteWithLive } from '@electric-sql/pglite/live'
 
 export async function upsertDeliveriesDB(
   db: PGliteWithLive,
-  deliveries: (TablesInsert<'deliveries'> & {
-    _synced?: boolean
-  })[]
+  deliveries: TablesInsert<'deliveries'>[]
 ) {
   const query = `
     INSERT INTO public.deliveries (

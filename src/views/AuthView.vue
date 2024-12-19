@@ -159,8 +159,8 @@ function submitOrganization() {
   }
 }
 
-function setCurrentOrg(e: unknown) {
-  self.value.current_org = organizations.value?.find((o) => o.id === e[0])
+function setCurrentOrg(payload: unknown) {
+  self.value.current_org = organizations.value?.find((o) => o.id === (payload as string[])[0])
   router.push({
     name: 'home'
   })

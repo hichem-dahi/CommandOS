@@ -3,9 +3,7 @@ import type { PGliteWithLive } from '@electric-sql/pglite/live'
 
 export async function upsertIndividualsDB(
   db: PGliteWithLive,
-  individuals: (TablesInsert<'individuals'> & {
-    _synced?: boolean
-  })[]
+  individuals: TablesInsert<'individuals'>[]
 ) {
   const query = `
     INSERT INTO public.individuals (id, name, phone, org_id, updated_at, _synced)

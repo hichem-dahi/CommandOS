@@ -8,12 +8,12 @@ import type { TablesInsert } from '@/types/database.types'
 export function useUpsertOrganizationsDb() {
   const db = injectPGlite()
 
-  const form = ref<(TablesInsert<'organizations'> & { _synced?: boolean })[]>()
+  const form = ref<TablesInsert<'organizations'>[]>()
 
   const q = useAsyncState(upsertOrganizationsDB, undefined, { immediate: false })
 
   const execute = () => {
-    if (form.value) return q.execute(0, db, form.value)
+    if (form.value && db) return q.execute(0, db, form.value)
   }
 
   const data = computed(() => q.state.value?.rows)

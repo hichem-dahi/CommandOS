@@ -12,7 +12,7 @@ export function useDeletePaymentsDb() {
   const q = useAsyncState(deletePaymentsDB, undefined, { immediate: false })
 
   const execute = () => {
-    if (ids.value) return q.execute(0, db, ids.value)
+    if (ids.value && db) return q.execute(0, db, ids.value)
     else {
       throw new Error('Form is null or incomplete')
     }

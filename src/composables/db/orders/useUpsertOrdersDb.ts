@@ -8,12 +8,12 @@ import type { TablesInsert } from '@/types/database.types'
 export function useUpsertOrdersDb() {
   const db = injectPGlite()
 
-  const form = ref<(TablesInsert<'orders'> & { _synced?: boolean })[]>()
+  const form = ref<TablesInsert<'orders'>[]>()
 
   const q = useAsyncState(upsertOrdersDB, undefined, { immediate: false })
 
   const execute = () => {
-    if (form.value) return q.execute(0, db, form.value)
+    if (form.value && db) return q.execute(0, db, form.value)
     else {
       return undefined
     }

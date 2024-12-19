@@ -12,7 +12,7 @@ export function useDeleteOrganizationDb() {
   const q = useAsyncState(deleteOrganizationDB, undefined, { immediate: false })
 
   const execute = () => {
-    if (organizationId.value) q.execute(0, db, organizationId.value)
+    if (organizationId.value && db) q.execute(0, db, organizationId.value)
     else {
       throw new Error('Form is null or incomplete')
     }

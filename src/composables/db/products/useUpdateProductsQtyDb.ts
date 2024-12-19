@@ -11,7 +11,7 @@ export function useUpdateProductsQtyDb() {
   const q = useAsyncState(updateProductsQtyDb, undefined, { immediate: false })
 
   const execute = () => {
-    return q.execute(0, db, form.value || [])
+    return db ? q.execute(0, db, form.value || []) : undefined
   }
   const data = computed(() => q.state.value?.rows)
   const error = computed(() => q.error.value)

@@ -11,7 +11,7 @@ const defaultForm = () => ({
   client_id: undefined as string | undefined,
   delivery_id: undefined as string | undefined,
   individual_id: undefined as string | undefined,
-  org_id: self.value.current_org,
+  org_id: self.value.current_org?.id,
   date: new Date().toISOString(),
   document_type: 0,
   doc_index: null,
@@ -53,7 +53,7 @@ const individualForm = ref({
   id: undefined as string | undefined,
   name: '',
   phone: null as string | null,
-  org_id: self.value.current_org
+  org_id: self.value.current_org?.id
 })
 
 function cleanForm() {

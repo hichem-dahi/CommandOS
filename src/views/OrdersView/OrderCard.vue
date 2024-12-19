@@ -83,7 +83,9 @@ import DeleteItemModal from '@/views/OrderView/DeleteItemModal.vue'
 import { DocumentType, OrderStatus } from '@/models/models'
 import type { OrderData } from '@/composables/api/orders/useGetOrdersApi'
 
-const order = defineModel<OrderData>('order', { required: true })
+const props = defineProps<{
+  order: OrderData
+}>()
 
 const { t } = useI18n()
 const router = useRouter()
@@ -93,18 +95,18 @@ const deleteOrdersDb = useDeleteOrdersDb()
 const deleteDialog = ref(false)
 
 const docTitle = computed(() =>
-  order.value.doc_index
-    ? `${t(kebabCase(DocumentType[order.value!.document_type]))} ${t('N°')} ${order.value.doc_index}`
+  props.order.doc_index
+    ? `${t(kebabCase(DocumentType[props.order.document_type]))} ${t('N°')} ${props.order.doc_index}`
     : null
 )
 
-const consumerName = computed(() => order.value.client?.name || order.value.individual?.name)
+const consumerName = computed(() => props.order.client?.name || props.order.individual?.name)
 
-const isConfirmed = computed(() => order.value?.status === OrderStatus.Confirmed)
-const isCancelled = computed(() => order.value?.status === OrderStatus.Cancelled)
+const isConfirmed = computed(() => props.order?.status === OrderStatus.Confirmed)
+const isCancelled = computed(() => props.order?.status === OrderStatus.Cancelled)
 
 function deleteOrder() {
-  deleteOrdersDb.ids.value = [order.value.id]
+  deleteOrdersDb.ids.value = [props.order.id]
   deleteOrdersDb.execute()
 }
 

@@ -7,7 +7,7 @@ export async function deleteOrganizationDB(db: PGliteWithLive, organizationId: s
   `
 
   try {
-    const q = await db.query(query, [organizationId])
+    const q = db.query(query, [organizationId])
     console.log(`organization with ID ${organizationId} deleted successfully.`)
     return q
   } catch (error) {

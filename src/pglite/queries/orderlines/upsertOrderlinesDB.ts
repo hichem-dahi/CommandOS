@@ -3,10 +3,7 @@ import type { PGliteWithLive } from '@electric-sql/pglite/live'
 
 export async function upsertOrderlinesDB(
   db: PGliteWithLive,
-  orderlines: (TablesInsert<'order_lines'> & {
-    _synced?: boolean
-    _deleted?: boolean
-  })[]
+  orderlines: TablesInsert<'order_lines'>[]
 ) {
   const query = `
     INSERT INTO public.order_lines (

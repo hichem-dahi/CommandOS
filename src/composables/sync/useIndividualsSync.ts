@@ -8,6 +8,7 @@ import { useUpsertIndividualsDb } from '../db/individuals/useUpsertIndividualsDb
 
 import type { Individual } from '@/models/models'
 import type { Tables } from '@/types/database.types'
+import type { MaxDateResult } from './useSync'
 
 export function useIndividualsSync() {
   const db = injectPGlite()
@@ -39,8 +40,10 @@ export function useIndividualsSync() {
     await pushIndividualsApi.execute()
 
     // Pull updated individuals
-    const result = await db?.query('SELECT MAX(updated_at) AS max_date FROM public.individuals;')
-    pullIndividualsApi.params.date = result?.rows?.[0]?.max_date || null
+    const result = await db?.query<MaxDateResult>(
+      'SELECT MAX(updated_at) AS max_date FROM public.individuals;'
+    )
+    pullIndividualsApi.params.date = result?.rows?.[0]?.max_date || ''
     await pullIndividualsApi.execute()
 
     // Update the local database

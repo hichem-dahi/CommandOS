@@ -15,7 +15,7 @@
   <v-container>
     <v-row v-for="(_, i) in filteredOrders" :key="i">
       <v-col sm="12" md="6">
-        <OrderCard v-model:order="filteredOrders[i]" />
+        <OrderCard :order="filteredOrders[i]" />
       </v-col>
     </v-row>
   </v-container>
@@ -62,13 +62,13 @@ const filters = reactive<Filters>({
 
 const filteredOrders = computed(
   () =>
-    orders.rows.value?.filter((o) => {
+    (orders.rows.value?.filter((o) => {
       const docFilter = filters.docType ? o.document_type === filters.docType : true
       const dateFilter = filters.dateRange.length
         ? filters.dateRange.some((selectedDate) => isSameDay(o.date, selectedDate))
         : true
 
       return docFilter && dateFilter
-    }) || []
+    }) || []) as unknown as OrderData[]
 )
 </script>

@@ -39,6 +39,8 @@ import { isString } from 'lodash'
 import useVuelidate from '@vuelidate/core'
 import { minLength, numeric, required } from '@vuelidate/validators'
 
+import self from '@/composables/localStore/useSelf'
+
 import { ConsumerType } from '@/models/models'
 import type { Tables } from '@/types/database.types'
 

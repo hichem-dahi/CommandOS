@@ -7,6 +7,10 @@ import { useIndividualsSync } from './useIndividualsSync'
 import { useOrganizationsSync } from './useOrganizationsSync'
 import { useNotificationsSync } from './useNotificationsSync'
 
+export interface MaxDateResult {
+  max_date: string | null
+}
+
 export function useSync() {
   const individualsSync = useIndividualsSync()
   const organizationsSync = useOrganizationsSync()

@@ -6,7 +6,7 @@ import { onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { providePGlite } from '@electric-sql/pglite-vue'
 import { PGliteWorker } from '@electric-sql/pglite/worker'
-import { live } from '@electric-sql/pglite/live'
+import { live, type LiveNamespace } from '@electric-sql/pglite/live'
 
 import { supabase } from './supabase/supabase'
 
@@ -14,16 +14,16 @@ import { useGetProfileApi } from './composables/api/auth/useGetProfileApi'
 
 import self from './composables/localStore/useSelf'
 
+type PGliteWithLive = PGliteWorker & { live: LiveNamespace }
+
 const db = new PGliteWorker(
   new Worker(new URL('./pglite/pglite.ts', import.meta.url), {
     type: 'module'
   }),
   {
-    extensions: {
-      live
-    }
+    extensions: { live }
   }
-)
+) as PGliteWithLive
 
 providePGlite(db)
 

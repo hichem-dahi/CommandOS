@@ -37,6 +37,7 @@ export type Database = {
       deliveries: {
         Row: {
           _deleted: boolean
+          _synced: boolean
           destination: string
           driver_name: string
           id: string
@@ -46,6 +47,7 @@ export type Database = {
         }
         Insert: {
           _deleted?: boolean
+          _synced?: boolean
           destination: string
           driver_name: string
           id?: string
@@ -55,6 +57,7 @@ export type Database = {
         }
         Update: {
           _deleted?: boolean
+          _synced?: boolean
           destination?: string
           driver_name?: string
           id?: string
@@ -67,6 +70,7 @@ export type Database = {
       individuals: {
         Row: {
           _deleted: boolean
+          _synced: boolean
           id: string
           name: string
           org_id: string
@@ -75,6 +79,7 @@ export type Database = {
         }
         Insert: {
           _deleted?: boolean
+          _synced?: boolean
           id?: string
           name: string
           org_id: string
@@ -83,6 +88,7 @@ export type Database = {
         }
         Update: {
           _deleted?: boolean
+          _synced?: boolean
           id?: string
           name?: string
           org_id?: string
@@ -102,6 +108,7 @@ export type Database = {
       notifications: {
         Row: {
           _deleted: boolean | null
+          _synced: boolean
           body: string
           id: string
           org_id: string
@@ -110,6 +117,7 @@ export type Database = {
         }
         Insert: {
           _deleted?: boolean | null
+          _synced?: boolean
           body: string
           id?: string
           org_id: string
@@ -118,6 +126,7 @@ export type Database = {
         }
         Update: {
           _deleted?: boolean | null
+          _synced?: boolean
           body?: string
           id?: string
           org_id?: string
@@ -137,6 +146,7 @@ export type Database = {
       order_lines: {
         Row: {
           _deleted: boolean
+          _synced: boolean
           id: string
           order_id: string
           product_id: string
@@ -148,6 +158,7 @@ export type Database = {
         }
         Insert: {
           _deleted?: boolean
+          _synced?: boolean
           id?: string
           order_id: string
           product_id: string
@@ -159,6 +170,7 @@ export type Database = {
         }
         Update: {
           _deleted?: boolean
+          _synced?: boolean
           id?: string
           order_id?: string
           product_id?: string
@@ -188,6 +200,7 @@ export type Database = {
       orders: {
         Row: {
           _deleted: boolean
+          _synced: boolean
           client_id: string | null
           date: string
           delivery_id: string | null
@@ -207,6 +220,7 @@ export type Database = {
         }
         Insert: {
           _deleted?: boolean
+          _synced?: boolean
           client_id?: string | null
           date: string
           delivery_id?: string | null
@@ -226,6 +240,7 @@ export type Database = {
         }
         Update: {
           _deleted?: boolean
+          _synced?: boolean
           client_id?: string | null
           date?: string
           delivery_id?: string | null
@@ -277,6 +292,7 @@ export type Database = {
       organizations: {
         Row: {
           _deleted: boolean
+          _synced: boolean
           activity: string | null
           address: string | null
           art: number | null
@@ -292,6 +308,7 @@ export type Database = {
         }
         Insert: {
           _deleted?: boolean
+          _synced?: boolean
           activity?: string | null
           address?: string | null
           art?: number | null
@@ -307,6 +324,7 @@ export type Database = {
         }
         Update: {
           _deleted?: boolean
+          _synced?: boolean
           activity?: string | null
           address?: string | null
           art?: number | null
@@ -340,6 +358,7 @@ export type Database = {
       payments: {
         Row: {
           _deleted: boolean
+          _synced: boolean
           amount: number
           date: string
           id: string
@@ -348,6 +367,7 @@ export type Database = {
         }
         Insert: {
           _deleted?: boolean
+          _synced?: boolean
           amount: number
           date: string
           id?: string
@@ -356,6 +376,7 @@ export type Database = {
         }
         Update: {
           _deleted?: boolean
+          _synced?: boolean
           amount?: number
           date?: string
           id?: string
@@ -375,6 +396,7 @@ export type Database = {
       products: {
         Row: {
           _deleted: boolean
+          _synced: boolean
           bar_code: number | null
           code: string
           cost_price: number | null
@@ -387,6 +409,7 @@ export type Database = {
         }
         Insert: {
           _deleted?: boolean
+          _synced?: boolean
           bar_code?: number | null
           code: string
           cost_price?: number | null
@@ -399,6 +422,7 @@ export type Database = {
         }
         Update: {
           _deleted?: boolean
+          _synced?: boolean
           bar_code?: number | null
           code?: string
           cost_price?: number | null
@@ -422,6 +446,7 @@ export type Database = {
       profiles: {
         Row: {
           _deleted: boolean | null
+          _synced: boolean
           email: string | null
           full_name: string | null
           id: string
@@ -429,6 +454,7 @@ export type Database = {
         }
         Insert: {
           _deleted?: boolean | null
+          _synced?: boolean
           email?: string | null
           full_name?: string | null
           id?: string
@@ -436,6 +462,7 @@ export type Database = {
         }
         Update: {
           _deleted?: boolean | null
+          _synced?: boolean
           email?: string | null
           full_name?: string | null
           id?: string
@@ -445,6 +472,7 @@ export type Database = {
       }
       push_subscriptions: {
         Row: {
+          _synced: boolean
           auth: string
           created_at: string | null
           endpoint: string
@@ -453,6 +481,7 @@ export type Database = {
           p256dh: string
         }
         Insert: {
+          _synced?: boolean
           auth: string
           created_at?: string | null
           endpoint: string
@@ -461,6 +490,7 @@ export type Database = {
           p256dh: string
         }
         Update: {
+          _synced?: boolean
           auth?: string
           created_at?: string | null
           endpoint?: string
@@ -481,6 +511,7 @@ export type Database = {
       stock_movements: {
         Row: {
           _deleted: boolean
+          _synced: boolean
           date: string
           id: string
           order_id: string | null
@@ -491,6 +522,7 @@ export type Database = {
         }
         Insert: {
           _deleted?: boolean
+          _synced?: boolean
           date: string
           id?: string
           order_id?: string | null
@@ -501,6 +533,7 @@ export type Database = {
         }
         Update: {
           _deleted?: boolean
+          _synced?: boolean
           date?: string
           id?: string
           order_id?: string | null

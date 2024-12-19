@@ -3,28 +3,29 @@ import type { PGliteWithLive } from '@electric-sql/pglite/live'
 
 export async function upsertOrganizationsDB(
   db: PGliteWithLive,
-  organizations: (TablesInsert<'organizations'> & {
-    _synced?: boolean
-  })[]
+  organizations: TablesInsert<'organizations'>[]
 ) {
   const query = `
-    INSERT INTO public.organizations (id, name, phone, rc, nif, nis, art, address, activity, org_id, updated_at, _synced)
+    INSERT INTO public.organizations (
+      id, name, phone, rc, nif, nis, art, address, activity, org_id, updated_at, _synced, _deleted
+    )
     VALUES ${organizations
       .map(
         (_, i) => `(
-          COALESCE($${i * 12 + 1}, gen_random_uuid()), 
-          $${i * 12 + 2}, 
-          $${i * 12 + 3}, 
-          $${i * 12 + 4}, 
-          $${i * 12 + 5}, 
-          $${i * 12 + 6}, 
-          $${i * 12 + 7}, 
-          $${i * 12 + 8}, 
-          $${i * 12 + 9}, 
-          $${i * 12 + 10}, 
-          $${i * 12 + 11},
-          COALESCE($${i * 12 + 12}, true)
-        )` // Directly use the provided value, defaults to NULL if omitted
+          COALESCE($${i * 13 + 1}, gen_random_uuid()), 
+          $${i * 13 + 2}, 
+          $${i * 13 + 3}, 
+          $${i * 13 + 4}, 
+          $${i * 13 + 5}, 
+          $${i * 13 + 6}, 
+          $${i * 13 + 7}, 
+          $${i * 13 + 8}, 
+          $${i * 13 + 9}, 
+          $${i * 13 + 10}, 
+          $${i * 13 + 11}, 
+          COALESCE($${i * 13 + 12}, true),
+          COALESCE($${i * 13 + 13}, false)  -- Default _deleted to false if not provided
+        )`
       )
       .join(', ')}
     ON CONFLICT (id)
@@ -39,23 +40,25 @@ export async function upsertOrganizationsDB(
       activity = EXCLUDED.activity,
       org_id = EXCLUDED.org_id,
       updated_at = EXCLUDED.updated_at,
-      _synced = COALESCE(EXCLUDED._synced, true)
-      RETURNING *;
+      _synced = COALESCE(EXCLUDED._synced, true),
+      _deleted = COALESCE(EXCLUDED._deleted, false) -- Update _deleted on conflict
+    RETURNING *;
   `
 
   const values = organizations.flatMap((org) => [
     org.id,
     org.name,
     org.phone,
-    org.rc || null,
-    org.nif || null,
-    org.nis || null,
-    org.art || null,
-    org.address || null,
-    org.activity || null,
-    org.org_id || null,
-    org.updated_at || null, // Default to NULL if not provided
-    org._synced ?? true // Default to true if not provided
+    org.rc || null, // Optional field, default to null
+    org.nif || null, // Optional field, default to null
+    org.nis || null, // Optional field, default to null
+    org.art || null, // Optional field, default to null
+    org.address || null, // Optional field, default to null
+    org.activity || null, // Optional field, default to null
+    org.org_id || null, // Optional field, default to null
+    org.updated_at || null, // Optional field, default to null
+    org._synced ?? true, // Default to true if not provided
+    org._deleted ?? false // Default to false if not provided
   ])
 
   try {

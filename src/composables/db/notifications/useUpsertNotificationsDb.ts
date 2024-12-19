@@ -9,12 +9,12 @@ import type { Tables, TablesInsert } from '@/types/database.types'
 export function useUpsertNotificationsDb() {
   const db = injectPGlite()
 
-  const form = ref<(TablesInsert<'notifications'> & { _synced?: boolean })[]>()
+  const form = ref<TablesInsert<'notifications'>[]>()
 
   const q = useAsyncState(upsertNotificationsDB, undefined, { immediate: false })
 
   const execute = () => {
-    if (form.value?.length) return q.execute(0, db, form.value)
+    if (form.value && db) return q.execute(0, db, form.value)
     else {
       return undefined
     }

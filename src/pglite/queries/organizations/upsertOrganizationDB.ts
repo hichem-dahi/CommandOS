@@ -3,7 +3,7 @@ import type { TablesInsert } from '@/types/database.types'
 
 export function upsertOrganizationDB(
   db: PGliteWithLive,
-  organization: TablesInsert<'organizations'> & { _synced?: boolean; _deleted?: boolean }
+  organization: TablesInsert<'organizations'>
 ) {
   const query = `
     INSERT INTO public.organizations (id, name, phone, rc, nif, nis, art, address, activity, org_id, _synced, _deleted)

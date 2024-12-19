@@ -8,6 +8,7 @@ import { useUpsertOrganizationsDb } from '../db/organizations/useUpsertOrganizat
 
 import type { Organization } from '@/models/models'
 import type { Tables } from '@/types/database.types'
+import type { MaxDateResult } from './useSync'
 
 export function useOrganizationsSync() {
   const db = injectPGlite()
@@ -38,8 +39,10 @@ export function useOrganizationsSync() {
     await pushOrganizationsApi.execute()
 
     // Pull updated organizations from API
-    const result = await db?.query('SELECT MAX(updated_at) AS max_date FROM public.organizations;')
-    pullOrganizationsApi.params.date = result?.rows?.[0]?.max_date || null
+    const result = await db?.query<MaxDateResult>(
+      'SELECT MAX(updated_at) AS max_date FROM public.organizations;'
+    )
+    pullOrganizationsApi.params.date = result?.rows?.[0]?.max_date || ''
     await pullOrganizationsApi.execute()
 
     // Update local DB with pulled organizations

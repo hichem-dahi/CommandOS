@@ -9,6 +9,7 @@ import { useUpsertProductsDb } from '../db/products/useUpsertProductsDb'
 
 import type { Product } from '@/models/models'
 import type { Tables } from '@/types/database.types'
+import type { MaxDateResult } from './useSync'
 
 export function useProductsSync() {
   const db = injectPGlite()
@@ -49,8 +50,10 @@ export function useProductsSync() {
     pushProductsApi.form.value = productsToSync.value
     await pushProductsApi.execute()
 
-    const result = await db?.query('SELECT MAX(updated_at) AS max_date FROM public.products;')
-    pullProductsApi.params.date = result?.rows?.[0]?.max_date || null
+    const result = await db?.query<MaxDateResult>(
+      'SELECT MAX(updated_at) AS max_date FROM public.products;'
+    )
+    pullProductsApi.params.date = result?.rows?.[0]?.max_date || ''
     await pullProductsApi.execute()
 
     const products = pullProductsApi.data.value || []

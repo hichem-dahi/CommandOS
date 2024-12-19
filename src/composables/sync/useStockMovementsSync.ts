@@ -9,6 +9,7 @@ import { useDeleteStockMovementsDB } from '../db/stockMovements/useDeleteStockMo
 
 import type { StockMovement } from '@/models/models'
 import type { Tables } from '@/types/database.types'
+import type { MaxDateResult } from './useSync'
 
 export function useStockMovementsSync() {
   const db = injectPGlite()
@@ -37,10 +38,10 @@ export function useStockMovementsSync() {
   async function sync() {
     pushStockMovementsApi.form.value = stockMovementsToSync.value
     await pushStockMovementsApi.execute()
-    const result = await db?.query(
+    const result = await db?.query<MaxDateResult>(
       'SELECT MAX(updated_at) AS max_date FROM public.stock_movements;'
     )
-    pullStockMovementsApi.params.date = result?.rows?.[0]?.max_date || null
+    pullStockMovementsApi.params.date = result?.rows?.[0]?.max_date || ''
     await pullStockMovementsApi.execute()
 
     const stockMovements = pullStockMovementsApi.data.value || []
