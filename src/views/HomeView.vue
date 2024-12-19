@@ -83,13 +83,6 @@ const deferredPrompt = ref()
 const isPermissionGranted = ref(Notification.permission === 'granted')
 
 onMounted(async () => {
-  await db?.waitReady
-
-  const org = self.value.current_org
-  if (org && db) {
-    await upsertOrganizationDB(db, org)
-  }
-
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault()
     deferredPrompt.value = e
@@ -101,6 +94,12 @@ onMounted(async () => {
 
   await requestNotificationPermission()
   await registerPushSubscription()
+
+  await db?.waitReady
+  const org = self.value.current_org
+  if (org && db) {
+    await upsertOrganizationDB(db, org)
+  }
 })
 
 async function install() {
@@ -112,12 +111,9 @@ async function dismiss() {
 }
 
 async function requestNotificationPermission() {
-  const permission = await Notification.requestPermission()
-  const registration = await navigator.serviceWorker.ready
+  await Notification.requestPermission()
 
-  if (permission === 'granted') {
-    registration.showNotification('Notifications enabled!')
-  } else if (Notification.permission === 'denied') {
+  if (Notification.permission === 'denied') {
     alert('You have denied notification permission. Please change it in your settings.')
   } else {
     console.log('Notification permission denied')
