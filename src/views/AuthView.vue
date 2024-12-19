@@ -20,23 +20,25 @@
         <v-text-field :label="$t('name')" v-model="form.full_name" />
         <v-text-field :label="$t('phone')" v-model="form.phone" />
 
-        <v-btn block :loading="updateProfileApi.isLoading.value" @click="submitProfile">{{
-          $t('confirm')
-        }}</v-btn>
+        <v-btn block :loading="updateProfileApi.isLoading.value" @click="submitProfile">
+          {{ $t('confirm') }}
+        </v-btn>
       </div>
       <div v-else-if="step === Steps.SelectOrganization">
-        <v-list
-          :items="organizations"
-          item-title="name"
-          item-value="id"
-          link
-          @update:selected="setCurrentOrg"
-        />
-        <v-list-item
-          :append-icon="mdiPlus"
-          subtitle="Creé une organization"
-          @click="step = Steps.FillOrganizationForm"
-        ></v-list-item>
+        <v-card class="pa-4" :title="$t('pick-organization')">
+          <v-list
+            :items="organizationsItems"
+            item-title="name"
+            item-value="id"
+            link
+            @update:selected="setCurrentOrg"
+          />
+          <v-list-item
+            :append-icon="mdiPlus"
+            subtitle="Creé une organization"
+            @click="step = Steps.FillOrganizationForm"
+          ></v-list-item>
+        </v-card>
       </div>
       <div v-else-if="step === Steps.FillOrganizationForm">
         <ClientForm :title="$t('your-informations')" v-model="organizationForm">
@@ -90,7 +92,11 @@ const updateProfileApi = useUpdateProfileApi()
 const getProfileApi = useGetProfileApi()
 const insertOrganizationApi = useInsertOrganizationApi()
 
-const organizations = computed(() => getProfileApi.data.value?.organizations)
+const organizations = computed(() => getProfileApi.data.value?.organizations || [])
+
+const organizationsItems = computed(() => {
+  return organizations.value.flatMap((item) => [item, { type: 'divider', inset: true }])
+})
 
 const $v = useVuelidate()
 
