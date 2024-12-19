@@ -24,7 +24,10 @@ export default defineConfig({
       },
       injectRegister: 'auto',
       workbox: {
-        globPatterns: ['**/*.{js,css,html,png}']
+        globPatterns: ['**/*.{js,html,wasm,data}']
+      },
+      injectManifest: {
+        maximumFileSizeToCacheInBytes: 10000000
       },
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
       manifest: {
@@ -58,6 +61,9 @@ export default defineConfig({
   ],
   optimizeDeps: {
     exclude: ['@electric-sql/pglite']
+  },
+  worker: {
+    format: 'es'
   },
   resolve: {
     alias: {
