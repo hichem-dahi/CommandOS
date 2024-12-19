@@ -24,7 +24,7 @@ export default defineConfig({
       },
       injectRegister: 'auto',
       workbox: {
-        globPatterns: ['**/*.{js,html,wasm,data}'],
+        globPatterns: ['**/*'],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/command-os\.vercel\.app\/.*$/, // Match all routes
