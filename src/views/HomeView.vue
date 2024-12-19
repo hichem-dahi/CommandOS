@@ -75,7 +75,7 @@ const isPermissionGranted = ref(Notification.permission === 'granted')
 onMounted(async () => {
   await db?.waitReady
 
-  const org = self.value.user?.organization
+  const org = self.value.current_org
   if (org && db) {
     await upsertOrganizationDB(db, org)
   }
@@ -129,8 +129,7 @@ async function registerPushSubscription() {
     }
     const subscription = await registerPushManager(registration, vapidKey)
     const { endpoint, keys } = subscription.toJSON()
-    const orgId = self.value.user?.organization_id
-
+    const orgId = self.value.current_org?.id
     if (orgId && keys && endpoint) {
       saveSubscriptionToSupabase(orgId, endpoint, keys)
     } else {

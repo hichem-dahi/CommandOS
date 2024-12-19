@@ -45,7 +45,7 @@ function submitForm() {
   $v.value.$touch()
   if (!$v.value.$invalid) {
     upsertOrganizationsDb.form.value = [
-      { ...form.value, org_id: self.value.user?.organization_id, _synced: false }
+      { ...form.value, org_id: self.value.current_org?.id, _synced: false }
     ]
     upsertOrganizationsDb.execute()
   }

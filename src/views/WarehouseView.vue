@@ -95,7 +95,7 @@ const filteredProducts = computed(() =>
 async function submitForm() {
   $v.value.$touch()
   if (!$v.value.$invalid) {
-    const org_id = self.value.user?.organization_id
+    const org_id = self.value.current_org?.id
     if (org_id) {
       upsertProductsDb.form.value = [
         {

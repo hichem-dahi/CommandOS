@@ -7,7 +7,7 @@ import self from '@/composables/localStore/useSelf'
 
 import type { OrderStatus } from '@/models/models'
 
-const orgId = self.value.user?.organization_id
+const orgId = self.value.current_org?.id
 
 export function useGetOrdersApi() {
   const params = reactive({

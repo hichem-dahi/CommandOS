@@ -142,7 +142,7 @@ function submitSale() {
     cleanForm()
     form.status = OrderStatus.Confirmed
     form.document_type = DocumentType.Voucher
-    const org_id = self.value.user?.organization_id
+    const org_id = self.value.current_org?.id
     if (org_id) {
       upsertOrdersDb.form.value = [{ ...form, org_id, _synced: false }]
       upsertOrdersDb.execute()
@@ -161,7 +161,7 @@ function insertPayment(payment: TablesInsert<'payments'>) {
 }
 
 function insertNotification(title: string, body: string) {
-  const org_id = self.value.user?.organization_id || ''
+  const org_id = self.value.current_org?.id || ''
   upsertNotificationsDb.form.value = [
     {
       title,

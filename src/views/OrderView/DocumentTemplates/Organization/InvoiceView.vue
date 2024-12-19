@@ -148,7 +148,7 @@ const deliveryInfo = computed(() => {
 })
 
 const selfInfo = computed(() => {
-  let selfInfo = self.value.user?.organization
+  let selfInfo = self.value.current_org
   if (!selfInfo) return
   selfInfo = {
     ...selfInfo,

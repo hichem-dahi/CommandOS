@@ -69,7 +69,7 @@ onMounted(() => {
     full_name: self.value.user?.full_name,
     phone: self.value.user?.phone
   })
-  Object.assign(organizationForm, self.value.user?.organization)
+  Object.assign(organizationForm, self.value.current_org)
 })
 
 function submitProfile() {
@@ -94,12 +94,7 @@ watch(
   (isSuccess) => {
     const org = upsertOrganizationsApi.data.value?.[0]
     if (isSuccess && org?.id && self.value.user) {
-      self.value.user.organization = org
-      updateProfileApi.form.value = {
-        id: self.value.user?.id,
-        organization_id: org.id
-      }
-      updateProfileApi.execute()
+      self.value.current_org = org
     }
   }
 )

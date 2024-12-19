@@ -5,7 +5,7 @@ import { supabase } from '@/supabase/supabase'
 
 import self from '@/composables/localStore/useSelf'
 
-const orgId = self.value.user?.organization_id
+const orgId = self.value.current_org?.id
 
 export function useGetStockMovementsApi() {
   const params = reactive({

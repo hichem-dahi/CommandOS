@@ -9,7 +9,7 @@ type OrderData = {
   order_lines: OrderLine[]
 }
 
-const org_id = self.value.user?.organization_id
+const org_id = self.value.current_org?.id
 
 export function processStockMovementsForOrder(
   order: OrderData,

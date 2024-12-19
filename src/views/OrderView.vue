@@ -257,7 +257,7 @@ function updateOrderStatus(moveType: 'add' | 'sub') {
 }
 
 function insertNotification(title: string, body: string) {
-  const org_id = self.value.user?.organization_id || ''
+  const org_id = self.value.current_org?.id || ''
   upsertNotificationsDb.form.value = [
     {
       title,
