@@ -288,6 +288,7 @@ export type Database = {
           phone: string
           rc: string | null
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           _deleted?: boolean
@@ -302,6 +303,7 @@ export type Database = {
           phone: string
           rc?: string | null
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           _deleted?: boolean
@@ -316,6 +318,7 @@ export type Database = {
           phone?: string
           rc?: string | null
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -323,6 +326,13 @@ export type Database = {
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organizations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -415,7 +425,6 @@ export type Database = {
           email: string | null
           full_name: string | null
           id: string
-          organization_id: string | null
           phone: string | null
         }
         Insert: {
@@ -423,7 +432,6 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
-          organization_id?: string | null
           phone?: string | null
         }
         Update: {
@@ -431,22 +439,12 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
-          organization_id?: string | null
           phone?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "profiles_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       push_subscriptions: {
         Row: {
-          _deleted: boolean | null
           auth: string
           created_at: string | null
           endpoint: string
@@ -455,7 +453,6 @@ export type Database = {
           p256dh: string
         }
         Insert: {
-          _deleted?: boolean | null
           auth: string
           created_at?: string | null
           endpoint: string
@@ -464,7 +461,6 @@ export type Database = {
           p256dh: string
         }
         Update: {
-          _deleted?: boolean | null
           auth?: string
           created_at?: string | null
           endpoint?: string
