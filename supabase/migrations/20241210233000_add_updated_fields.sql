@@ -88,4 +88,14 @@ BEGIN
 END;$function$
 ;
 
+alter table "public"."profiles" drop constraint "profiles_organization_id_fkey";
+
+alter table "public"."organizations" add column "user_id" uuid;
+
+alter table "public"."profiles" drop column "organization_id";
+
+alter table "public"."organizations" add constraint "organizations_user_id_fkey" FOREIGN KEY (user_id) REFERENCES profiles(id) not valid;
+
+alter table "public"."organizations" validate constraint "organizations_user_id_fkey";
+
 
