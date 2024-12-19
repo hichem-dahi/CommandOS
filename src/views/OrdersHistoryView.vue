@@ -19,13 +19,13 @@
           </v-list-item>
         </template>
       </v-list>
-      <div class="total text-end pa-4">
+      <div class="total text-end pa-4" v-if="allOrderlines">
         {{ t('total') }}:
         <span v-html="productSummary(allOrderlines)"></span>
         &mdash;
         <span>
           <span class="text-blue">{{ t('revenue') }}:</span>
-          {{ `${sum(filteredOrders.map((o) => o.paid_price))} ${t('DA')}` }},
+          {{ `${sum(filteredOrders.map((o) => Number(o.paid_price)))} ${t('DA')}` }},
           <span class="text-green">{{ t('profit') }}:</span>
           {{ `${calculateProfit(allOrderlines)} ${t('DA')}` }}
         </span>
@@ -35,35 +35,85 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { groupBy, sortBy, sum } from 'lodash'
 import { format } from 'date-fns'
 import { useI18n } from 'vue-i18n'
+import { useLiveQuery } from '@electric-sql/pglite-vue'
 
-import { useGetOrdersApi } from '@/composables/api/orders/useGetOrdersApi'
+import { type OrderData } from '@/composables/api/orders/useGetOrderApi'
 
-import { OrderStatus } from '@/models/models'
 import type { OrderLineData } from '@/composables/api/orders/useGetOrderApi'
 
 const { t } = useI18n()
 
 const dateRange = ref<Date[]>([])
 
-const getOrdersApi = useGetOrdersApi()
-getOrdersApi.params.status = OrderStatus.Confirmed
-getOrdersApi.execute()
+const orderQuery = useLiveQuery<OrderData>(
+  `SELECT
+    o.*,
+    -- Fetching individual data as a separate field
+    (
+        SELECT to_jsonb(i)
+        FROM public.individuals i
+        WHERE i.id = o.individual_id AND i._deleted = false
+        LIMIT 1
+    ) AS individual,
+    -- Fetching client data as a separate field
+    (
+        SELECT to_jsonb(org)
+        FROM public.organizations org
+        WHERE org.id = o.client_id AND org._deleted = false
+        LIMIT 1
+    ) AS client,
+    -- Fetching payments as an array of JSON objects
+    (
+        SELECT jsonb_agg(p)
+        FROM public.payments p
+        WHERE p.order_id = o.id AND p._deleted = false
+    ) AS payments,
+    -- Fetching order lines as an array of JSON objects with product details
+    (
+        SELECT jsonb_agg(
+            jsonb_build_object(
+                'id', ol.id,
+                'order_id', ol.order_id,
+                'product_id', ol.product_id,
+                'qte', ol.qte,
+                'unit_price', ol.unit_price,
+                'unit_cost_price', ol.unit_cost_price,
+                'total_price', ol.total_price,
+                'updated_at', ol.updated_at,
+                '_deleted', ol._deleted,
+                '_synced', ol._synced,
+                'product', (
+                    SELECT to_jsonb(p)
+                    FROM public.products p
+                    WHERE p.id = ol.product_id AND p._deleted = false
+                )
+            )
+        )
+        FROM public.order_lines ol
+        WHERE ol.order_id = o.id AND ol._deleted = false
+    ) AS order_lines
+  FROM public.orders o
+  WHERE o._deleted = false
+  AND o.date >= $1 AND o.date <= $2; -- Date range filter
+  `,
+  [dateRange.value[0], dateRange.value[dateRange.value.length - 1]] // Pass the reactive date range as query parameters
+)
 
-const filteredOrders = computed(() => getOrdersApi.data.value || [])
+const filteredOrders = computed(() => orderQuery.rows.value || [])
 
 const historyItems = computed(() => {
   let groupedSummary = []
   for (const date in groupedOrders.value) {
     const intro = `<span class="text-primary">${format(date, 'dd-MM-yyyy')}</span>&nbsp;&nbsp;`
     const totalBenefits = calculateProfit(allOrderlinesByDate.value[date])
-    const totalPaid = sum(groupedOrders.value[date].map((o) => o.paid_price))
+    const totalPaid = sum(groupedOrders.value[date].map((o) => Number(o.paid_price)))
 
     const dateSummaryitem = {
-      subtitle: `${intro} ${productSummary(allOrderlinesByDate.value[date])} 
+      subtitle: `${intro} ${productSummary(allOrderlinesByDate.value[date])}
       &mdash; ${t('revenue')}: ${totalPaid} ${t('DA')}, ${t('profit')}: ${totalBenefits} ${t('DA')}`
     }
     groupedSummary.push(dateSummaryitem)
@@ -83,33 +133,25 @@ const allOrderlinesByDate = computed(() => {
 
   Object.keys(groupedOrders.value).forEach((date) => {
     const ordersForDate = groupedOrders.value[date]
-    result[date] = ordersForDate.reduce<OrderLineData[]>((linesAcc, order) => {
-      return linesAcc.concat(order.order_lines)
-    }, [])
+    result[date] = ordersForDate.flatMap((o) => o?.order_lines)
   })
 
   return result
 })
 
 const allOrderlines = computed(() => {
-  return Object.keys(groupedOrders.value).reduce<OrderLineData[]>((acc: OrderLineData[], date) => {
-    const ordersForDate = groupedOrders.value[date]
-    const orderLinesForDate = ordersForDate.reduce<OrderLineData[]>(
-      (linesAcc, order) => linesAcc.concat(order.order_lines),
-      []
-    )
-    return acc.concat(orderLinesForDate)
-  }, [])
+  return filteredOrders.value.flatMap((o) => o?.order_lines).filter((e) => e)
 })
 
 function productSummary(orderlines: OrderLineData[]) {
+  if (!orderlines?.length) return
   let productsSummaries: string[] = []
-  const orderlinesGrouped = groupBy(orderlines, (o) => o.product_id)
+  const orderlinesGrouped = groupBy(orderlines, (o) => o?.product_id)
 
   for (const productId in orderlinesGrouped) {
     const orderlines = orderlinesGrouped[productId]
-    const product = orderlinesGrouped[productId][0].product
-    const totalQte = sum(orderlines.map((o) => o.qte))
+    const product = orderlinesGrouped[productId][0]?.product
+    const totalQte = sum(orderlines.map((o) => o?.qte))
 
     productsSummaries.push(`${totalQte}m ${product?.name} `)
   }
@@ -120,31 +162,10 @@ function productSummary(orderlines: OrderLineData[]) {
 function calculateProfit(orderlines: OrderLineData[]) {
   let profit = 0
   orderlines.forEach((o) => {
-    if (o.unit_cost_price) profit += o.total_price - o.qte * o.unit_cost_price
+    if (o?.unit_cost_price) profit += o.total_price - o.qte * o.unit_cost_price
   })
   return profit
 }
-
-watch(
-  dateRange,
-  (newDateRange) => {
-    if (newDateRange?.length === 1) {
-      const date1 = new Date(newDateRange[0])
-      const date2 = new Date(newDateRange[0])
-
-      date2.setHours(24, 0, 0, 0)
-      getOrdersApi.params.dateRange[0] = date1.toISOString()
-      getOrdersApi.params.dateRange[1] = date2.toISOString()
-    } else if (newDateRange?.length !== 1) {
-      getOrdersApi.params.dateRange[0] = newDateRange[0].toISOString()
-      getOrdersApi.params.dateRange[1] = newDateRange[newDateRange.length - 1].toISOString()
-    } else {
-      getOrdersApi.params.dateRange = []
-    }
-    getOrdersApi.execute()
-  },
-  { deep: true }
-)
 </script>
 
 <style scoped>
