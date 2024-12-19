@@ -8,13 +8,13 @@ import type { Tables } from '@/types/database.types'
 interface Profile {
   user?: ProfileData
   session?: Session
-  organization: Tables<'organizations'> | undefined
+  current_org: Tables<'organizations'> | undefined
 }
 
 const self = useLocalStorage<Profile>('self', {
   user: undefined,
   session: undefined,
-  organization: undefined
+  current_org: undefined
 })
 
 export default self
