@@ -13,7 +13,7 @@
             <template v-slot:activator="{ props }">
               <v-btn v-bind="props" variant="text" :icon="mdiDotsVertical" />
             </template>
-            <v-card class="d-flex flex-column align-center px-4 py-2">
+            <v-card class="d-flex flex-column align-start px-4 py-2">
               <v-btn variant="text" :prepend-icon="mdiAccount" :to="{ name: 'self' }">
                 {{ $t('profile') }}
               </v-btn>
