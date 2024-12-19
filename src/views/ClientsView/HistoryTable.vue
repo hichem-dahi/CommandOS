@@ -18,9 +18,9 @@
       <div class="text-no-wrap">{{ format(item.date, 'p') }}</div>
     </template>
     <template v-slot:item.details="{ item }">
-      <div v-for="(detail, i) in item.details" :key="i">
-        {{ detail }}
-      </div>
+      <span class="text-caption text-no-wrap">
+        {{ item.details.join(', ') }}
+      </span>
     </template>
     <template v-slot:item.status="{ item }">
       <v-chip
