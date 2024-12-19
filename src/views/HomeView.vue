@@ -13,9 +13,15 @@
             <template v-slot:activator="{ props }">
               <v-btn v-bind="props" variant="text" :icon="mdiDotsVertical" />
             </template>
-            <v-card class="px-4 py-2">
-              <v-btn variant="text" :icon="mdiAccount" :to="{ name: 'self' }" />
+            <v-card class="d-flex flex-column align-center px-4 py-2">
+              <v-btn variant="text" :prepend-icon="mdiAccount" :to="{ name: 'self' }">
+                {{ $t('profile') }}
+              </v-btn>
+              <v-btn variant="text" :prepend-icon="mdiDotsVertical" :to="{ name: 'auth' }">
+                {{ $t('organizations') }}
+              </v-btn>
               <v-select
+                variant="underlined"
                 density="compact"
                 v-model="$i18n.locale"
                 :items="$i18n.availableLocales"
@@ -55,6 +61,8 @@ import { onMounted, ref } from 'vue'
 import { injectPGlite } from '@electric-sql/pglite-vue'
 import { mdiAccount, mdiBell, mdiBellOff, mdiDotsVertical } from '@mdi/js'
 
+import { useSync } from '@/composables/sync/useSync'
+
 import { useInsertPushSubscriptionsApi } from '@/composables/api/pushSubscriptions/useInsertPushSubscriptionsApi'
 import { upsertOrganizationDB } from '@/pglite/queries/organizations/upsertOrganizationDB'
 
@@ -66,6 +74,8 @@ import { fetchVapidPublicKey } from '@/supabase/api/fetchVapidPublicKey'
 import { urlBase64ToUint8Array } from '@/helpers/helpers'
 
 const db = injectPGlite()
+
+const sync = useSync()
 
 const insertPushSubscriptionsApi = useInsertPushSubscriptionsApi()
 

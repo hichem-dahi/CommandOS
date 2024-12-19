@@ -24,16 +24,10 @@ import { computed } from 'vue'
 import { useLiveQuery } from '@electric-sql/pglite-vue'
 import { mdiPlus } from '@mdi/js'
 
-import { useOrganizationsSync } from '@/composables/sync/useOrganizationsSync'
-import { useIndividualsSync } from '@/composables/sync/useIndividualsSync'
-
 import ClientCard from '@/views/ClientsView/ClientCard.vue'
 
 import type { Individual, Organization } from '@/models/models'
 import type { Tables } from '@/types/database.types'
-
-useOrganizationsSync().launch()
-useIndividualsSync().launch()
 
 const organizationsQuery = useLiveQuery<Tables<'organizations'>>(
   'SELECT * FROM public.organizations;',

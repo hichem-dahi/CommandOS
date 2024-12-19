@@ -27,8 +27,6 @@ import { isSameDay } from 'date-fns'
 import { mdiPlus } from '@mdi/js'
 import { useLiveQuery } from '@electric-sql/pglite-vue'
 
-import { useOrdersSync } from '@/composables/sync/useOrdersSync'
-
 import OrderCard from '@/views/OrdersView/OrderCard.vue'
 import FilterBar from './OrdersView/FilterBar.vue'
 
@@ -56,9 +54,6 @@ const orders = useLiveQuery<OrderData>(
 `,
   []
 )
-
-const ordersSync = useOrdersSync()
-ordersSync.launch()
 
 const filters = reactive<Filters>({
   docType: null,

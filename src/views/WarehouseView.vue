@@ -32,8 +32,6 @@ import { mdiPlus } from '@mdi/js'
 
 import self from '@/composables/localStore/useSelf'
 
-import { useProductsSync } from '@/composables/sync/useProductsSync'
-import { useStockMovementsSync } from '@/composables/sync/useStockMovementsSync'
 import { useUpsertProductsDb } from '@/composables/db/products/useUpsertProductsDb'
 
 import ProductForm from '@/views/WarehouseView/ProductForm.vue'
@@ -45,19 +43,6 @@ import type { Tables } from '@/types/database.types'
 
 const $v = useVuelidate()
 
-const productsSync = useProductsSync()
-const stockMovementsSync = useStockMovementsSync()
-
-productsSync.launch()
-
-watch(
-  () => productsSync.inFinished.value,
-  (inFinished) => {
-    if (inFinished) {
-      stockMovementsSync.launch()
-    }
-  }
-)
 const productsQuery = useLiveQuery<Tables<'products'>>(
   'SELECT * FROM public.products WHERE _deleted = false;',
   []
