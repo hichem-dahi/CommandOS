@@ -24,32 +24,7 @@ export default defineConfig({
       },
       injectRegister: 'auto',
       workbox: {
-        globPatterns: ['**/*'],
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/command-os\.vercel\.app\/.*$/, // Match all routes
-            handler: 'StaleWhileRevalidate', // Cache first, but revalidate in the background
-            options: {
-              cacheName: 'all-dynamic-routes', // Cache name for all dynamic routes
-              expiration: {
-                maxEntries: 100, // Cache up to 100 dynamic routes
-                maxAgeSeconds: 24 * 60 * 60 // Cache for 1 day
-              }
-            }
-          },
-
-          {
-            urlPattern: /\.wasm$/, // Cache WebAssembly files, e.g., pgLite
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'wasm-cache',
-              expiration: {
-                maxEntries: 5,
-                maxAgeSeconds: 24 * 60 * 60 // Cache wasm for 1 day
-              }
-            }
-          }
-        ]
+        globPatterns: ['**/*']
       },
       injectManifest: {
         maximumFileSizeToCacheInBytes: 10000000
