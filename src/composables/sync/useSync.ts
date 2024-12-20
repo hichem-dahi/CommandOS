@@ -23,20 +23,15 @@ export function useSync() {
   organizationsSync.launch()
   individualsSync.launch()
 
-  const orgsAndIndivsFinished = computed(
-    () => organizationsSync.isFinished.value && individualsSync.isFinished.value
-  )
-  watch(
-    () => productsSync.isFinished.value,
-    (isFinished) => {
-      if (isFinished) {
-        stockMovementsSync.launch()
-      }
-    }
+  const isFinished = computed(
+    () =>
+      organizationsSync.isFinished.value &&
+      individualsSync.isFinished.value &&
+      productsSync.isFinished.value
   )
 
-  watch(orgsAndIndivsFinished, (allFinished) => {
-    if (allFinished) {
+  watch(isFinished, (isFinished) => {
+    if (isFinished) {
       ordersSync.launch()
     }
   })
@@ -45,6 +40,7 @@ export function useSync() {
     () => ordersSync.isFinished.value,
     (isFinished) => {
       if (isFinished) {
+        stockMovementsSync.launch()
         notificationsSync.launch()
       }
     }
