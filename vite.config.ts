@@ -23,9 +23,6 @@ export default defineConfig({
         type: 'module'
       },
       injectRegister: 'auto',
-      workbox: {
-        globPatterns: ['**/*']
-      },
       injectManifest: {
         maximumFileSizeToCacheInBytes: 10000000
       },
