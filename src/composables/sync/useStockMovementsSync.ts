@@ -51,7 +51,8 @@ export function useStockMovementsSync() {
     deleteStockMovementsDb.ids.value = (upsertStockMovementsDb.data.value || [])
       .filter((s) => s._deleted)
       .map((s) => s.id)
-    await deleteStockMovementsDb.execute()
+
+    if (deleteStockMovementsDb.ids.value.length) await deleteStockMovementsDb.execute()
 
     isFinished.value = true
   }

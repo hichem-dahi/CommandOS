@@ -64,8 +64,7 @@ export function useProductsSync() {
     deleteProductsDb.ids.value = upsertProductsDb.data.value
       ?.filter((o) => o._deleted)
       .map((o) => o.id)
-    await deleteProductsDb.execute()
-
+    if (deleteProductsDb.ids.value?.length) await deleteProductsDb.execute()
     isFinished.value = true
   }
 

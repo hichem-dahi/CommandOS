@@ -122,7 +122,7 @@ export function useOrdersSync() {
 
     // Collect IDs of deleted payments
     deletePaymentsDb.ids.value = payments.filter((p) => p._deleted).map((p) => p.id)
-    await deletePaymentsDb.execute()
+    if (deletePaymentsDb.ids.value?.length) await deletePaymentsDb.execute()
 
     isFinished.value = true
   }
