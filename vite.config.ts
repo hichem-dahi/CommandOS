@@ -24,7 +24,7 @@ export default defineConfig({
       },
       injectRegister: 'auto',
       injectManifest: {
-        maximumFileSizeToCacheInBytes: 10000000
+        maximumFileSizeToCacheInBytes: 10 * 1024 ** 2
       },
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
       manifest: {
