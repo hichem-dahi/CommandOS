@@ -3,6 +3,7 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vuetify from 'vite-plugin-vuetify'
 import { VitePWA } from 'vite-plugin-pwa'
+
 import { nodePolyfills } from 'vite-plugin-node-polyfills'
 
 // https://vitejs.dev/config/
@@ -23,24 +24,9 @@ export default defineConfig({
         maximumFileSizeToCacheInBytes: 10 * 1024 ** 2,
         globPatterns: ['**/*.{js,css,html,wasm,data}']
       },
-      workbox: {
-        globPatterns: ['**/*'],
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/command-os\.vercel\.app\/.*$/, // Match all routes
-            handler: 'StaleWhileRevalidate', // Cache first, but revalidate in the background
-            options: {
-              cacheName: 'all-dynamic-routes', // Cache name for all dynamic routes
-              expiration: {
-                maxEntries: 100, // Cache up to 100 dynamic routes
-                maxAgeSeconds: 24 * 60 * 60 // Cache for 1 day
-              }
-            }
-          }
-        ]
-      },
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
       manifest: {
+        start_url: '/',
         name: 'CommandOS',
         short_name: 'COS',
         description: 'CommandOS description',
