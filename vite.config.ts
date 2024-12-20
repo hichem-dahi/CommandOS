@@ -18,13 +18,10 @@ export default defineConfig({
       strategies: 'injectManifest',
       srcDir: 'src',
       filename: 'service-worker.js',
-      devOptions: {
-        enabled: true, // Enables SW in development for testing
-        type: 'module'
-      },
       injectRegister: 'auto',
       injectManifest: {
-        maximumFileSizeToCacheInBytes: 10 * 1024 ** 2
+        maximumFileSizeToCacheInBytes: 10 * 1024 ** 2,
+        globPatterns: ['**/*.{js,css,html,wasm,data}']
       },
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
       manifest: {
