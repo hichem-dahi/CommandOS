@@ -244,9 +244,9 @@ function addPayment(payment: TablesInsert<'payments'>) {
   upsertPaymentDb.execute()
 }
 
-function updateProductQuantities(updates: { product_id: string; qte_change: number }[]) {
+function updateProductQuantities(ids: string[]) {
   if (!order.value) return
-  updateProductsQtyDb.form.value = updates
+  updateProductsQtyDb.stockMovementsIds.value = ids
   updateProductsQtyDb.execute()
 }
 
@@ -273,10 +273,7 @@ watch(
   () => upsertStockMovementsDb.isSuccess.value,
   (isSuccess) => {
     if (isSuccess) {
-      const updates = upsertStockMovementsDb.data.value.map((s) => ({
-        product_id: s.product_id,
-        qte_change: s.qte_change
-      }))
+      const updates = upsertStockMovementsDb.data.value.map((s) => s.id)
       updateProductQuantities(updates)
 
       const moveType = upsertStockMovementsDb.data.value[0].qte_change > 0 ? 'add' : 'sub'

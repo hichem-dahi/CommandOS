@@ -173,8 +173,8 @@ function insertNotification(title: string, body: string) {
   upsertNotificationsDb.execute()
 }
 
-function updateProductQuantities(updates: { product_id: string; qte_change: number }[]) {
-  updateProductsQtyDb.form.value = updates
+function updateProductQuantities(ids: string[]) {
+  updateProductsQtyDb.stockMovementsIds.value = ids
   updateProductsQtyDb.execute()
 }
 
@@ -182,11 +182,8 @@ watch(
   () => upsertStockMovementsDb.isSuccess.value,
   (isSuccess) => {
     if (isSuccess) {
-      const updates = upsertStockMovementsDb.data.value.map((s) => ({
-        product_id: s.product_id,
-        qte_change: s.qte_change
-      }))
-      updateProductQuantities(updates)
+      const ids = upsertStockMovementsDb.data.value.map((s) => s.id)
+      updateProductQuantities(ids)
     }
   }
 )

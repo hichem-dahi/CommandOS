@@ -571,6 +571,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      adjust_product_qte: {
+        Args: {
+          stock_movement_ids: string[]
+        }
+        Returns: {
+          id: string
+          product_id: string
+          qte: number
+        }[]
+      }
       bytea_to_text: {
         Args: {
           data: string
