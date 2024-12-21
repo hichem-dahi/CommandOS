@@ -71,5 +71,5 @@ export function useStockMovementsSync() {
     )
   }
 
-  return { isFinished, launch, sync }
+  return { launch, sync, pushedStockMovements: pushStockMovementsApi.data, isFinished }
 }
