@@ -34,7 +34,7 @@ export function useProductsSync() {
 
   const productsToSync = computed(
     () =>
-      (productsToSyncQuery.rows.value?.map(({ _synced, updated_at, ...rest }) => rest) ||
+      (productsToSyncQuery.rows.value?.map(({ _synced, ...rest }) => rest) ||
         []) as unknown as Product[]
   )
 
@@ -47,7 +47,7 @@ export function useProductsSync() {
   const queriesReady = computed(() => productsToSyncQuery.rows.value !== undefined)
 
   async function sync() {
-    pushProductsApi.form.value = productsToSync.value
+    pushProductsApi.form.value = productsToSync.value.map(({ updated_at, ...rest }) => rest)
     await pushProductsApi.execute()
 
     const result = await db?.query<MaxDateResult>(
@@ -82,5 +82,5 @@ export function useProductsSync() {
     )
   }
 
-  return { isFinished, launch }
+  return { launch, productsToSync, queriesReady, isFinished }
 }
