@@ -7,12 +7,14 @@ import { useIndividualsSync } from './useIndividualsSync'
 import { useOrganizationsSync } from './useOrganizationsSync'
 import { useNotificationsSync } from './useNotificationsSync'
 import { useUpdateProductsQteRpc } from '../api/products/useUpdateProductsQteRpc'
+import { useDeliveriesSync } from './useDeliveriesSync'
 
 export interface MaxDateResult {
   max_date: string | null
 }
 
 export function useSync() {
+  const deliveriesSync = useDeliveriesSync()
   const individualsSync = useIndividualsSync()
   const organizationsSync = useOrganizationsSync()
   const ordersSync = useOrdersSync()
@@ -26,9 +28,11 @@ export function useSync() {
   productsSync.launch()
   organizationsSync.launch()
   individualsSync.launch()
+  deliveriesSync.launch()
 
   const isFinished = computed(
     () =>
+      deliveriesSync.isFinished.value &&
       organizationsSync.isFinished.value &&
       individualsSync.isFinished.value &&
       productsSync.isFinished.value
