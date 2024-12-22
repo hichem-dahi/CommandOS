@@ -200,9 +200,9 @@ watch(
   () => upsertDeliveriesDb.isSuccess.value,
   (isSuccess) => {
     if (isSuccess && upsertDeliveriesDb.data.value?.[0]) {
-      Object.assign({}, upsertOrdersDb.form.value?.[0], {
-        delivery_id: upsertDeliveriesDb.data.value?.[0].id
-      })
+      if (upsertOrdersDb.form.value?.[0]) {
+        upsertOrdersDb.form.value[0].delivery_id = upsertDeliveriesDb.data.value[0].id
+      }
     }
   }
 )
@@ -212,9 +212,7 @@ watch(
   (isSuccess) => {
     if (isSuccess && upsertIndividualsDb.data.value) {
       if (upsertOrdersDb.form.value?.[0]) {
-        Object.assign({}, upsertOrdersDb.form.value?.[0], {
-          individual_id: upsertIndividualsDb.data.value[0].id
-        })
+        upsertOrdersDb.form.value[0].individual_id = upsertIndividualsDb.data.value[0].id
       }
     }
   }
