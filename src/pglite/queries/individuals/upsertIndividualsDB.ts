@@ -5,6 +5,8 @@ export async function upsertIndividualsDB(
   db: PGliteWithLive,
   individuals: TablesInsert<'individuals'>[]
 ) {
+  if (!individuals?.length) return
+
   const query = `
     INSERT INTO public.individuals (id, name, phone, org_id, updated_at, _synced)
     VALUES ${individuals

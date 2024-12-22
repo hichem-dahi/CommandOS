@@ -5,6 +5,7 @@ export async function upsertOrderlinesDB(
   db: PGliteWithLive,
   orderlines: TablesInsert<'order_lines'>[]
 ) {
+  if (!orderlines?.length) return
   const query = `
     INSERT INTO public.order_lines (
       id,

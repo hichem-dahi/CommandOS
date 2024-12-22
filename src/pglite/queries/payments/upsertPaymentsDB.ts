@@ -2,6 +2,8 @@ import type { TablesInsert } from '@/types/database.types'
 import type { PGliteWithLive } from '@electric-sql/pglite/live'
 
 export async function upsertPaymentsDB(db: PGliteWithLive, payments: TablesInsert<'payments'>[]) {
+  if (!payments?.length) return
+
   const query = `
     INSERT INTO public.payments (
       id,

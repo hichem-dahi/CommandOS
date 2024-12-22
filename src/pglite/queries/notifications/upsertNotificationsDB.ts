@@ -5,6 +5,8 @@ export async function upsertNotificationsDB(
   db: PGliteWithLive,
   notifications: TablesInsert<'notifications'>[]
 ) {
+  if (!notifications?.length) return
+
   const query = `
     INSERT INTO public.notifications (
       id,

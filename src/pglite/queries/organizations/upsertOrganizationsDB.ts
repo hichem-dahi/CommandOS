@@ -5,6 +5,8 @@ export async function upsertOrganizationsDB(
   db: PGliteWithLive,
   organizations: TablesInsert<'organizations'>[]
 ) {
+  if (!organizations?.length) return
+
   const query = `
     INSERT INTO public.organizations (
       id, name, phone, rc, nif, nis, art, address, activity, org_id, updated_at, _synced, _deleted
