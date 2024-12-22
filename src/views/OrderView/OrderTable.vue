@@ -199,7 +199,20 @@ const isLoading = computed(
   () => softDeleteOrderlinesDb.isLoading.value || upsertOrderlinesDb.isLoading.value
 )
 
-const isModified = computed(() => !isEqual(order.value.order_lines, proxyOrderlines.value))
+const isModified = computed(() => {
+  const filteredOrderlines = (orderlines: any[]) =>
+    orderlines.map(({ product_id, qte, unit_cost_price }) => ({
+      product_id,
+      qte,
+      unit_cost_price
+    }))
+
+  return !isEqual(
+    filteredOrderlines(order.value.order_lines),
+    filteredOrderlines(proxyOrderlines.value)
+  )
+})
+
 const isModfiable = computed(() => isModified.value && isValidOrderlines.value)
 
 const isValidOrderlines = computed(() =>
