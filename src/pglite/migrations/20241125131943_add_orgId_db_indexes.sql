@@ -60,5 +60,11 @@ alter table "public"."stock_movements" add constraint "stock_movements_org_id_fk
 
 alter table "public"."stock_movements" validate constraint "stock_movements_org_id_fkey";
 
+alter table "public"."deliveries" add column "org_id" uuid not null;
+
+alter table "public"."deliveries" add constraint "deliveries_org_id_fkey" FOREIGN KEY (org_id) REFERENCES public.organizations(id) not valid;
+
+alter table "public"."deliveries" validate constraint "deliveries_org_id_fkey";
+
 
 
