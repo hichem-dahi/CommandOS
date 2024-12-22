@@ -42,6 +42,7 @@ export type Database = {
           driver_name: string
           id: string
           license_plate: string
+          org_id: string
           phone: string | null
           updated_at: string
         }
@@ -52,6 +53,7 @@ export type Database = {
           driver_name: string
           id?: string
           license_plate: string
+          org_id: string
           phone?: string | null
           updated_at?: string
         }
@@ -62,10 +64,19 @@ export type Database = {
           driver_name?: string
           id?: string
           license_plate?: string
+          org_id?: string
           phone?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "deliveries_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       individuals: {
         Row: {
@@ -575,11 +586,7 @@ export type Database = {
         Args: {
           stock_movement_ids: string[]
         }
-        Returns: {
-          id: string
-          product_id: string
-          qte: number
-        }[]
+        Returns: undefined
       }
       bytea_to_text: {
         Args: {

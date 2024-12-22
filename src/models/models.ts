@@ -25,6 +25,7 @@ export interface Order {
   ttc?: number
   updated_at: string
   _synced?: boolean
+  _deleted: boolean
 }
 
 export interface Payment {
@@ -34,6 +35,7 @@ export interface Payment {
   amount: number
   updated_at: string
   _synced?: boolean
+  _deleted: boolean
 }
 
 export interface OrderLine {
@@ -46,6 +48,7 @@ export interface OrderLine {
   total_price: number
   updated_at: string
   _synced?: boolean
+  _deleted: boolean
 }
 
 export interface Individual {
@@ -55,6 +58,7 @@ export interface Individual {
   org_id: string
   updated_at: string
   _synced?: boolean
+  _deleted: boolean
 }
 
 export interface Delivery {
@@ -64,7 +68,9 @@ export interface Delivery {
   license_plate: string //xxxxx xxx xx
   destination: string
   updated_at: string
+  org_id: string
   _synced?: boolean
+  _deleted: boolean
 }
 
 export interface Organization {
@@ -80,6 +86,7 @@ export interface Organization {
   org_id: string | null
   updated_at: string
   _synced?: boolean
+  _deleted: boolean
 }
 
 export interface Product {
