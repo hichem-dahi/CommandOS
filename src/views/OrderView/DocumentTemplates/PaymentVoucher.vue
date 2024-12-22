@@ -82,31 +82,94 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, toRef } from 'vue'
 import { useRoute } from 'vue-router'
 import { pick } from 'lodash'
 import n2words from 'n2words'
 import { format } from 'date-fns'
+import { useLiveQuery } from '@electric-sql/pglite-vue'
 import { mdiChevronLeft } from '@mdi/js'
 
 import self from '@/composables/localStore/useSelf'
 
-import { useGetPaymentApi } from '@/composables/api/payments/useGetPaymentApi'
-
-import type { OrderLineData } from '@/composables/api/orders/useGetOrderApi'
-
-const getPaymentApi = useGetPaymentApi()
+import type { OrderData, OrderLineData } from '@/composables/api/orders/useGetOrderApi'
+import type { Payment } from '@/models/models'
 
 const route = useRoute()
 
-onMounted(() => {
-  getPaymentApi.paymentId.value = route.params.payment_id as string
-  getPaymentApi.execute()
-})
+const paymentQuery = useLiveQuery<Payment>(
+  `
+    SELECT 
+      p.* 
+    FROM public.payments p
+    WHERE p.id = $1 AND p._deleted = false
+  `,
+  [route.params.payment_id] // Pass the payment_id from the route as the parameter
+)
+
+const payment = computed(() => paymentQuery.rows.value?.[0])
+
+const orderQuery = useLiveQuery<OrderData>(
+  `SELECT
+    o.*,
+    -- Fetching individual data as a separate field
+    (
+        SELECT to_jsonb(i)
+        FROM public.individuals i
+        WHERE i.id = o.individual_id AND i._deleted = false
+        LIMIT 1
+    ) AS individual,
+    -- Fetching client data as a separate field
+    (
+        SELECT to_jsonb(org)
+        FROM public.organizations org
+        WHERE org.id = o.client_id AND org._deleted = false
+        LIMIT 1
+    ) AS client,
+    -- Fetching payments as an array of JSON objects
+    (
+        SELECT jsonb_agg(p)
+        FROM public.payments p
+        WHERE p.order_id = o.id AND p._deleted = false
+    ) AS payments,
+    -- Fetching order lines with product details
+    (
+        SELECT jsonb_agg(
+            jsonb_build_object(
+                'id', ol.id,
+                'order_id', ol.order_id,
+                'product_id', ol.product_id,
+                'qte', ol.qte,
+                'unit_price', ol.unit_price,
+                'unit_cost_price', ol.unit_cost_price,
+                'total_price', ol.total_price,
+                'product', (
+                    SELECT to_jsonb(p)
+                    FROM public.products p
+                    WHERE p.id = ol.product_id AND p._deleted = false
+                    LIMIT 1
+                )
+            )
+        )
+        FROM public.order_lines ol
+        WHERE ol.order_id = o.id AND ol._deleted = false
+    ) AS order_lines,
+    -- Fetching delivery details using o.delivery_id
+    (
+        SELECT to_jsonb(d)
+        FROM public.deliveries d
+        WHERE d.id = o.delivery_id AND d._deleted = false
+        LIMIT 1
+    ) AS delivery
+  FROM public.orders o
+  WHERE o.id = $1 AND o._deleted = false;
+  `,
+  [toRef(() => payment.value?.order_id)] // Pass route.params.order_id as the parameter
+)
 
 const title = computed(() => 'Bon de paiement')
-const order = computed(() => payment.value?.order)
-const payment = computed(() => getPaymentApi.data.value)
+
+const order = computed(() => orderQuery.rows.value?.[0] as unknown as OrderData | undefined)
 
 const totalWords = computed(() => {
   let number = payment.value?.amount || 0

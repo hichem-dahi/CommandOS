@@ -89,36 +89,85 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { pick, round, padStart } from 'lodash'
 import html2pdf from 'html2pdf.js'
 import n2words from 'n2words'
 import { format } from 'date-fns'
+import { useLiveQuery } from '@electric-sql/pglite-vue'
 import { mdiChevronLeft } from '@mdi/js'
 
 import organizations from '@/composables/localStore/useOrganizationsStore'
 import self from '@/composables/localStore/useSelf'
 
 import { ConsumerType, DocumentType } from '@/models/models'
-import { useGetOrderApi } from '@/composables/api/orders/useGetOrderApi'
+import type { OrderData } from '@/composables/api/orders/useGetOrderApi'
 
 const route = useRoute()
-
-const getOrderApi = useGetOrderApi()
-
 const invoice = ref()
 
+const orderQuery = useLiveQuery<OrderData>(
+  `SELECT
+    o.*,
+    -- Fetching individual data as a separate field
+    (
+        SELECT to_jsonb(i)
+        FROM public.individuals i
+        WHERE i.id = o.individual_id AND i._deleted = false
+        LIMIT 1
+    ) AS individual,
+    -- Fetching client data as a separate field
+    (
+        SELECT to_jsonb(org)
+        FROM public.organizations org
+        WHERE org.id = o.client_id AND org._deleted = false
+        LIMIT 1
+    ) AS client,
+    -- Fetching payments as an array of JSON objects
+    (
+        SELECT jsonb_agg(p)
+        FROM public.payments p
+        WHERE p.order_id = o.id AND p._deleted = false
+    ) AS payments,
+    -- Fetching order lines with product details
+    (
+        SELECT jsonb_agg(
+            jsonb_build_object(
+                'id', ol.id,
+                'order_id', ol.order_id,
+                'product_id', ol.product_id,
+                'qte', ol.qte,
+                'unit_price', ol.unit_price,
+                'unit_cost_price', ol.unit_cost_price,
+                'total_price', ol.total_price,
+                'product', (
+                    SELECT to_jsonb(p)
+                    FROM public.products p
+                    WHERE p.id = ol.product_id AND p._deleted = false
+                    LIMIT 1
+                )
+            )
+        )
+        FROM public.order_lines ol
+        WHERE ol.order_id = o.id AND ol._deleted = false
+    ) AS order_lines,
+    -- Fetching delivery details using o.delivery_id
+    (
+        SELECT to_jsonb(d)
+        FROM public.deliveries d
+        WHERE d.id = o.delivery_id AND d._deleted = false
+        LIMIT 1
+    ) AS delivery
+  FROM public.orders o
+  WHERE o.id = $1 AND o._deleted = false;
+  `,
+  [route.params.order_id] // Pass route.params.order_id as the parameter
+)
+
+const order = computed(() => orderQuery.rows.value?.[0] as unknown as OrderData | undefined)
+
 const title = computed(() => (order.value?.delivery ? 'bon de livraison' : 'facture'))
-
-const order = computed(() => getOrderApi.data.value)
-
-onMounted(() => {
-  if (route.params.order_id) {
-    getOrderApi.orderId.value = route.params.order_id as string
-    getOrderApi.execute()
-  }
-})
 
 const consumerType = computed(() =>
   order.value?.client_id ? ConsumerType.Organization : ConsumerType.Individual

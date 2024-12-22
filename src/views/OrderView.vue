@@ -96,6 +96,11 @@ const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 
+const productsQuery = useLiveQuery<Tables<'products'>>(
+  'SELECT * FROM public.products WHERE _deleted = false;',
+  []
+)
+
 const orderQuery = useLiveQuery<OrderData>(
   `SELECT
     o.*,
@@ -119,45 +124,46 @@ const orderQuery = useLiveQuery<OrderData>(
         FROM public.payments p
         WHERE p.order_id = o.id AND p._deleted = false
     ) AS payments,
-    -- Fetching order lines as an array of JSON objects with product details
+    -- Fetching order lines with product details
     (
         SELECT jsonb_agg(
-          jsonb_build_object(
-              'id', ol.id,
-              'order_id', ol.order_id,
-              'product_id', ol.product_id,
-              'qte', ol.qte,
-              'unit_price', ol.unit_price,
-              'unit_cost_price', ol.unit_cost_price,
-              'total_price', ol.total_price,
-              'updated_at', ol.updated_at,
-              '_deleted', ol._deleted,
-              '_synced', ol._synced,
-              'product', (
-                  SELECT to_jsonb(p)
-                  FROM public.products p
-                  WHERE p.id = ol.product_id AND p._deleted = false
-              )
-          )
+            jsonb_build_object(
+                'id', ol.id,
+                'order_id', ol.order_id,
+                'product_id', ol.product_id,
+                'qte', ol.qte,
+                'unit_price', ol.unit_price,
+                'unit_cost_price', ol.unit_cost_price,
+                'total_price', ol.total_price,
+                'product', (
+                    SELECT to_jsonb(p)
+                    FROM public.products p
+                    WHERE p.id = ol.product_id AND p._deleted = false
+                    LIMIT 1
+                )
+            )
         )
         FROM public.order_lines ol
         WHERE ol.order_id = o.id AND ol._deleted = false
-    ) AS order_lines
+    ) AS order_lines,
+    -- Fetching delivery details using o.delivery_id
+    (
+        SELECT to_jsonb(d)
+        FROM public.deliveries d
+        WHERE d.id = o.delivery_id AND d._deleted = false
+        LIMIT 1
+    ) AS delivery
   FROM public.orders o
   WHERE o.id = $1 AND o._deleted = false;
   `,
   [route.params.order_id] // Pass route.params.order_id as the parameter
 )
 
-const productsQuery = useLiveQuery<Tables<'products'>>(
-  'SELECT * FROM public.products WHERE _deleted = false;',
-  []
-)
+const order = computed(() => orderQuery.rows.value?.[0] as unknown as OrderData | undefined)
 
 const products = computed(
   () => (productsQuery.rows.value as unknown as Tables<'products'>[] | undefined) || []
 )
-const order = computed(() => orderQuery.rows.value?.[0] as unknown as OrderData | undefined)
 
 const upsertOrdersDb = useUpsertOrdersDb()
 const upsertStockMovementsDb = useUpsertStockMovementsDb()
