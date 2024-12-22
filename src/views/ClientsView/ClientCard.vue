@@ -59,17 +59,17 @@
 import { computed, ref, watch } from 'vue'
 import { mdiAccount, mdiDomain, mdiDotsVertical, mdiHistory, mdiPlus } from '@mdi/js'
 
-import { useDeleteIndividualDb } from '@/composables/db/individuals/useDeleteIndividualDb'
-import { useDeleteOrganizationDb } from '@/composables/db/organizations/useDeleteOrganizationDb'
-
 import DeleteItemModal from '@/views/OrderView/DeleteItemModal.vue'
+
+import { useSoftDeleteIndividualsDb } from '@/composables/db/individuals/useSoftDeleteIndividualsDb'
+import { useSoftDeleteOrganizationsDB } from '@/composables/db/organizations/useSoftDeleteOrganizationsDb'
 
 import { ConsumerType, type Organization, type Individual } from '@/models/models'
 
 const client = defineModel<Organization | Individual>()
 
-const deleteIndividualDb = useDeleteIndividualDb()
-const deleteOrganizationDb = useDeleteOrganizationDb()
+const softDeleteIndividualsDb = useSoftDeleteIndividualsDb()
+const softDeleteOrganizationsDb = useSoftDeleteOrganizationsDB()
 
 const deleteDialog = ref(false)
 
@@ -79,16 +79,16 @@ const consumerType = computed(() =>
 
 function deleteClient() {
   if (consumerType.value == ConsumerType.Organization && client.value) {
-    deleteOrganizationDb.id.value = client.value.id
-    deleteOrganizationDb.execute()
+    softDeleteOrganizationsDb.ids.value = [client.value.id]
+    softDeleteOrganizationsDb.execute()
   } else if (consumerType.value == ConsumerType.Individual && client.value) {
-    deleteIndividualDb.id.value = client.value.id
-    deleteIndividualDb.execute()
+    softDeleteIndividualsDb.ids.value = [client.value.id]
+    softDeleteIndividualsDb.execute()
   }
 }
 
 watch(
-  [() => deleteIndividualDb.isSuccess.value, () => deleteOrganizationDb.isSuccess.value],
+  [() => softDeleteIndividualsDb.isSuccess.value, () => softDeleteOrganizationsDb.isSuccess.value],
   ([isSuccess1, isSuccess2]) => {
     if (isSuccess1 || isSuccess2) {
       deleteDialog.value = true
