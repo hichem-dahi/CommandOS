@@ -122,23 +122,23 @@ const orderQuery = useLiveQuery<OrderData>(
     -- Fetching order lines as an array of JSON objects with product details
     (
         SELECT jsonb_agg(
-            jsonb_build_object(
-                'id', ol.id,
-                'order_id', ol.order_id,
-                'product_id', ol.product_id,
-                'qte', ol.qte,
-                'unit_price', ol.unit_price,
-                'unit_cost_price', ol.unit_cost_price,
-                'total_price', ol.total_price,
-                'updated_at', ol.updated_at,
-                '_deleted', ol._deleted,
-                '_synced', ol._synced,
-                'product', (
-                    SELECT to_jsonb(p)
-                    FROM public.products p
-                    WHERE p.id = ol.product_id AND p._deleted = false
-                )
-            )
+          jsonb_build_object(
+              'id', ol.id,
+              'order_id', ol.order_id,
+              'product_id', ol.product_id,
+              'qte', ol.qte,
+              'unit_price', ol.unit_price,
+              'unit_cost_price', ol.unit_cost_price,
+              'total_price', ol.total_price,
+              'updated_at', ol.updated_at,
+              '_deleted', ol._deleted,
+              '_synced', ol._synced,
+              'product', (
+                  SELECT to_jsonb(p)
+                  FROM public.products p
+                  WHERE p.id = ol.product_id AND p._deleted = false
+              )
+          )
         )
         FROM public.order_lines ol
         WHERE ol.order_id = o.id AND ol._deleted = false
