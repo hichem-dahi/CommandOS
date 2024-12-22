@@ -65,6 +65,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { isString } from 'lodash'
 import { useLiveQuery } from '@electric-sql/pglite-vue'
 
+import self from '@/composables/localStore/useSelf'
+
 import { useUpsertOrdersDb } from '@/composables/db/orders/useUpsertOrdersDb'
 import { useUpsertDeliveriesDb } from '@/composables/db/deliveries/useUpsertDeliveriesDb'
 import { useUpsertOrderlinesDb } from '@/composables/db/orderlines/useUpsertOrderlinesDb'
@@ -78,8 +80,7 @@ import ExtraInfo from './CreateOrderStepper/ExtraInfo.vue'
 import {
   form,
   cleanForm,
-  resetForm,
-  resetPayment,
+  resetOrderForm,
   orderlinesForm,
   deliveryForm,
   individualForm,
@@ -87,7 +88,6 @@ import {
 } from './CreateOrderStepper/state'
 
 import type { Validation } from '@vuelidate/core'
-import { DocumentType, type Individual, type Organization } from '@/models/models'
 import type { Tables, TablesInsert } from '@/types/database.types'
 
 enum Steps {
@@ -112,12 +112,13 @@ const upsertOrderlinesDb = useUpsertOrderlinesDb()
 const upsertPaymentDb = useUpsertPaymentsDb()
 
 const organizationsQuery = useLiveQuery<Tables<'organizations'>>(
-  'SELECT * FROM public.organizations;',
-  []
+  'SELECT * FROM public.organizations WHERE _deleted = false AND org_id = $1;',
+  [self.value.current_org?.id]
 )
+
 const individualsQuery = useLiveQuery<Tables<'individuals'>>(
-  'SELECT * FROM public.individuals;',
-  []
+  'SELECT * FROM public.individuals WHERE _deleted = false AND org_id = $1;',
+  [self.value.current_org?.id]
 )
 
 const individuals = computed(() => individualsQuery.rows.value || [])
@@ -161,18 +162,9 @@ function nextStep(v: Validation) {
   if (!v.$invalid) {
     if (step.value === Steps.ExtraInfo) {
       cleanForm()
-      upsertOrdersDb.form.value = [{ ...(form as TablesInsert<'orders'>), _synced: false }]
-      if (form.document_type === DocumentType.DeliveryNote) {
-        upsertDelivery(deliveryForm.value)
-      }
-
-      if (individualForm.value && !upsertOrdersDb.form.value[0].individual_id) {
-        const { id, ...form } = individualForm.value
-        if (form.org_id) upsertIndividual(form as TablesInsert<'individuals'>)
-        return
-      }
-      upsertOrdersDb.execute()
-
+      upsertOrdersDb.form.value = [{ ...form, _synced: false }]
+      upsertDelivery(deliveryForm.value)
+      upsertIndividual(individualForm.value)
       return
     }
 
@@ -180,46 +172,20 @@ function nextStep(v: Validation) {
   }
 }
 
-const isReadyUpsertOrdersDb = computed(() => {
-  const deliveryId = upsertDeliveriesDb.data.value?.[0]?.id
-  const deliveryFormId = upsertOrdersDb.form.value?.[0]?.delivery_id
-  const individualId = upsertIndividualsDb.data.value?.[0]?.id
-  const individualFormId = upsertOrdersDb.form.value?.[0]?.individual_id
-
-  // Check if `delivery_id` is required
-  const isDeliveryValid = deliveryId ? !!deliveryFormId : true
-
-  // Check if `individual_id` is required
-  const isIndividualValid = individualId ? !!individualFormId : true
-
-  // Return true only if both conditions are satisfied
-  return isDeliveryValid && isIndividualValid
-})
-
-watch(
-  () => upsertDeliveriesDb.isSuccess.value,
-  (isSuccess) => {
-    if (isSuccess && upsertDeliveriesDb.data.value?.[0]) {
-      if (upsertOrdersDb.form.value?.[0]) {
-        upsertOrdersDb.form.value[0].delivery_id = upsertDeliveriesDb.data.value[0].id
-      }
-    }
-  }
-)
-
-watch(
-  () => upsertIndividualsDb.isSuccess.value,
-  (isSuccess) => {
-    if (isSuccess && upsertIndividualsDb.data.value) {
-      if (upsertOrdersDb.form.value?.[0]) {
-        upsertOrdersDb.form.value[0].individual_id = upsertIndividualsDb.data.value[0].id
-      }
-    }
-  }
+const isReadyUpsertOrdersDb = computed(
+  () => upsertIndividualsDb.isReady.value && upsertDeliveriesDb.isReady.value
 )
 
 watch(isReadyUpsertOrdersDb, (isReady) => {
-  if (isReady) upsertOrdersDb.execute()
+  if (isReady && upsertOrdersDb.form.value?.[0]) {
+    if (upsertIndividualsDb.data.value?.[0]) {
+      upsertOrdersDb.form.value[0].individual_id = upsertIndividualsDb.data.value[0].id
+    }
+    if (upsertDeliveriesDb.data.value?.[0]) {
+      upsertOrdersDb.form.value[0].delivery_id = upsertDeliveriesDb.data.value[0].id
+    }
+    upsertOrdersDb.execute()
+  }
 })
 
 watch(
@@ -227,13 +193,12 @@ watch(
   (isSuccess) => {
     if (isSuccess && upsertOrdersDb.data.value?.[0].id) {
       upsertOrderlines(orderlinesForm.value)
-      if (paymentForm?.amount) {
-        const amount = Number(paymentForm.amount) // Default to 0 if conversion fails
+      if (paymentForm.amount > 0) {
+        const amount = Number(paymentForm.amount)
         const order_id = upsertOrdersDb.data.value?.[0].id
         upsertPayment({ ...paymentForm, order_id, amount })
       }
-      resetForm()
-      resetPayment()
+      resetOrderForm()
     }
   }
 )
@@ -248,32 +213,35 @@ watch(
   }
 )
 
-function upsertPayment(form: TablesInsert<'payments'>) {
-  upsertPaymentDb.form.value = [
-    {
-      ...form,
-      _synced: false
-    }
-  ]
+function upsertPayment(form?: TablesInsert<'payments'>) {
+  if (form)
+    upsertPaymentDb.form.value = [
+      {
+        ...form,
+        _synced: false
+      }
+    ]
   upsertPaymentDb.execute()
 }
 
-function upsertIndividual(form: TablesInsert<'individuals'>) {
-  upsertIndividualsDb.form.value = [{ ...form, _synced: false }]
+function upsertIndividual(form?: TablesInsert<'individuals'>) {
+  if (form) upsertIndividualsDb.form.value = [{ ...form, _synced: false }]
   upsertIndividualsDb.execute()
 }
 
-function upsertOrderlines(form: TablesInsert<'order_lines'>[]) {
-  upsertOrderlinesDb.form.value = form.map((o) => ({
-    ...o,
-    order_id: upsertOrdersDb.data.value?.[0].id || '',
-    _synced: false
-  }))
+function upsertOrderlines(form?: TablesInsert<'order_lines'>[]) {
+  if (form)
+    upsertOrderlinesDb.form.value = form.map((o) => ({
+      ...o,
+      order_id: upsertOrdersDb.data.value?.[0].id || '',
+      _synced: false
+    }))
   upsertOrderlinesDb.execute()
 }
 
-function upsertDelivery(delivery: TablesInsert<'deliveries'>) {
-  upsertDeliveriesDb.form.value = [{ ...delivery, _synced: false }]
+function upsertDelivery(form?: TablesInsert<'deliveries'>) {
+  if (form) upsertDeliveriesDb.form.value = [{ ...form, _synced: false }]
+  debugger
   upsertDeliveriesDb.execute()
 }
 </script>

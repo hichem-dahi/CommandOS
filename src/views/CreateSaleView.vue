@@ -68,8 +68,7 @@ import {
   form,
   orderlinesForm,
   paymentForm,
-  resetForm,
-  resetPayment
+  resetOrderForm
 } from './OrdersView/CreateOrderStepper/state'
 
 import { DocumentType, OrderStatus, type Product } from '@/models/models'
@@ -85,11 +84,8 @@ const products = computed(() => (productsQuery.rows.value || []) as unknown as P
 const upsertOrdersDb = useUpsertOrdersDb()
 const upsertOrderlinesDb = useUpsertOrderlinesDb()
 const upsertPaymentsDb = useUpsertPaymentsDb()
-
 const upsertStockMovementsDb = useUpsertStockMovementsDb()
-const upsertPaymentDb = useUpsertPaymentsDb()
 const updateProductsQtyDb = useUpdateProductsQtyDb()
-
 const upsertNotificationsDb = useUpsertNotificationsDb()
 
 const showScanner = ref(false)
@@ -109,14 +105,14 @@ function selectProduct(barcode: number) {
   if (!product) return // Exit if no product is found
 
   // Check if an orderline already exists for this product
-  const existingOrderline = orderlinesForm.value.some((o) => o.product_id === product.id)
+  const existingOrderline = orderlinesForm.value?.some((o) => o.product_id === product.id)
 
   if (existingOrderline) {
     // Increment the quantity if theorderline exists
     return
   } else {
     // Find an empty orderline (no product_id assigned)
-    const emptyOrderline = orderlinesForm.value.find((o) => !o.product_id)
+    const emptyOrderline = orderlinesForm.value?.find((o) => !o.product_id)
 
     if (emptyOrderline) {
       // Fill the empty orderline with product details
@@ -124,7 +120,7 @@ function selectProduct(barcode: number) {
       emptyOrderline.qte = 1 // Default quantity
     } else {
       // No empty orderline, so add a new one
-      orderlinesForm.value.push({
+      orderlinesForm.value?.push({
         product_id: product.id,
         qte: 1, // Default quantity
         unit_price: 0,
@@ -200,19 +196,17 @@ watch(
   (isSuccess) => {
     const order_id = upsertOrdersDb.data.value?.[0].id
     if (isSuccess && order_id) {
-      upsertOrderlinesDb.form.value = orderlinesForm.value.map((o) => ({
+      upsertOrderlinesDb.form.value = orderlinesForm.value?.map((o) => ({
         ...o,
         order_id,
         _synced: false
       }))
       upsertOrderlinesDb.execute()
-
-      if (paymentForm.amount) {
-        insertPayment({ ...paymentForm, amount: paymentForm.amount ?? 0, order_id })
+      if (paymentForm.amount > 0) {
+        insertPayment({ ...paymentForm, order_id })
       }
 
-      resetForm()
-      resetPayment()
+      resetOrderForm()
     }
   }
 )

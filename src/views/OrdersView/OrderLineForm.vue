@@ -68,15 +68,16 @@ import { minValue, numeric, required } from '@vuelidate/validators'
 import { mdiDelete } from '@mdi/js'
 
 import type { Product } from '@/models/models'
+import type { TablesInsert } from '@/types/database.types'
 
-const model = defineModel({
+const model = defineModel<TablesInsert<'order_lines'>>({
   default: {
     order_id: '',
     product_id: '',
     qte: 0,
     unit_price: 0,
     total_price: 0,
-    unit_cost_price: null as number | null | undefined // Optional property
+    unit_cost_price: null as number | null // Optional property
   }
 })
 
@@ -94,7 +95,7 @@ const orderLineRules = {
   }
 }
 
-const $v = useVuelidate(
+const $v = useVuelidate<TablesInsert<'order_lines'>>(
   orderLineRules,
   toRef(() => model.value)
 )
