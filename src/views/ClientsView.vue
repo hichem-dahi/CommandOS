@@ -24,18 +24,21 @@ import { computed } from 'vue'
 import { useLiveQuery } from '@electric-sql/pglite-vue'
 import { mdiPlus } from '@mdi/js'
 
+import self from '@/composables/localStore/useSelf'
+
 import ClientCard from '@/views/ClientsView/ClientCard.vue'
 
 import type { Individual, Organization } from '@/models/models'
 import type { Tables } from '@/types/database.types'
 
 const organizationsQuery = useLiveQuery<Tables<'organizations'>>(
-  'SELECT * FROM public.organizations;',
-  []
+  'SELECT * FROM public.organizations WHERE _deleted = false AND org_id = $1;',
+  [self.value.current_org?.id]
 )
+
 const individualsQuery = useLiveQuery<Tables<'individuals'>>(
-  'SELECT * FROM public.individuals;',
-  []
+  'SELECT * FROM public.individuals WHERE _deleted = false AND org_id = $1;',
+  [self.value.current_org?.id]
 )
 
 const individuals = computed(() => individualsQuery.rows.value as unknown as Individual[])
