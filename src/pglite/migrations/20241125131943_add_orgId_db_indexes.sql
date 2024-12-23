@@ -66,5 +66,10 @@ alter table "public"."deliveries" add constraint "deliveries_org_id_fkey" FOREIG
 
 alter table "public"."deliveries" validate constraint "deliveries_org_id_fkey";
 
+alter table "public"."individuals" alter column "phone" set not null;
+
+
+
+
 
 
