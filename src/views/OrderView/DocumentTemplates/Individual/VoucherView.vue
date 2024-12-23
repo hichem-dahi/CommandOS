@@ -97,7 +97,7 @@ import { mdiChevronLeft } from '@mdi/js'
 import self from '@/composables/localStore/useSelf'
 
 import { DocumentType } from '@/models/models'
-import type { OrderData } from '@/composables/api/orders/useGetOrdersApi'
+import type { OrderData } from '@/composables/api/orders/useGetOrderApi'
 
 const route = useRoute()
 
