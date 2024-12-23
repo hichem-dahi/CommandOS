@@ -54,7 +54,7 @@ export interface OrderLine {
 export interface Individual {
   id: string
   name: string
-  phone: string | null
+  phone: string
   org_id: string
   updated_at: string
   _synced?: boolean

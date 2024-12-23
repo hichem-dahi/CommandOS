@@ -16,7 +16,12 @@
         <form>
           <!-- Step 1: SelectConsumer - Only displayed if no consumer in route query -->
           <v-stepper-window-item :value="Steps.SelectConsumer">
-            <SelectConsumer :individuals="individuals" :clients="organizations">
+            <SelectConsumer
+              v-if="individualForm"
+              v-model="individualForm"
+              :individuals="individuals"
+              :clients="organizations"
+            >
               <template v-slot:actions="{ v }">
                 <v-card-actions>
                   <v-spacer></v-spacer>
@@ -241,7 +246,6 @@ function upsertOrderlines(form?: TablesInsert<'order_lines'>[]) {
 
 function upsertDelivery(form?: TablesInsert<'deliveries'>) {
   if (form) upsertDeliveriesDb.form.value = [{ ...form, _synced: false }]
-  debugger
   upsertDeliveriesDb.execute()
 }
 </script>

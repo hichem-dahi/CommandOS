@@ -6,13 +6,20 @@ import self from '@/composables/localStore/useSelf'
 import { ConsumerType, DocumentType, OrderStatus } from '@/models/models'
 import type { TablesInsert } from '@/types/database.types'
 
+type RequiredFields<T> = {
+  [K in keyof T as K extends '_deleted' | '_synced' | 'updated_at' | 'id' ? K : never]?: T[K] // Keep these optional
+} & {
+  [K in keyof T as K extends '_deleted' | '_synced' | 'updated_at' | 'id' ? never : K]-?: T[K] // Make all other fields required
+}
+
 const defaultOrderForm = () => ({
-  client_id: undefined,
-  delivery_id: undefined,
-  individual_id: undefined,
+  client_id: null,
+  delivery_id: null,
+  individual_id: null,
   org_id: self.value.current_org?.id || '',
   date: new Date().toISOString(),
   document_type: 0,
+  index: 0,
   doc_index: null,
   status: OrderStatus.Pending,
   payment_method: null,
@@ -41,23 +48,33 @@ const defaultOrderlineForm = () => ({
   product_id: '',
   qte: 0,
   total_price: 0,
-  unit_cost_price: null as number | null | undefined,
+  unit_cost_price: null as number | null,
   unit_price: 0
 })
 
 const defaultDeliveryForm = () => ({
   driver_name: '',
-  phone: null as string | null,
+  phone: '',
   license_plate: '',
   destination: '',
   org_id: self.value.current_org?.id || ''
 })
 
-const form = reactive<TablesInsert<'orders'>>(defaultOrderForm())
-const individualForm = ref<TablesInsert<'individuals'> | undefined>(defaultIndividualForm())
-const orderlinesForm = ref<TablesInsert<'order_lines'>[] | undefined>([defaultOrderlineForm()])
-const deliveryForm = ref<TablesInsert<'deliveries'> | undefined>(defaultDeliveryForm())
-const paymentForm = reactive<TablesInsert<'payments'>>(defaultPaymentForm())
+const form = reactive<RequiredFields<TablesInsert<'orders'>>>(defaultOrderForm())
+
+const individualForm = ref<RequiredFields<TablesInsert<'individuals'>> | undefined>(
+  defaultIndividualForm()
+)
+
+const orderlinesForm = ref<RequiredFields<TablesInsert<'order_lines'>>[] | undefined>([
+  defaultOrderlineForm()
+])
+
+const deliveryForm = ref<RequiredFields<TablesInsert<'deliveries'>> | undefined>(
+  defaultDeliveryForm()
+)
+
+const paymentForm = reactive<RequiredFields<TablesInsert<'payments'>>>(defaultPaymentForm())
 
 const consumerType = ref<ConsumerType>()
 
@@ -76,7 +93,7 @@ function cleanForm() {
     form.tva = round(form.total_price * taxMultiplier, 0)
     form.ttc = round(form.total_price * (1 + taxMultiplier), 0)
   } else if (consumerType.value === ConsumerType.Individual) {
-    form.client_id = undefined
+    form.client_id = null
   }
 }
 

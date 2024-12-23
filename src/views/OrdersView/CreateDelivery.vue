@@ -47,7 +47,7 @@ const form = defineModel('delivery', {
   required: true,
   default: {
     driver_name: '',
-    phone: null,
+    phone: '' as string | null,
     license_plate: '',
     destination: ''
   }
