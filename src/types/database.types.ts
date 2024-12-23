@@ -85,7 +85,7 @@ export type Database = {
           id: string
           name: string
           org_id: string
-          phone: string | null
+          phone: string
           updated_at: string
         }
         Insert: {
@@ -94,7 +94,7 @@ export type Database = {
           id?: string
           name: string
           org_id: string
-          phone?: string | null
+          phone: string
           updated_at?: string
         }
         Update: {
@@ -103,7 +103,7 @@ export type Database = {
           id?: string
           name?: string
           org_id?: string
-          phone?: string | null
+          phone?: string
           updated_at?: string
         }
         Relationships: [

@@ -107,5 +107,6 @@ export {
   paymentForm,
   consumerType,
   cleanForm,
-  resetOrderForm
+  resetOrderForm,
+  defaultIndividualForm
 }

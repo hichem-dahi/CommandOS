@@ -5,7 +5,7 @@
       <v-radio :label="$t('individual')" :value="ConsumerType.Individual" />
     </v-radio-group>
 
-    <div v-if="consumerType == ConsumerType.Individual">
+    <div v-if="consumerType == ConsumerType.Individual && individualForm">
       <v-combobox
         :label="$t('name')"
         :items="individuals"
@@ -39,10 +39,8 @@ import { isString } from 'lodash'
 import useVuelidate from '@vuelidate/core'
 import { minLength, numeric, required } from '@vuelidate/validators'
 
-import self from '@/composables/localStore/useSelf'
-
 import { ConsumerType } from '@/models/models'
-import type { Tables } from '@/types/database.types'
+import type { Tables, TablesInsert } from '@/types/database.types'
 
 import { form, consumerType, individualForm } from './state'
 
@@ -50,6 +48,8 @@ const props = defineProps<{
   readonly individuals: ReadonlyArray<Tables<'individuals'>>
   readonly clients: ReadonlyArray<Tables<'organizations'>>
 }>()
+
+const model = defineModel<TablesInsert<'individuals'>>({ required: true })
 
 const formClient = reactive({
   client_id: toRef(() => form.client_id)
@@ -74,7 +74,10 @@ const rules2 = {
 // Initialize the Vuelidate validation instance
 const v1$ = useVuelidate(rules1, formClient)
 
-const v2$ = useVuelidate(rules2, individualForm)
+const v2$ = useVuelidate(
+  rules2,
+  toRef(() => model.value)
+)
 
 const v$ = computed(() =>
   consumerType.value === ConsumerType.Organization ? v1$.value : v2$.value
@@ -95,6 +98,8 @@ const itemProps = (item: any) => {
 }
 
 function handleCustomerChange(item: any) {
+  if (!individualForm.value) return
+
   individualForm.value.name = ''
   individualForm.value.phone = ''
 
