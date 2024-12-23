@@ -31,7 +31,7 @@ const defaultPaymentForm = () => ({
 const defaultIndividualForm = () => ({
   id: undefined as string | undefined,
   name: '',
-  phone: null as string | null,
+  phone: '',
   org_id: self.value.current_org?.id || ''
 })
 
