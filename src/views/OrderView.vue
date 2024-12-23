@@ -246,7 +246,7 @@ function upsertStockMovements(operation: 'deduct' | 'restore') {
 }
 
 function addPayment(payment: TablesInsert<'payments'>) {
-  upsertPaymentDb.form.value = [payment]
+  upsertPaymentDb.form.value = [{ ...payment, _synced: false }]
   upsertPaymentDb.execute()
 }
 
@@ -280,9 +280,9 @@ watch(
   (isSuccess) => {
     if (isSuccess) {
       const updates = upsertStockMovementsDb.data.value.map((s) => s.id)
-      updateProductQuantities(updates)
-
       const moveType = upsertStockMovementsDb.data.value[0].qte_change > 0 ? 'add' : 'sub'
+
+      updateProductQuantities(updates)
       updateOrderStatus(moveType)
     }
   }
@@ -294,7 +294,6 @@ watch(
     if (!isSuccess1 || !isSuccess2) return
 
     const data = upsertOrdersDb.data.value?.[0]
-    console.log(data)
 
     const status = data?.status
     const body =
@@ -308,21 +307,8 @@ watch(
 
     insertNotification(title, body)
 
-    if (data?.paid_price) {
-      paymentDialog.value = false
-      return
-    }
-
-    if (status === OrderStatus.Confirmed) {
-      confirmDialog.value = false
-      goDocPage()
-      return
-    }
-
-    if (status === OrderStatus.Cancelled) {
-      cancelDialog.value = false
-      return
-    }
+    cancelDialog.value = false
+    confirmDialog.value = false
   }
 )
 
@@ -333,10 +319,28 @@ watch(
       upsertOrdersDb.form.value = [
         {
           ...order.value,
-          paid_price: (order.value?.paid_price || 0) + upsertPaymentDb.data.value?.[0].amount
+          paid_price:
+            Number(order.value?.paid_price || 0) +
+            Number(upsertPaymentDb.data.value?.[0].amount || 0),
+          _synced: false
         }
       ]
       upsertOrdersDb.execute()
+      paymentDialog.value = false
+    }
+  }
+)
+
+watch(
+  () => upsertNotificationsDb.isSuccess.value,
+  (isSuccess) => {
+    if (isSuccess) {
+      const data = upsertOrdersDb.data.value?.[0]
+      const status = data?.status
+      if (status === OrderStatus.Confirmed) {
+        confirmDialog.value = false
+        goDocPage()
+      }
     }
   }
 )
