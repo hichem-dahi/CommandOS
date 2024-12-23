@@ -13,10 +13,7 @@ export function useUpsertOrdersDb() {
   const q = useAsyncState(upsertOrdersDB, undefined, { immediate: false })
 
   const execute = () => {
-    if (form.value && db) return q.execute(0, db, form.value)
-    else {
-      return undefined
-    }
+    if (db) return q.execute(0, db, form.value || [])
   }
 
   const data = computed(() => q.state.value?.rows)
