@@ -13,10 +13,10 @@ DECLARE
   max_index INTEGER;
 BEGIN
    -- Ensure the trigger is only executed for inserts, not conflict resolution updates
-    IF NOT EXISTS (SELECT 1 FROM orders WHERE id = NEW.id) THEN
+    IF NOT EXISTS (SELECT 1 FROM public.orders WHERE id = NEW.id) THEN
       -- Get the highest index for the organization (org_id)
       SELECT COALESCE(MAX(index), 0) INTO max_index
-      FROM orders
+      FROM  public.orders
       WHERE org_id = NEW.org_id;
 
       -- Set the NEW index value to be the max index + 1
@@ -64,7 +64,7 @@ BEGIN
   -- Check if the ID exists in the database with status = 1
   SELECT EXISTS (
     SELECT 1
-    FROM orders
+    FROM public.orders
     WHERE id = NEW.id AND status = 1
   )
   INTO exists_in_db;
@@ -74,7 +74,7 @@ BEGIN
     -- Fetch the current maximum index for the specified document type and organization
     SELECT COALESCE(MAX(doc_index), 0) + 1
     INTO new_index
-    FROM orders
+    FROM public.orders
     WHERE document_type = NEW.document_type
       AND org_id = NEW.org_id;
 

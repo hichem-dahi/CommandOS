@@ -46,7 +46,7 @@ BEGIN
     -- Fetch the current maximum index for the specified document type
     SELECT COALESCE(MAX(doc_index), 0) + 1
     INTO new_index
-    FROM orders
+    FROM public.orders
     WHERE document_type = NEW.document_type;
 
     -- Set the new doc_index for the current order
