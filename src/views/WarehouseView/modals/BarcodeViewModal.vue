@@ -86,7 +86,6 @@ const printBarcodeAsImage = async (svg: SVGElement) => {
         <title>Print Image</title>
         <style>
           @page {
-            size: landscape; /* Set page orientation to landscape */
             margin: 10mm;
           }
           body {
