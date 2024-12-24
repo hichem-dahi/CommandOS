@@ -76,28 +76,42 @@ const svgToImage = (svg: SVGElement) => {
 }
 
 const printBarcodeAsImage = async (svg: SVGElement) => {
-  printJS({
-    printable: await svgToImage(svg),
-    type: 'image',
-    style: `
-      @media print {
-        img {
-          width: 100%; /* Adjust width to account for page margins */
-          height: 100%; /* Adjust height to account for page margins */
-          box-sizing: border-box;
-          padding: 20mm;
-          page-break-after: always;
-          break-after: page;
-        }
-        html, body {
-          height: 100vh;
-          margin: 0 !important;
-          padding: 0 !important;
-        }
-      }
-    `,
-    scanStyles: false
-  })
+  const el = await svgToImage(svg) // Ensure this returns a base64 string or image URL
+
+  // Create a new window or document to print
+  const printWindow = window.open('', '', 'width=800,height=600')
+  printWindow!.document.write(`
+    <html>
+      <head>
+        <title>Print Image</title>
+        <style>
+          @page {
+            size: landscape; /* Set page orientation to landscape */
+            margin: 10mm;
+          }
+          body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+          }
+          img {
+            height: 100%;
+            object-fit: contain;
+          }
+        </style>
+      </head>
+      <body>
+        <img src="${el}" alt="SVG Image"/>
+      </body>
+    </html>
+  `)
+
+  // Trigger the print dialog
+  printWindow!.document.close()
+  printWindow!.print()
 }
 </script>
 
