@@ -94,11 +94,15 @@ const printBarcodeAsImage = async (svg: SVGElement) => {
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            width: 100%;
+            height: 100%;
           }
           img {
+            width: 100%;
             height: 100%;
             object-fit: contain;
+            transform: rotate(90deg); /* Rotate the image */
+            transform-origin: center; /* Set rotation pivot point */
           }
         </style>
       </head>
