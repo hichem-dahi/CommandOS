@@ -1,34 +1,56 @@
 <template>
-  <v-date-input
-    variant="underlined"
-    hide-details
-    v-model="dateRange"
-    :label="$t('date')"
-    max-width="368"
-    min-width="150"
-    multiple="range"
-  />
+  <div class="d-flex align-end ga-6">
+    <v-date-input
+      variant="underlined"
+      hide-details
+      v-model="dateRange"
+      :label="$t('date')"
+      max-width="368"
+      min-width="150"
+      multiple="range"
+    />
+    <!--<v-btn
+      size="small"
+      :disabled="!dateRange.length"
+      :to="{
+        name: 'sales-statement',
+        query: {
+          from: dateRange[0] ? format(dateRange[0], 'yyyy-MM-dd') : null,
+          to: dateRange[dateRange.length - 1]
+            ? format(dateRange[dateRange.length - 1], 'yyyy-MM-dd')
+            : null
+        }
+      }"
+    >
+      {{ $t('voir relevé') }}
+    </v-btn>-->
+  </div>
+
   <v-row class="mt-10">
-    <v-col sm="12" md="6">
-      <v-list density="compact" class="overflow-y" style="max-height: 200px">
+    <v-col sm="12" md="7">
+      <v-list lines="three">
         <template v-for="item in historyItems" :key="item.orderId || item.title">
           <v-list-item>
-            <v-list-item-subtitle>
-              <div v-html="item.subtitle"></div>
-            </v-list-item-subtitle>
+            <v-list-item-title> <div v-html="item.title"></div> </v-list-item-title>
+            <v-list-item-subtitle class="pa-2"> {{ item.summary }} </v-list-item-subtitle>
+            <v-list-item-subtitle class="pa-4">
+              <div v-html="item.total"></div
+            ></v-list-item-subtitle>
           </v-list-item>
         </template>
       </v-list>
-      <div class="total text-end pa-4" v-if="allOrderlines">
-        {{ t('total') }}:
-        <span v-html="productSummary(allOrderlines)"></span>
-        &mdash;
-        <span>
-          <span class="text-blue">{{ t('revenue') }}:</span>
-          {{ `${sum(filteredOrders.map((o) => Number(o.paid_price)))} ${t('DA')}` }},
-          <span class="text-green">{{ t('profit') }}:</span>
-          {{ `${calculateProfit(allOrderlines)} ${t('DA')}` }}
-        </span>
+      <div class="total pa-4">
+        <div>{{ $t('total') }}: <span v-html="productSummary(allOrderlines)"></span> <br /></div>
+        <div
+          class="pa-4"
+          v-html="
+            `
+              &mdash; Total: ${sum(filteredOrders.map((o) => Number(o.total_price)))} ${t('DA')}<br />
+              &mdash; Payé: ${sum(filteredOrders.map((o) => Number(o.paid_price)))} ${t('DA')}<br />
+              &mdash; Restant: ${sum(filteredOrders.map((o) => Number(o.total_price) - Number(o.paid_price)))} ${t('DA')}
+            `
+          "
+        ></div>
       </div>
     </v-col>
   </v-row>
@@ -47,8 +69,19 @@ import type { OrderLineData } from '@/composables/api/orders/useGetOrderApi'
 
 const { t } = useI18n()
 
-const dateRange = ref<Date[]>([])
+const dateRange = ref<Date[]>([new Date(), new Date()]) // Default to today as the range
 
+const startDate = computed(() => {
+  const date = new Date(dateRange.value[0])
+  date.setHours(0, 0, 0, 0) // Set to midnight
+  return date
+})
+
+const endDate = computed(() => {
+  const date = new Date(dateRange.value[dateRange.value.length - 1])
+  date.setHours(23, 59, 59, 999) // Set to the last millisecond of the day
+  return date
+})
 const orderQuery = useLiveQuery<OrderData>(
   `SELECT
     o.*,
@@ -100,7 +133,7 @@ const orderQuery = useLiveQuery<OrderData>(
   WHERE o._deleted = false
   AND o.date >= $1 AND o.date <= $2; -- Date range filter
   `,
-  [dateRange.value[0], dateRange.value[dateRange.value.length - 1]] // Pass the reactive date range as query parameters
+  [startDate, endDate] // Pass the reactive date range as query parameters
 )
 
 const filteredOrders = computed(() => orderQuery.rows.value || [])
@@ -108,13 +141,15 @@ const filteredOrders = computed(() => orderQuery.rows.value || [])
 const historyItems = computed(() => {
   let groupedSummary = []
   for (const date in groupedOrders.value) {
-    const intro = `<span class="text-primary">${format(date, 'dd-MM-yyyy')}</span>&nbsp;&nbsp;`
-    const totalBenefits = calculateProfit(allOrderlinesByDate.value[date])
-    const totalPaid = sum(groupedOrders.value[date].map((o) => Number(o.paid_price)))
-
+    const intro = `<span class="text-primary">${format(date, 'dd-MM-yyyy')}</span>`
     const dateSummaryitem = {
-      subtitle: `${intro} ${productSummary(allOrderlinesByDate.value[date])}
-      &mdash; ${t('revenue')}: ${totalPaid} ${t('DA')}, ${t('profit')}: ${totalBenefits} ${t('DA')}`
+      title: `${intro}`,
+      summary: productSummary(allOrderlinesByDate.value[date]),
+      total: `
+        &mdash; Total: ${sum(groupedOrders.value[date].map((o) => Number(o.total_price)))} ${t('DA')}<br>
+        &mdash; Payé: ${sum(groupedOrders.value[date].map((o) => Number(o.paid_price)))} ${t('DA')}<br>
+        &mdash; Restant: ${sum(groupedOrders.value[date].map((o) => Number(o.total_price - o.paid_price)))} ${t('DA')}
+      `
     }
     groupedSummary.push(dateSummaryitem)
   }
