@@ -68,14 +68,15 @@ import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { mdiCashSync, mdiChevronLeft, mdiCancel } from '@mdi/js'
-import { useLiveQuery } from '@electric-sql/pglite-vue'
 
 import { useUpsertOrdersDb } from '@/composables/db/orders/useUpsertOrdersDb'
 import { useUpsertPaymentsDb } from '@/composables/db/payments/useUpsertPaymentsDb'
 import { useUpsertStockMovementsDb } from '@/composables/db/stockMovements/useUpsertStockMovementsDb'
-import { useUpdateProductsQtyDb } from '@/composables/db/products/useUpdateProductsQtyDb'
 import { useUpsertNotificationsDb } from '@/composables/db/notifications/useUpsertNotificationsDb'
+import { useUpdateProductsQtyDb } from '@/composables/db/products/useUpdateProductsQtyDb'
 import { processStockMovementsForOrder } from '@/composables/useStockManage'
+
+import { useOrderQuery } from '@/composables/db/orders/useGetOrdersDb'
 
 import self from '@/composables/localStore/useSelf'
 
@@ -89,81 +90,18 @@ import PaymentsCard from './OrderView/PaymentsCard.vue'
 import DocumentButtons from './OrderView/DocumentButtons.vue'
 
 import { DocumentType, OrderStatus } from '@/models/models'
-import type { Tables, TablesInsert } from '@/types/database.types'
+import type { TablesInsert } from '@/types/database.types'
 import type { OrderData } from '@/composables/api/orders/useGetOrderApi'
 
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 
-const productsQuery = useLiveQuery<Tables<'products'>>(
-  'SELECT * FROM public.products WHERE _deleted = false;',
-  []
-)
+const { q, orderId } = useOrderQuery()
 
-const orderQuery = useLiveQuery<OrderData>(
-  `SELECT
-    o.*,
-    -- Fetching individual data as a separate field
-    (
-        SELECT to_jsonb(i)
-        FROM public.individuals i
-        WHERE i.id = o.individual_id AND i._deleted = false
-        LIMIT 1
-    ) AS individual,
-    -- Fetching client data as a separate field
-    (
-        SELECT to_jsonb(org)
-        FROM public.organizations org
-        WHERE org.id = o.client_id AND org._deleted = false
-        LIMIT 1
-    ) AS client,
-    -- Fetching payments as an array of JSON objects
-    (
-        SELECT jsonb_agg(p)
-        FROM public.payments p
-        WHERE p.order_id = o.id AND p._deleted = false
-    ) AS payments,
-    -- Fetching order lines with product details
-    (
-        SELECT jsonb_agg(
-            jsonb_build_object(
-                'id', ol.id,
-                'order_id', ol.order_id,
-                'product_id', ol.product_id,
-                'qte', ol.qte,
-                'unit_price', ol.unit_price,
-                'unit_cost_price', ol.unit_cost_price,
-                'total_price', ol.total_price,
-                'product', (
-                    SELECT to_jsonb(p)
-                    FROM public.products p
-                    WHERE p.id = ol.product_id AND p._deleted = false
-                    LIMIT 1
-                )
-            )
-        )
-        FROM public.order_lines ol
-        WHERE ol.order_id = o.id AND ol._deleted = false
-    ) AS order_lines,
-    -- Fetching delivery details using o.delivery_id
-    (
-        SELECT to_jsonb(d)
-        FROM public.deliveries d
-        WHERE d.id = o.delivery_id AND d._deleted = false
-        LIMIT 1
-    ) AS delivery
-  FROM public.orders o
-  WHERE o.id = $1 AND o._deleted = false;
-  `,
-  [route.params.order_id] // Pass route.params.order_id as the parameter
-)
+orderId.value = route.params.order_id as string
 
-const order = computed(() => orderQuery.rows.value?.[0] as unknown as OrderData | undefined)
-
-const products = computed(
-  () => (productsQuery.rows.value as unknown as Tables<'products'>[] | undefined) || []
-)
+const order = computed(() => q.rows.value?.[0] as unknown as OrderData | undefined)
 
 const upsertOrdersDb = useUpsertOrdersDb()
 const upsertStockMovementsDb = useUpsertStockMovementsDb()
@@ -236,7 +174,7 @@ function upsertStockMovements(operation: 'deduct' | 'restore') {
       order_lines: order.value?.order_lines,
       id: order.value?.id
     }
-    const stockMovements = processStockMovementsForOrder(data, operation, products.value)
+    const stockMovements = processStockMovementsForOrder(data, operation)
     upsertStockMovementsDb.form.value = stockMovements.map((s) => ({
       ...s,
       _synced: false // Add the synced property
@@ -299,7 +237,7 @@ watch(
     const body =
       order.value?.order_lines
         .map((line) => {
-          const product = products.value.find((p) => p.id === line.product_id)
+          const product = line.product
           return product ? `${line.qte} ${product.name}` : `${line.qte} Unknown Product`
         })
         .join(', ') + ` — ${order.value?.total_price} DA`
