@@ -15,12 +15,12 @@
     />
     <v-text-field
       :label="$t('quantity')"
-      v-model="model.qte"
+      v-model="model.init_qty"
       type="number"
       :error-messages="
-        !$v.qte.$pending && $v.qte.$error ? $t('Quantity must be greater than zero') : ''
+        !$v.init_qty.$pending && $v.init_qty.$error ? $t('Quantity must be greater than zero') : ''
       "
-      @blur="$v.qte.$touch()"
+      @blur="$v.init_qty.$touch()"
     />
     <v-text-field
       :label="$t('price')"
@@ -75,9 +75,6 @@ import { required, minValue, numeric } from '@vuelidate/validators'
 import { mdiBarcodeScan, mdiEye, mdiRefresh } from '@mdi/js'
 
 import BarcodeViewModal from './modals/BarcodeViewModal.vue'
-
-import self from '@/composables/localStore/useSelf'
-
 import BarcodeScannerModal from './modals/BarcodeScannerModal.vue'
 
 const showScanner = ref(false)
@@ -88,7 +85,7 @@ const model = defineModel({
     code: '',
     name: '',
     org_id: '',
-    qte: 0,
+    init_qty: 0,
     price: 0,
     cost_price: null as number | null,
     bar_code: null as number | null
@@ -98,7 +95,7 @@ const model = defineModel({
 const rules = {
   code: { required },
   name: { required },
-  qte: { required, numeric, minValue: minValue(1) },
+  init_qty: { required, numeric, minValue: minValue(1) },
   price: { required, numeric, minValue: minValue(1) },
   cost_price: { numeric, minValue: minValue(1) }
 }

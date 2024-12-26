@@ -18,6 +18,7 @@ export function useStockMovementsSync() {
 
   const pullStockMovementsApi = useGetStockMovementsApi()
   const pushStockMovementsApi = useInsertStockMovementsApi()
+
   const upsertStockMovementsDb = useUpsertStockMovementsDb()
 
   const deleteStockMovementsDb = useDeleteStockMovementsDB()
@@ -71,5 +72,11 @@ export function useStockMovementsSync() {
     )
   }
 
-  return { launch, sync, pushedStockMovements: pushStockMovementsApi.data, isFinished }
+  return {
+    launch,
+    sync,
+    pushedStockMovements: pushStockMovementsApi.data,
+    pulledStockMovements: pullStockMovementsApi.data,
+    isFinished
+  }
 }

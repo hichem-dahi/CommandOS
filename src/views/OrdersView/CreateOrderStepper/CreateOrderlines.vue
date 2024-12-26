@@ -27,23 +27,18 @@
 import { computed } from 'vue'
 import useVuelidate from '@vuelidate/core'
 import { mdiPlus } from '@mdi/js'
-import { useLiveQuery } from '@electric-sql/pglite-vue'
 
-import self from '@/composables/localStore/useSelf'
+import { useProductQuery } from '@/composables/db/products/useGetProductsDb'
 
 import OrderLineForm from '@/views/OrdersView/OrderLineForm.vue'
 
 import type { OrderLine, Product } from '@/models/models'
-import type { Tables } from '@/types/database.types'
 
 import { orderlinesForm } from './state'
 
 const $v = useVuelidate()
 
-const productsQuery = useLiveQuery<Tables<'products'>>(
-  'SELECT * FROM public.products WHERE org_id = $1;',
-  [self.value.current_org?.id]
-)
+const { q: productsQuery } = useProductQuery()
 
 const products = computed(() => (productsQuery?.rows.value || []) as unknown as Product[])
 

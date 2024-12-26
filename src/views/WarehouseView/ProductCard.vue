@@ -12,7 +12,7 @@
       <span>&nbsp;{{ product?.code }}</span
       ><br />
       <span class="font-weight-bold">{{ $t('quantity') }}:</span>
-      <span>&nbsp;{{ product?.qte }}</span
+      <span>&nbsp;{{ product?.qty }}</span
       ><br />
       <span class="font-weight-bold">{{ $t('U.P') }}:</span>
       <span>&nbsp;{{ product?.price }} DA</span>
@@ -79,6 +79,7 @@ const product = defineModel<Product>()
 const proxyForm = ref(clone(product.value))
 
 const upsertProductsDb = useUpsertProductsDb()
+
 const softDeleteProductDB = useSoftDeleteProductsDB()
 
 const deleteDialog = ref(false)

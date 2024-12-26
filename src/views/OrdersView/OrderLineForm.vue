@@ -28,8 +28,8 @@
         hide-details
         control-variant="stacked"
         :error="!$v.qte.$pending && $v.qte.$error"
-        :suffix="`/${selectedProduct?.qte ?? 0}`"
-        :max="selectedProduct?.qte ?? undefined"
+        :suffix="`/${selectedProduct?.qty ?? 0}`"
+        :max="selectedProduct?.qty ?? undefined"
         :min="0"
         v-model="model.qte"
       />

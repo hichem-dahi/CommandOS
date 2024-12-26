@@ -412,10 +412,10 @@ export type Database = {
           code: string
           cost_price: number | null
           id: string
+          init_qty: number
           name: string
           org_id: string
           price: number
-          qte: number
           updated_at: string
         }
         Insert: {
@@ -425,10 +425,10 @@ export type Database = {
           code: string
           cost_price?: number | null
           id?: string
+          init_qty: number
           name: string
           org_id: string
           price: number
-          qte: number
           updated_at?: string
         }
         Update: {
@@ -438,15 +438,57 @@ export type Database = {
           code?: string
           cost_price?: number | null
           id?: string
+          init_qty?: number
           name?: string
           org_id?: string
           price?: number
-          qte?: number
           updated_at?: string
         }
         Relationships: [
           {
             foreignKeyName: "products_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products_qty: {
+        Row: {
+          _deleted: boolean
+          _synced: boolean
+          org_id: string
+          product_id: string
+          qty: number
+          updated_at: string
+        }
+        Insert: {
+          _deleted?: boolean
+          _synced?: boolean
+          org_id: string
+          product_id: string
+          qty: number
+          updated_at?: string
+        }
+        Update: {
+          _deleted?: boolean
+          _synced?: boolean
+          org_id?: string
+          product_id?: string
+          qty?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_qty_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_qty_org_id_fkey"
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organizations"

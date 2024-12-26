@@ -1,7 +1,7 @@
 import { computed, ref } from 'vue'
 import { useAsyncState } from '@vueuse/core'
 import { injectPGlite } from '@electric-sql/pglite-vue'
-import { updateProductsQtyDb } from '@/pglite/queries/products/updateProductsQtyDb'
+import { updateProductsQtyDb } from '@/pglite/queries/productsQty/updateProductsQtyDb'
 
 export function useUpdateProductsQtyDb() {
   const db = injectPGlite()

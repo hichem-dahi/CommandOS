@@ -21,7 +21,7 @@
               </div>
 
               <span>{{ $t('quantity') }}:</span>
-              <span>&nbsp;{{ product?.qte }}</span> <br />
+              <span>&nbsp;{{ product?.qty }}</span> <br />
             </v-card-subtitle>
           </div>
         </div>

@@ -95,7 +95,8 @@ export interface Product {
   name: string
   price: number
   cost_price: number | null
-  qte: number
+  init_qty: number
+  qty: number
   org_id: string
   bar_code: number | null
   updated_at: string

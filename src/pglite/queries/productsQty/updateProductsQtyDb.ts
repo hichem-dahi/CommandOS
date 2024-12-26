@@ -4,7 +4,7 @@ export async function updateProductsQtyDb(db: PGliteWithLive, stockMovementsIds:
   if (stockMovementsIds.length === 0) return
 
   const query = `
-    SELECT adjust_product_qte(ARRAY[$1]::uuid[])
+    SELECT public.adjust_product_qte(ARRAY[$1]::uuid[])
   `
 
   const queryValues = [stockMovementsIds]

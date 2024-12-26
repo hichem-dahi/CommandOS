@@ -27,28 +27,22 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue'
 import { useVuelidate } from '@vuelidate/core'
-import { useLiveQuery } from '@electric-sql/pglite-vue'
 import { mdiPlus } from '@mdi/js'
 
 import self from '@/composables/localStore/useSelf'
 
 import { useUpsertProductsDb } from '@/composables/db/products/useUpsertProductsDb'
+import { useProductQuery } from '@/composables/db/products/useGetProductsDb'
 
 import ProductForm from '@/views/WarehouseView/ProductForm.vue'
 import ProductCard from '@/views/WarehouseView/ProductCard.vue'
 import FilterBar from './WarehouseView/FilterBar.vue'
 
-import type { Product } from '@/models/models'
-import type { Tables } from '@/types/database.types'
-
 const $v = useVuelidate()
 
-const productsQuery = useLiveQuery<Tables<'products'>>(
-  'SELECT * FROM public.products WHERE _deleted = false;',
-  []
-)
+const { q: productsQuery } = useProductQuery()
 
-const products = computed(() => (productsQuery.rows.value || []) as unknown as Product[])
+const products = computed(() => productsQuery.rows.value || [])
 
 const upsertProductsDb = useUpsertProductsDb()
 
@@ -63,7 +57,7 @@ const form = ref({
   code: '',
   name: '',
   org_id: '',
-  qte: 0,
+  init_qty: 0,
   price: 0,
   cost_price: null as number | null,
   bar_code: null as number | null

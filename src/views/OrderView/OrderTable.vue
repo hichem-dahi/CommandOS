@@ -41,7 +41,7 @@
                   v-model="newOrderline"
                   :is-new="true"
                   :availableProducts="availableProducts"
-                  :products="products || []"
+                  :products="products"
                 >
                   <template v-slot:actions="{ form, v }">
                     <v-card-actions>
@@ -80,8 +80,8 @@
         variant="outlined"
         density="compact"
         :min="0"
-        :suffix="`/${item.product?.qte}`"
-        :error="proxyOrderlines[item.index].qte! > item.product?.qte!"
+        :suffix="`/${item.product?.qty}`"
+        :error="proxyOrderlines[item.index].qte! > item.product?.qty!"
         counter="50"
         v-model="proxyOrderlines[item.index].qte"
       />
@@ -148,12 +148,13 @@ import DeleteItemModal from './DeleteItemModal.vue'
 
 import { ConsumerType, OrderStatus, type Product } from '@/models/models'
 import type { Validation } from '@vuelidate/core'
-import type { Tables, TablesInsert } from '@/types/database.types'
+import type { TablesInsert } from '@/types/database.types'
 import type { OrderData, OrderLineData } from '@/composables/api/orders/useGetOrderApi'
+import { useProductQuery } from '@/composables/db/products/useGetProductsDb'
 
 const order = defineModel<OrderData>('order', { required: true })
 
-const productsQuery = useLiveQuery<Tables<'products'>>('SELECT * FROM public.products;', [])
+const { q: productsQuery } = useProductQuery()
 
 const { t } = useI18n()
 
@@ -216,7 +217,7 @@ const isModified = computed(() => {
 const isModfiable = computed(() => isModified.value && isValidOrderlines.value)
 
 const isValidOrderlines = computed(() =>
-  proxyOrderlines.value.every((o) => o.product !== null && o.qte <= o.product.qte)
+  proxyOrderlines.value.every((o) => o.product !== null && o.qte <= o.product.qty)
 )
 
 const consumerName = computed(() => order.value.client?.name || order.value.individual?.name)

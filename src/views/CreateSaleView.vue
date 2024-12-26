@@ -46,7 +46,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import useVuelidate from '@vuelidate/core'
-import { useLiveQuery } from '@electric-sql/pglite-vue'
 import { mdiBarcodeScan } from '@mdi/js'
 
 import { useUpsertOrderlinesDb } from '@/composables/db/orderlines/useUpsertOrderlinesDb'
@@ -57,6 +56,8 @@ import { useUpdateProductsQtyDb } from '@/composables/db/products/useUpdateProdu
 import { useUpsertStockMovementsDb } from '@/composables/db/stockMovements/useUpsertStockMovementsDb'
 
 import { processStockMovementsForOrder } from '@/composables/useStockManage'
+
+import { useProductQuery } from '@/composables/db/products/useGetProductsDb'
 
 import self from '@/composables/localStore/useSelf'
 
@@ -72,12 +73,9 @@ import {
 } from './OrdersView/CreateOrderStepper/state'
 
 import { DocumentType, OrderStatus, type Product } from '@/models/models'
-import type { Tables, TablesInsert } from '@/types/database.types'
+import type { TablesInsert } from '@/types/database.types'
 
-const productsQuery = useLiveQuery<Tables<'products'>>(
-  'SELECT * FROM public.products WHERE _deleted = false;',
-  []
-)
+const { q: productsQuery } = useProductQuery()
 
 const products = computed(() => (productsQuery.rows.value || []) as unknown as Product[])
 
@@ -222,7 +220,7 @@ watch(
         order_lines,
         id: order.id
       }
-      const stockMovements = processStockMovementsForOrder(data, 'deduct', products.value)
+      const stockMovements = processStockMovementsForOrder(data, 'deduct')
       upsertStockMovementsDb.form.value = stockMovements.map((s) => ({
         ...s,
         _synced: false // Add the synced property

@@ -5,7 +5,8 @@ import m2 from './migrations/20241121182620_initial_schema.sql?raw'
 import m3 from './migrations/20241124201639_add_notification_subscription.sql?raw'
 import m4 from './migrations/20241125131943_add_orgId_db_indexes.sql?raw'
 import m5 from './migrations/20241125163750_add_set_order_index.sql?raw'
-import m6 from './migrations/add_sync.sql?raw'
+import m6 from './migrations/20241225125736_add_product_qty_table.sql?raw'
+import m7 from './migrations/add_sync.sql?raw'
 
 const migrations = [
   { name: '01-create_tables', sql: m1 },
@@ -13,7 +14,8 @@ const migrations = [
   { name: '03-add_notification_subscription', sql: m3 },
   { name: '04-add_orgId_db_indexes', sql: m4 },
   { name: '05-add_set_order_index', sql: m5 },
-  { name: '06-add_sync', sql: m6 }
+  { name: '06-add_product_qty_table', sql: m6 },
+  { name: '06-add_sync', sql: m7 }
 ]
 
 export async function migrate(pg: PGlite) {

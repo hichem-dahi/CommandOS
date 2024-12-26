@@ -6,7 +6,7 @@ export async function upsertProductsDB(db: PGliteWithLive, products: TablesInser
   if (!products?.length) return
   // Build the query for bulk upsert
   const query = `
-    INSERT INTO public.products (id, code, name, price, cost_price, qte, org_id, bar_code, updated_at, _synced, _deleted)
+    INSERT INTO public.products (id, code, name, price, cost_price, init_qty, org_id, bar_code, updated_at, _synced, _deleted)
     VALUES
     ${products
       .map(
@@ -31,7 +31,7 @@ export async function upsertProductsDB(db: PGliteWithLive, products: TablesInser
       name = EXCLUDED.name,
       price = EXCLUDED.price,
       cost_price = EXCLUDED.cost_price,
-      qte = EXCLUDED.qte,
+      init_qty = EXCLUDED.init_qty,
       org_id = EXCLUDED.org_id,
       bar_code = EXCLUDED.bar_code,
       updated_at = EXCLUDED.updated_at,
@@ -47,7 +47,7 @@ export async function upsertProductsDB(db: PGliteWithLive, products: TablesInser
     product.name,
     product.price,
     product.cost_price,
-    product.qte,
+    product.init_qty,
     product.org_id,
     product.bar_code || null, // Default to NULL if not provided
     product.updated_at || null, // Default to NULL if not provided

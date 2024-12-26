@@ -18,22 +18,21 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { useLiveQuery } from '@electric-sql/pglite-vue'
-
 import { mdiChevronLeft } from '@mdi/js'
+
+import { useProductQuery } from '@/composables/db/products/useGetProductsDb'
 
 import ProductTable from './ProductView/ProductTable.vue'
 
 import type { Product } from '@/models/models'
-import type { Tables } from '@/types/database.types'
 
 const route = useRoute()
 
-const productQuery = useLiveQuery<Tables<'products'>>(
-  'SELECT * FROM public.products WHERE id = $1;',
-  [route.params.product_id as string]
-)
-const product = computed(() => (productQuery.rows.value?.[0] as unknown as Product) || undefined)
+const { q, productId } = useProductQuery()
+
+productId.value = route.params.product_id
+
+const product = computed(() => (q.rows.value?.[0] as unknown as Product) || undefined)
 </script>
 
 <style>
