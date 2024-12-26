@@ -1,6 +1,6 @@
 import self from './localStore/useSelf'
 
-import type { OrderLine, Product } from '@/models/models'
+import type { OrderLine } from '@/models/models'
 import type { TablesInsert } from '@/types/database.types'
 
 // Define the minimal OrderData type
@@ -11,23 +11,13 @@ type OrderData = {
 
 const org_id = self.value.current_org?.id
 
-export function processStockMovementsForOrder(
-  order: OrderData,
-  operation: 'deduct' | 'restore',
-  products: Product[]
-) {
+export function processStockMovementsForOrder(order: OrderData, operation: 'deduct' | 'restore') {
   const stockMovements: TablesInsert<'stock_movements'>[] = []
 
   order.order_lines.forEach((orderLine) => {
-    const product = products.find((p) => p.id === orderLine.product_id)
-    if (product && product.qte !== null && orderLine.qte !== null) {
-      const qteChange = operation === 'deduct' ? -orderLine.qte : orderLine.qte
-
-      // Ensure stock quantity does not go negative for deduction
-      if (operation === 'restore' || product.qte >= orderLine.qte) {
-        product.qte += qteChange // Adjust stock based on the operation
-        stockMovements.push(createStockMovement(product.id, qteChange, order.id))
-      }
+    const qteChange = operation === 'deduct' ? -orderLine.qte : orderLine.qte
+    if (operation === 'restore') {
+      stockMovements.push(createStockMovement(orderLine.product_id, qteChange, order.id))
     }
   })
 
@@ -36,11 +26,10 @@ export function processStockMovementsForOrder(
 
 // Adjust the stock quantity of a product by a given amount
 export function updateProductStock(
-  product: Product,
+  product_id: string,
   adjustment: number
 ): TablesInsert<'stock_movements'> {
-  product.qte = Math.max(0, Number(product.qte || 0) + Number(adjustment)) // Ensure qte is at least 0
-  return createStockMovement(product.id, adjustment)
+  return createStockMovement(product_id, adjustment)
 }
 
 // Create a stock movement entry for tracking changes in stock
