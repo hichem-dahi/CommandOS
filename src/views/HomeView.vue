@@ -92,14 +92,13 @@ onMounted(async () => {
     deferredPrompt.value = null
   })
 
-  await requestNotificationPermission()
-  await registerPushSubscription()
-
   await db?.waitReady
   const org = self.value.current_org
   if (org && db) {
     await upsertOrganizationDB(db, org)
   }
+  await requestNotificationPermission()
+  await registerPushSubscription()
 })
 
 async function install() {
