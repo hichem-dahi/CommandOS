@@ -8,17 +8,15 @@ create table "public"."products_qty" (
 );
 
 
-alter table "public"."products" drop column "qte";
-
-alter table "public"."products" add column "init_qty" integer not null;
+ALTER TABLE "public"."products" RENAME COLUMN "qte" TO "init_qty";
 
 CREATE UNIQUE INDEX "productQty_pkey" ON public.products_qty USING btree (product_id);
 
 alter table "public"."products_qty" add constraint "productQty_pkey" PRIMARY KEY using index "productQty_pkey";
 
-alter table "public"."products_qty" add constraint "product_qty_product_id_fkey" FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE not valid;
+alter table "public"."products_qty" add constraint "products_qty_product_id_fkey" FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE not valid;
 
-alter table "public"."products_qty" validate constraint "product_qty_product_id_fkey";
+alter table "public"."products_qty" validate constraint "products_qty_product_id_fkey";
 
 alter table "public"."products_qty" add constraint "products_qty_org_id_fkey" FOREIGN KEY (org_id) REFERENCES organizations(id) not valid;
 
@@ -26,12 +24,12 @@ alter table "public"."products_qty" validate constraint "products_qty_org_id_fke
 
 set check_function_bodies = off;
 
-CREATE OR REPLACE FUNCTION public.create_product_qty()
+CREATE OR REPLACE FUNCTION public.create_products_qty()
  RETURNS trigger
  LANGUAGE plpgsql
 AS $function$BEGIN
-  -- Insert a new row into product_qty using the init_qty value
-  INSERT INTO public.product_qty (product_id, qty, org_id, updated_at)
+  -- Insert a new row into products_qty using the init_qty value
+  INSERT INTO public.products_qty (product_id, qty, org_id, updated_at)
   VALUES (NEW.id, NEW.init_qty, NEW.org_id, NOW());
 
   RETURN NEW;
@@ -52,7 +50,7 @@ BEGIN
     WHERE id = ANY(stock_movement_ids)
   LOOP
     -- Update the product quantity based on the qte_change
-    UPDATE product_qty
+    UPDATE products_qty
     SET qty = GREATEST(COALESCE(qty, 0) + movement_record.qte_change, 0)
     WHERE product_id = movement_record.product_id;
   END LOOP;
@@ -101,7 +99,7 @@ grant truncate on table "public"."products_qty" to "service_role";
 
 grant update on table "public"."products_qty" to "service_role";
 
-CREATE TRIGGER after_product_insert AFTER INSERT ON public.products FOR EACH ROW EXECUTE FUNCTION create_product_qty();
+CREATE TRIGGER after_product_insert AFTER INSERT ON public.products FOR EACH ROW EXECUTE FUNCTION create_products_qty();
 
 CREATE TRIGGER handle_updated_at BEFORE UPDATE ON public.products_qty FOR EACH ROW EXECUTE FUNCTION moddatetime('updated_at');
 
