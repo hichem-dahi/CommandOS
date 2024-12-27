@@ -76,7 +76,7 @@ import { useUpsertNotificationsDb } from '@/composables/db/notifications/useUpse
 import { useUpdateProductsQtyDb } from '@/composables/db/products/useUpdateProductsQtyDb'
 import { processStockMovementsForOrder } from '@/composables/useStockManage'
 
-import { useOrderQuery } from '@/composables/db/orders/useGetOrdersDb'
+import { useOrdersQuery } from '@/composables/db/orders/useGetOrdersDb'
 
 import self from '@/composables/localStore/useSelf'
 
@@ -97,9 +97,9 @@ const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 
-const { q, orderId } = useOrderQuery()
+const { q, params } = useOrdersQuery()
 
-orderId.value = route.params.order_id as string
+params.order_id = route.params.order_id as string
 
 const order = computed(() => q.rows.value?.[0] as unknown as OrderData | undefined)
 

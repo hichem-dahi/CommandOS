@@ -57,19 +57,20 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watchEffect } from 'vue'
 import { groupBy, sortBy, sum } from 'lodash'
 import { format } from 'date-fns'
 import { useI18n } from 'vue-i18n'
-import { useLiveQuery } from '@electric-sql/pglite-vue'
 
-import { type OrderData } from '@/composables/api/orders/useGetOrderApi'
+import { useOrdersQuery } from '@/composables/db/orders/useGetOrdersDb'
 
 import type { OrderLineData } from '@/composables/api/orders/useGetOrderApi'
 
 const { t } = useI18n()
 
 const dateRange = ref<Date[]>([new Date(), new Date()]) // Default to today as the range
+
+const { q, params } = useOrdersQuery()
 
 const startDate = computed(() => {
   const date = new Date(dateRange.value[0])
@@ -82,61 +83,13 @@ const endDate = computed(() => {
   date.setHours(23, 59, 59, 999) // Set to the last millisecond of the day
   return date
 })
-const orderQuery = useLiveQuery<OrderData>(
-  `SELECT
-    o.*,
-    -- Fetching individual data as a separate field
-    (
-        SELECT to_jsonb(i)
-        FROM public.individuals i
-        WHERE i.id = o.individual_id AND i._deleted = false
-        LIMIT 1
-    ) AS individual,
-    -- Fetching client data as a separate field
-    (
-        SELECT to_jsonb(org)
-        FROM public.organizations org
-        WHERE org.id = o.client_id AND org._deleted = false
-        LIMIT 1
-    ) AS client,
-    -- Fetching payments as an array of JSON objects
-    (
-        SELECT jsonb_agg(p)
-        FROM public.payments p
-        WHERE p.order_id = o.id AND p._deleted = false
-    ) AS payments,
-    -- Fetching order lines as an array of JSON objects with product details
-    (
-        SELECT jsonb_agg(
-            jsonb_build_object(
-                'id', ol.id,
-                'order_id', ol.order_id,
-                'product_id', ol.product_id,
-                'qte', ol.qte,
-                'unit_price', ol.unit_price,
-                'unit_cost_price', ol.unit_cost_price,
-                'total_price', ol.total_price,
-                'updated_at', ol.updated_at,
-                '_deleted', ol._deleted,
-                '_synced', ol._synced,
-                'product', (
-                    SELECT to_jsonb(p)
-                    FROM public.products p
-                    WHERE p.id = ol.product_id AND p._deleted = false
-                )
-            )
-        )
-        FROM public.order_lines ol
-        WHERE ol.order_id = o.id AND ol._deleted = false
-    ) AS order_lines
-  FROM public.orders o
-  WHERE o._deleted = false
-  AND o.date >= $1 AND o.date <= $2; -- Date range filter
-  `,
-  [startDate, endDate] // Pass the reactive date range as query parameters
-)
 
-const filteredOrders = computed(() => orderQuery.rows.value || [])
+watchEffect(() => {
+  params.date_gte = startDate.value.toISOString()
+  params.date_lte = endDate.value.toISOString()
+})
+
+const filteredOrders = computed(() => q.rows.value || [])
 
 const historyItems = computed(() => {
   let groupedSummary = []
@@ -168,14 +121,14 @@ const allOrderlinesByDate = computed(() => {
 
   Object.keys(groupedOrders.value).forEach((date) => {
     const ordersForDate = groupedOrders.value[date]
-    result[date] = ordersForDate.flatMap((o) => o?.order_lines)
+    result[date] = ordersForDate.flatMap((o) => o?.order_lines || [])
   })
 
   return result
 })
 
 const allOrderlines = computed(() => {
-  return filteredOrders.value.flatMap((o) => o?.order_lines).filter((e) => e)
+  return filteredOrders.value.flatMap((o) => o?.order_lines || []).filter((e) => e)
 })
 
 function productSummary(orderlines: OrderLineData[]) {

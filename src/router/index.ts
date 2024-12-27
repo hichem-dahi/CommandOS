@@ -52,7 +52,7 @@ const router = createRouter({
           component: OrderView
         },
         {
-          path: '/client-history/:client_id',
+          path: '/client-history',
           name: 'client-history',
           component: ClientHistoryView
         },

@@ -1,8 +1,10 @@
-import type { OrderLineData } from '@/composables/api/orders/useGetOrderApi'
-import self from '@/composables/localStore/useSelf'
-import type { Tables } from '@/types/database.types'
+import { computed, reactive } from 'vue'
 import { useLiveQuery } from '@electric-sql/pglite-vue'
-import { ref, computed } from 'vue'
+
+import self from '@/composables/localStore/useSelf'
+
+import type { Tables } from '@/types/database.types'
+import type { OrderLineData } from '@/composables/api/orders/useGetOrderApi'
 
 interface OrderData extends Tables<'orders'> {
   individual?: Tables<'individuals'>
@@ -14,34 +16,56 @@ interface OrderData extends Tables<'orders'> {
 
 const org_id = self.value.current_org?.id
 
-export function useOrderQuery() {
-  const orderId = ref<string>()
+export function useOrdersQuery() {
+  const params = reactive({
+    order_id: null as string | null,
+    client_id: null as string | null,
+    individual_id: null as string | null,
+    date_gte: null as string | null,
+    date_lte: null as string | null
+  })
 
-  const query = computed(
-    () => `
+  const query = computed(() => {
+    let queryConditions = `
+      WHERE o.org_id = '${org_id}' AND o._deleted = false
+    `
+
+    if (params.individual_id) {
+      queryConditions += ` AND o.individual_id = '${params.individual_id}'`
+    }
+
+    if (params.client_id) {
+      queryConditions += ` AND o.client_id = '${params.client_id}'`
+    }
+
+    if (params.date_gte) {
+      queryConditions += ` AND o.date >= '${params.date_gte}'`
+    }
+
+    if (params.date_lte) {
+      queryConditions += ` AND o.date <= '${params.date_lte}'`
+    }
+
+    return `
     SELECT
       o.*,
-      -- Fetching individual data as a separate field
       (
           SELECT to_jsonb(i)
           FROM public.individuals i
           WHERE i.id = o.individual_id AND i._deleted = false
           LIMIT 1
       ) AS individual,
-      -- Fetching client data as a separate field
       (
           SELECT to_jsonb(org)
           FROM public.organizations org
           WHERE org.id = o.client_id AND org._deleted = false
           LIMIT 1
       ) AS client,
-      -- Fetching payments as an array of JSON objects
       (
           SELECT jsonb_agg(p)
           FROM public.payments p
           WHERE p.order_id = o.id AND p._deleted = false
       ) AS payments,
-      -- Fetching order lines with product details
       (
           SELECT jsonb_agg(
               jsonb_build_object(
@@ -59,7 +83,7 @@ export function useOrderQuery() {
                       'name', p.name,
                       'price', p.price,
                       'cost_price', p.cost_price,
-                      'qty', COALESCE(pq.qty, 0), -- Default to 0 if qty is null
+                      'qty', COALESCE(pq.qty, 0),
                       'org_id', p.org_id,
                       'bar_code', p.bar_code,
                       'updated_at', p.updated_at,
@@ -76,7 +100,6 @@ export function useOrderQuery() {
           FROM public.order_lines ol
           WHERE ol.order_id = o.id AND ol._deleted = false
       ) AS order_lines,
-      -- Fetching delivery details using o.delivery_id
       (
           SELECT to_jsonb(d)
           FROM public.deliveries d
@@ -84,12 +107,9 @@ export function useOrderQuery() {
           LIMIT 1
       ) AS delivery
     FROM public.orders o
-    WHERE o.org_id = $1 ${orderId.value ? 'AND o.id = $2' : ''} 
-    AND o._deleted = false;
-  `
-  )
+    ${queryConditions};
+    `
+  })
 
-  const params = computed(() => (orderId.value ? [org_id, orderId.value] : [org_id]))
-
-  return { q: useLiveQuery<OrderData>(query, params), orderId }
+  return { q: useLiveQuery<OrderData>(query, []), params }
 }

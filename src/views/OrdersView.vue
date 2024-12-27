@@ -26,7 +26,7 @@ import { computed, reactive } from 'vue'
 import { isSameDay } from 'date-fns'
 import { mdiPlus } from '@mdi/js'
 
-import { useOrderQuery } from '@/composables/db/orders/useGetOrdersDb'
+import { useOrdersQuery } from '@/composables/db/orders/useGetOrdersDb'
 
 import OrderCard from '@/views/OrdersView/OrderCard.vue'
 import FilterBar from './OrdersView/FilterBar.vue'
@@ -34,7 +34,7 @@ import FilterBar from './OrdersView/FilterBar.vue'
 import type { Filters } from './OrdersView/models/models'
 import type { OrderData } from '@/composables/api/orders/useGetOrdersApi'
 
-const { q } = useOrderQuery()
+const { q } = useOrdersQuery()
 
 const filters = reactive<Filters>({
   docType: null,

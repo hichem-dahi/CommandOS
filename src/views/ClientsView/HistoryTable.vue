@@ -5,9 +5,9 @@
       <v-card class="pb-2 d-flex align-end" color="#F7F7F7" elevation="0">
         <div class="col-1 d-flex justify-space-between w-75">
           <v-card-title>
-            <div>{{ clientOrdersData?.name }}</div>
+            <div>{{ client?.name }}</div>
             <div class="text-medium-emphasis text-subtitle-2">
-              {{ $t('phone') }}: {{ clientOrdersData?.phone }}
+              {{ $t('phone') }}: {{ client?.phone }}
             </div>
           </v-card-title>
         </div>
@@ -19,7 +19,7 @@
     </template>
     <template v-slot:item.details="{ item }">
       <span class="text-caption text-no-wrap">
-        {{ item.details.join(', ') }}
+        {{ item.details?.join(', ') }}
       </span>
     </template>
     <template v-slot:item.status="{ item }">
@@ -55,42 +55,54 @@
   </v-data-table>
 </template>
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, watchEffect } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { format } from 'date-fns'
 import { sortBy } from 'lodash'
-
 import { mdiOpenInNew } from '@mdi/js'
 
-import { useGetOrganizationOrdersApi } from '@/composables/api/orders/useGetOrganizationOrdersApi'
-import { useGetIndividualOrdersApi } from '@/composables/api/orders/useGetIndividualOrdersApi'
+import { useOrdersQuery } from '@/composables/db/orders/useGetOrdersDb'
 
 import { OrderStatus } from '@/models/models'
+import { useLiveQuery } from '@electric-sql/pglite-vue'
 
 const { t } = useI18n()
 const route = useRoute()
 
-const getOrganizationOrdersApi = useGetOrganizationOrdersApi()
-const getIndividualOrdersApi = useGetIndividualOrdersApi()
+const { q, params } = useOrdersQuery()
 
-onMounted(() => {
-  getOrganizationOrdersApi.clientId.value = route.params.client_id as string
-  getOrganizationOrdersApi.execute()
-  getIndividualOrdersApi.clientId.value = route.params.client_id as string
-  getIndividualOrdersApi.execute()
+watchEffect(() => {
+  params.client_id = route.query.client_id as string
+  params.individual_id = route.query.individual_id as string
 })
 
-const clientOrdersData = computed(
-  () => getOrganizationOrdersApi.data.value || getIndividualOrdersApi.data.value
+const orders = computed(() => q.rows.value)
+
+const clientQuery = useLiveQuery(
+  `SELECT * FROM public.organizations
+    WHERE id = $1
+    AND _deleted = false
+    LIMIT 1;`,
+  [route.query.client_id as string]
 )
 
+const individualQuery = useLiveQuery(
+  `SELECT * FROM public.individuals
+    WHERE id = $1
+    AND _deleted = false
+    LIMIT 1;`,
+  [route.query.individual_id as string]
+)
+
+const client = computed(() => clientQuery.rows.value?.[0] || individualQuery.rows.value?.[0])
+
 const historyItems = computed(() => {
-  const clientOrders = clientOrdersData.value?.orders
+  const clientOrders = orders.value
   if (!clientOrders) return
 
   const items = clientOrders.map((o) => {
-    const orderLinesInfo = o.order_lines.map((ol) => {
+    const orderLinesInfo = o.order_lines?.map((ol) => {
       const info = { qte: ol.qte, product: ol.product?.name }
       return `${info.qte}m ${info.product}`
     })
