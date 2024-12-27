@@ -16,17 +16,17 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
-import type { OrderData } from '@/composables/api/orders/useGetOrderApi'
+import type { OrderData } from '@/composables/db/orders/useGetOrdersDb'
 
-const order = defineModel<OrderData>('order')
+const props = defineProps<{ order: OrderData }>()
 const dialog = defineModel<boolean>('dialog')
 const emits = defineEmits(['go-invoice'])
 
-const paymentMethod = ref(order.value?.payment_method || '')
+const paymentMethod = ref(props.order.payment_method || '')
 
 function addPaymentMethod() {
-  if (order.value?.paid_price) {
-    order.value.payment_method = paymentMethod.value
+  if (props.order.paid_price) {
+    //TODO:
     emits('go-invoice')
     dialog.value = false
   }

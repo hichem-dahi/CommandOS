@@ -1,12 +1,11 @@
 import self from './localStore/useSelf'
 
-import type { OrderLine } from '@/models/models'
-import type { TablesInsert } from '@/types/database.types'
+import type { Tables, TablesInsert } from '@/types/database.types'
 
 // Define the minimal OrderData type
 type OrderData = {
   id: string
-  order_lines: OrderLine[]
+  order_lines: Tables<'order_lines'>[]
 }
 
 const org_id = self.value.current_org?.id

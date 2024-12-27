@@ -4,14 +4,18 @@ import { useLiveQuery } from '@electric-sql/pglite-vue'
 import self from '@/composables/localStore/useSelf'
 
 import type { Tables } from '@/types/database.types'
-import type { OrderLineData } from '@/composables/api/orders/useGetOrderApi'
+import type { ProductData } from '../products/useGetProductsDb'
 
-interface OrderData extends Tables<'orders'> {
+export interface OrderData extends Tables<'orders'> {
   individual?: Tables<'individuals'>
   client?: Tables<'organizations'>
   payments?: Tables<'payments'>[]
-  order_lines?: OrderLineData[]
+  order_lines?: OrderlineData[]
   delivery?: Tables<'deliveries'>
+}
+
+export interface OrderlineData extends Tables<'order_lines'> {
+  product: ProductData
 }
 
 const org_id = self.value.current_org?.id

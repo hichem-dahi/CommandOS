@@ -30,7 +30,7 @@ import { format } from 'date-fns'
 import { mdiOpenInNew } from '@mdi/js'
 
 import type { Payment } from '@/models/models'
-import type { OrderData } from '@/composables/api/orders/useGetOrderApi'
+import type { OrderData } from '@/composables/db/orders/useGetOrdersDb'
 
 const props = defineProps<{ order: OrderData; payments: Payment[] }>()
 

@@ -29,20 +29,19 @@
 <script setup lang="ts">
 import { computed, reactive } from 'vue'
 
-import type { OrderData } from '@/composables/api/orders/useGetOrderApi'
 import type { TablesInsert } from '@/types/database.types'
+import type { OrderData } from '@/composables/db/orders/useGetOrdersDb'
 
 const emits = defineEmits(['confirm'])
-const props = defineProps<{ isLoading: boolean }>()
+const props = defineProps<{ order: OrderData; isLoading: boolean }>()
 
-const order = defineModel<OrderData>('order', { required: true })
 const dialog = defineModel<boolean>('dialog')
 
 const form = reactive<TablesInsert<'payments'>>({
   amount: 0,
   date: new Date().toISOString(),
-  order_id: order.value?.id
+  order_id: props.order.id
 })
 
-const remaining = computed(() => (order.value?.total_price || 0) - (order.value?.paid_price || 0))
+const remaining = computed(() => (props.order.total_price || 0) - (props.order.paid_price || 0))
 </script>

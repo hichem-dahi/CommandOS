@@ -11,7 +11,7 @@
   <div class="text-h5 pa-4 my-4">{{ title }}</div>
   <div class="wrapper" v-if="order">
     <div class="table border">
-      <OrderTable ref="orderTableRef" v-model:order="order" />
+      <OrderTable ref="orderTableRef" :order="order" />
     </div>
     <div class="invoice-actions d-flex flex-column align-start ga-1">
       <v-btn
@@ -41,11 +41,11 @@
     </div>
     <PaymentMethodModal
       v-model:dialog="paymentMethodDialog"
-      v-model:order="order"
+      :order="order"
       @go-invoice="processOrder()"
     />
     <PaymentModal
-      v-model:order="order"
+      :order="order"
       v-model:dialog="paymentDialog"
       :is-loading="upsertPaymentDb.isLoading.value"
       @confirm="addPayment"
@@ -76,7 +76,7 @@ import { useUpsertNotificationsDb } from '@/composables/db/notifications/useUpse
 import { useUpdateProductsQtyDb } from '@/composables/db/products/useUpdateProductsQtyDb'
 import { processStockMovementsForOrder } from '@/composables/useStockManage'
 
-import { useOrdersQuery } from '@/composables/db/orders/useGetOrdersDb'
+import { useOrdersQuery, type OrderData } from '@/composables/db/orders/useGetOrdersDb'
 
 import self from '@/composables/localStore/useSelf'
 
@@ -91,7 +91,6 @@ import DocumentButtons from './OrderView/DocumentButtons.vue'
 
 import { DocumentType, OrderStatus } from '@/models/models'
 import type { TablesInsert } from '@/types/database.types'
-import type { OrderData } from '@/composables/api/orders/useGetOrderApi'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -169,7 +168,7 @@ function getRouteNameByDocumentType(documentType: DocumentType) {
 }
 
 function upsertStockMovements(operation: 'deduct' | 'restore') {
-  if (order.value) {
+  if (order.value?.order_lines) {
     const data = {
       order_lines: order.value?.order_lines,
       id: order.value?.id
@@ -236,7 +235,7 @@ watch(
     const status = data?.status
     const body =
       order.value?.order_lines
-        .map((line) => {
+        ?.map((line) => {
           const product = line.product
           return product ? `${line.qte} ${product.name}` : `${line.qte} Unknown Product`
         })

@@ -71,11 +71,11 @@ import { useSoftDeleteProductsDB } from '@/composables/db/products/useSoftDelete
 import DeleteItemModal from '@/views/OrderView/DeleteItemModal.vue'
 import ProductForm from './ProductForm.vue'
 
-import type { Product } from '@/models/models'
+import type { ProductData } from '@/composables/db/products/useGetProductsDb'
 
 const $v = useVuelidate()
 
-const product = defineModel<Product>()
+const product = defineModel<ProductData>()
 const proxyForm = ref(clone(product.value))
 
 const upsertProductsDb = useUpsertProductsDb()

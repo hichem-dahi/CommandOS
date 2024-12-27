@@ -55,7 +55,7 @@ const $v = useVuelidate(rules, form)
 function saveStock() {
   $v.value.$touch()
   if (!$v.value.$invalid && form.qte) {
-    const stockMovements = updateProductStock(props.product, form.qte)
+    const stockMovements = updateProductStock(props.product.id, form.qte)
     upsertStockMovementsDb.form.value = [stockMovements]
     upsertStockMovementsDb.execute()
   }

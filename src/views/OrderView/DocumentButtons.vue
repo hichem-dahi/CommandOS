@@ -16,7 +16,7 @@
 import { mdiInvoice, mdiReceiptText, mdiTruckCheck, mdiNote } from '@mdi/js'
 import { DocumentType } from '@/models/models'
 
-import type { OrderData } from '@/composables/api/orders/useGetOrderApi'
+import type { OrderData } from '@/composables/db/orders/useGetOrdersDb'
 
 defineProps<{ readonly order: OrderData; isConfirmable: boolean }>()
 

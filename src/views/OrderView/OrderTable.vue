@@ -137,11 +137,12 @@ import { useI18n } from 'vue-i18n'
 import { format } from 'date-fns'
 import { cloneDeep, isEqual, isNumber, sum } from 'lodash'
 import { mdiDelete, mdiPlus } from '@mdi/js'
-import { useLiveQuery } from '@electric-sql/pglite-vue'
 
 import { useUpsertOrderlinesDb } from '@/composables/db/orderlines/useUpsertOrderlinesDb'
 import { useUpsertOrdersDb } from '@/composables/db/orders/useUpsertOrdersDb'
 import { useSoftDeleteOrderlinesDb } from '@/composables/db/orderlines/useSoftDeleteOrderlinesDb'
+
+import { useProductQuery } from '@/composables/db/products/useGetProductsDb'
 
 import OrderLineForm from '@/views/OrdersView/OrderLineForm.vue'
 import DeleteItemModal from './DeleteItemModal.vue'
@@ -149,10 +150,9 @@ import DeleteItemModal from './DeleteItemModal.vue'
 import { ConsumerType, OrderStatus, type Product } from '@/models/models'
 import type { Validation } from '@vuelidate/core'
 import type { TablesInsert } from '@/types/database.types'
-import type { OrderData, OrderLineData } from '@/composables/api/orders/useGetOrderApi'
-import { useProductQuery } from '@/composables/db/products/useGetProductsDb'
+import type { OrderData, OrderlineData } from '@/composables/db/orders/useGetOrdersDb'
 
-const order = defineModel<OrderData>('order', { required: true })
+const props = defineProps<{ order: OrderData }>()
 
 const { q: productsQuery } = useProductQuery()
 
@@ -165,10 +165,8 @@ const upsertOrderDb = useUpsertOrdersDb()
 const newlineDialog = ref(false)
 const deleteDialog = ref(false)
 const isSuccess = ref(false)
-const proxyOrder = ref<OrderData>(cloneDeep(order.value))
-const proxyOrderlines = ref<(Omit<OrderLineData, 'id'> & { id?: string | undefined })[]>(
-  proxyOrder.value.order_lines
-)
+const proxyOrder = ref(cloneDeep(props.order))
+const proxyOrderlines = ref(proxyOrder.value.order_lines)
 const selectedOrderlineIndex = ref<number>()
 const newOrderline = ref({
   product_id: '',
@@ -201,7 +199,7 @@ const isLoading = computed(
 )
 
 const isModified = computed(() => {
-  const filteredOrderlines = (orderlines: any[]) =>
+  const filteredOrderlines = (orderlines: OrderlineData[]) =>
     orderlines.map(({ product_id, qte, unit_cost_price }) => ({
       product_id,
       qte,
@@ -209,56 +207,57 @@ const isModified = computed(() => {
     }))
 
   return !isEqual(
-    filteredOrderlines(order.value.order_lines),
-    filteredOrderlines(proxyOrderlines.value)
+    filteredOrderlines(props.order.order_lines || []),
+    filteredOrderlines(proxyOrderlines.value || [])
   )
 })
 
 const isModfiable = computed(() => isModified.value && isValidOrderlines.value)
 
 const isValidOrderlines = computed(() =>
-  proxyOrderlines.value.every((o) => o.product !== null && o.qte <= o.product.qty)
+  proxyOrderlines.value?.every((o) => o.product !== null && o.qte <= (o.product.qty || 0))
 )
 
-const consumerName = computed(() => order.value.client?.name || order.value.individual?.name)
+const consumerName = computed(() => props.order.client?.name || props.order.individual?.name)
 
 const consumerType = computed(() =>
-  order.value?.client_id ? ConsumerType.Organization : ConsumerType.Individual
+  props.order?.client_id ? ConsumerType.Organization : ConsumerType.Individual
 )
 
-const isConfirmed = computed(() => order.value?.status === OrderStatus.Confirmed)
-const isCancelled = computed(() => order.value?.status === OrderStatus.Cancelled)
-const isPending = computed(() => order.value?.status === OrderStatus.Pending)
+const isConfirmed = computed(() => props.order.status === OrderStatus.Confirmed)
+const isCancelled = computed(() => props.order.status === OrderStatus.Cancelled)
+const isPending = computed(() => props.order.status === OrderStatus.Pending)
 
 const isConfirmable = computed(() => !isModified.value && isValidOrderlines.value)
 
 const totalItems = computed(() => {
   return {
-    remaining: (order.value?.total_price || 0) - (order.value?.paid_price || 0),
-    total: order.value?.total_price
+    remaining: (props.order.total_price || 0) - (props.order.paid_price || 0),
+    total: props.order.total_price
   }
 })
 
-const items = computed(() =>
-  proxyOrderlines.value.map((o, i) => {
-    const product = o.product
-    return {
-      index: i,
-      product: product,
-      product_name: product?.name,
-      qte: o.qte,
-      unit_price: o.unit_price,
-      unit_cost_price: o.unit_cost_price,
-      total_price: o.total_price
-    }
-  })
+const items = computed(
+  () =>
+    proxyOrderlines.value?.map((o, i) => {
+      const product = o.product
+      return {
+        index: i,
+        product: product,
+        product_name: product?.name,
+        qte: o.qte,
+        unit_price: o.unit_price,
+        unit_cost_price: o.unit_cost_price,
+        total_price: o.total_price
+      }
+    }) || []
 )
 
 const products = computed(() => (productsQuery.rows?.value || []) as unknown as Product[])
 
 const availableProducts = computed(() =>
   products.value.filter((e) => {
-    const alreadySelected = proxyOrderlines.value.map((ol) => ol.product_id)
+    const alreadySelected = proxyOrderlines.value?.map((ol) => ol.product_id)
     return !alreadySelected?.includes(e.id)
   })
 )
@@ -285,17 +284,17 @@ function addOrderline(form: TablesInsert<'order_lines'>, v: Validation) {
   if (!v.$invalid) {
     const product = products.value.find((p) => p.id === form.product_id)
     if (!product) return
-    proxyOrderlines.value.push({ ...form, product } as OrderLineData)
+    proxyOrderlines.value?.push({ ...form, product } as OrderlineData)
     newlineDialog.value = false
   }
 }
 
 function cancelEdit() {
-  proxyOrderlines.value = cloneDeep(order.value.order_lines)
+  proxyOrderlines.value = cloneDeep(props.order.order_lines)
 }
 
 function confirmEdit() {
-  softDeleteOrderlinesDb.ids.value = order.value.order_lines.map((ol) => ol.id)
+  softDeleteOrderlinesDb.ids.value = props.order.order_lines?.map((ol) => ol.id)
   softDeleteOrderlinesDb.execute()
 }
 
@@ -303,8 +302,8 @@ watch(
   () => softDeleteOrderlinesDb.isSuccess.value,
   (isSuccess) => {
     if (isSuccess) {
-      upsertOrderlinesDb.form.value = proxyOrderlines.value.map(({ product, ...rest }) => {
-        rest.order_id = order.value.id
+      upsertOrderlinesDb.form.value = proxyOrderlines.value?.map(({ product, ...rest }) => {
+        rest.order_id = props.order.id
         return { ...rest, _synced: false, _deleted: false }
       })
 
@@ -319,10 +318,10 @@ watch(
     if (isSuccess && upsertOrderlinesDb.data.value) {
       const total_price = sum(upsertOrderlinesDb.data.value.map((o) => Number(o.total_price)))
 
-      if (order.value)
+      if (props.order)
         upsertOrderDb.form.value = [
           {
-            ...order.value,
+            ...props.order,
             total_price,
             tva: total_price * 0.19,
             ttc: total_price * 1.19,
