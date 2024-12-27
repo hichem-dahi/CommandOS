@@ -28,9 +28,9 @@ import type { Product } from '@/models/models'
 
 const route = useRoute()
 
-const { q, productId } = useProductQuery()
+const { q, product_id } = useProductQuery()
 
-productId.value = route.params.product_id
+product_id.value = route.params.product_id as string
 
 const product = computed(() => (q.rows.value?.[0] as unknown as Product) || undefined)
 </script>

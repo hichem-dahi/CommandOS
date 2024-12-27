@@ -10,7 +10,7 @@ export interface ProductData extends Tables<'products'> {
 const org_id = self.value.current_org?.id
 
 export function useProductQuery() {
-  const productId = ref<string | null>(null)
+  const product_id = ref<string | null>(null)
 
   const query = computed(
     () => `
@@ -19,15 +19,15 @@ export function useProductQuery() {
       LEFT JOIN public.products_qty pq 
       ON p.id = pq.product_id 
       WHERE p.org_id = $1 
-      ${productId.value ? 'AND p.id = $2' : ''} 
-      AND o._deleted = false;
+      ${product_id.value ? 'AND p.id = $2' : ''} 
+      AND p._deleted = false;
     `
   )
 
-  const params = computed(() => (productId.value ? [org_id, productId.value] : [org_id]))
+  const params = computed(() => (product_id.value ? [org_id, product_id.value] : [org_id]))
 
   return {
     q: useLiveQuery<ProductData>(query, params),
-    productId
+    product_id
   }
 }
