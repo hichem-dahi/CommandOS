@@ -14,7 +14,6 @@
 <script setup lang="ts">
 import { ref, watchEffect } from 'vue'
 import JsBarcode from 'jsbarcode'
-import printJS from 'print-js'
 
 import type { TablesUpdate } from '@/types/database.types'
 
@@ -76,11 +75,18 @@ const svgToImage = (svg: SVGElement) => {
 }
 
 const printBarcodeAsImage = async (svg: SVGElement) => {
+  // Convert the SVG element to an image
   const el = await svgToImage(svg) // Ensure this returns a base64 string or image URL
 
-  // Create a new window or document to print
+  // Create a new window for printing
   const printWindow = window.open('', '', 'width=800,height=600')
-  printWindow!.document.write(`
+  if (!printWindow) {
+    console.error('Failed to open print window')
+    return
+  }
+
+  // Write the HTML content to the new window
+  printWindow.document.write(`
     <html>
       <head>
         <title>Print Image</title>
@@ -107,14 +113,23 @@ const printBarcodeAsImage = async (svg: SVGElement) => {
         </style>
       </head>
       <body>
-        <img src="${el}" alt="SVG Image"/>
+        <img id="printImage" src="${el}" alt="SVG Image"/>
       </body>
     </html>
   `)
 
-  // Trigger the print dialog
-  printWindow!.document.close()
-  printWindow!.print()
+  // Wait for the image to load before printing
+  printWindow.document.close() // Ensure the document is fully written
+  const printImage = printWindow.document.getElementById('printImage') as HTMLImageElement
+
+  printImage.onload = () => {
+    printWindow.print()
+  }
+
+  // Optional: Close the print window after printing (user experience consideration)
+  printImage.onerror = () => {
+    console.error('Failed to load the image for printing')
+  }
 }
 </script>
 
