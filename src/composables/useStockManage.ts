@@ -16,9 +16,7 @@ export function processStockMovementsForOrder(order: OrderData, operation: 'dedu
 
   order.order_lines.forEach((orderLine) => {
     const qteChange = operation === 'deduct' ? -orderLine.qte : orderLine.qte
-    if (operation === 'restore') {
-      stockMovements.push(createStockMovement(orderLine.product_id, qteChange, order.id))
-    }
+    stockMovements.push(createStockMovement(orderLine.product_id, qteChange, order.id))
   })
 
   return stockMovements
