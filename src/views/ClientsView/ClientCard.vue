@@ -33,7 +33,13 @@
         size="small"
         :append-icon="mdiHistory"
         variant="plain"
-        :to="{ name: 'client-history', params: { client_id: client.id } }"
+        :to="{
+          name: 'client-history',
+          query:
+            consumerType === ConsumerType.Organization
+              ? { client_id: client.id }
+              : { individual_id: client.id }
+        }"
       >
         {{ $t('history') }}
       </v-btn>
