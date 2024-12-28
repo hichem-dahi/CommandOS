@@ -2,7 +2,6 @@ import { computed, ref, watch } from 'vue'
 import { injectPGlite, useLiveQuery } from '@electric-sql/pglite-vue'
 
 import { useGetProductsQtyApi } from '../api/productsQty/useGetProductsQtyApi'
-import { useUpsertProductsQtyApi } from '../api/productsQty/useUpsertProductsQtyApi'
 
 import { useUpsertProductsQtyDb } from '../db/productsQty/useUpsertProductsQtyDb'
 import { useDeleteProductsQtyDb } from '../db/productsQty/useDeleteProductsQtyDb'
@@ -16,7 +15,6 @@ export function useProductsQtySync() {
   const isFinished = ref(false)
 
   const pullProductsQtyApi = useGetProductsQtyApi()
-  const pushProductsQtyApi = useUpsertProductsQtyApi()
 
   const upsertProductsQtyDb = useUpsertProductsQtyDb()
 
@@ -47,9 +45,6 @@ export function useProductsQtySync() {
   const queriesReady = computed(() => productsQtyToSyncQuery.rows.value !== undefined)
 
   async function sync() {
-    pushProductsQtyApi.form.value = productsQtyToSync.value.map(({ updated_at, ...rest }) => rest)
-    await pushProductsQtyApi.execute()
-
     const result = await db?.query<MaxDateResult>(
       'SELECT MAX(updated_at) AS max_date FROM public.products_qty;'
     )
