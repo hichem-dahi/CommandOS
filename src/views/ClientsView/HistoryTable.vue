@@ -70,11 +70,12 @@ import { useLiveQuery } from '@electric-sql/pglite-vue'
 const { t } = useI18n()
 const route = useRoute()
 
-const { q, params } = useOrdersQuery()
+const { q, params, isReady } = useOrdersQuery()
 
 watchEffect(() => {
   params.client_id = route.query.client_id as string
   params.individual_id = route.query.individual_id as string
+  isReady.value = true
 })
 
 const orders = computed(() => q.rows.value)
