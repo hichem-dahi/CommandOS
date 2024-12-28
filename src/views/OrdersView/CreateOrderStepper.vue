@@ -3,7 +3,7 @@
     <template v-slot:default>
       <v-stepper-header>
         <template v-for="n in numericSteps" :key="`${n}-step`">
-          <div v-if="n == Steps.SelectConsumer && consumerPicked ? false : true">
+          <div>
             <v-stepper-item :complete="step > n" :step="`Step {{ n }}`" :value="n">
             </v-stepper-item>
 
@@ -65,9 +65,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, ref, watch, watchEffect } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { isString } from 'lodash'
 import { useLiveQuery } from '@electric-sql/pglite-vue'
 
 import self from '@/composables/localStore/useSelf'
@@ -131,7 +130,7 @@ const organizations = computed(() => organizationsQuery.rows.value || [])
 
 const step = ref(Steps.SelectConsumer)
 
-const consumerPicked = computed(() => route.query.consumer)
+const consumerPicked = computed(() => route.query.client_id || route.query.individual_id)
 
 const isLoading = computed(
   () =>
@@ -141,23 +140,18 @@ const isLoading = computed(
     upsertOrderlinesDb.isLoading.value
 )
 
-onMounted(() => {
-  const consumer = route.query.consumer
+watchEffect(() => {
+  const client_id = route.query.client_id
+  const individual_id = route.query.individual_id
 
-  if (isString(consumer)) {
-    // Check if the consumer is a company
-    const organization = organizations.value?.find((c) => c.id === consumer)
-    if (organization) {
-      form.org_id = organization.id
-    } else {
-      // Check if the consumer is an individual
-      const individual = individuals.value?.find((i) => i.id === consumer)
-      if (individual) {
-        individualForm.value = individual
-      }
-    }
+  const organization = organizations.value?.find((c) => c.id === client_id)
+  const individual = individuals.value?.find((i) => i.id === individual_id)
 
-    // Skip "SelectConsumer" step and start from step 2
+  if (organization) {
+    form.client_id = organization.id
+    step.value = Steps.CreateOrder
+  } else if (individual) {
+    individualForm.value = individual
     step.value = Steps.CreateOrder
   }
 })

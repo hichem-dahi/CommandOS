@@ -21,9 +21,10 @@
         :append-icon="mdiPlus"
         :to="{
           name: 'create-order',
-          query: {
-            consumer: client.id
-          }
+          query:
+            consumerType === ConsumerType.Organization
+              ? { client_id: client.id }
+              : { individual_id: client.id }
         }"
       >
         {{ $t('add-order') }}
