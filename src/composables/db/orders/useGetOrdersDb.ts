@@ -1,4 +1,4 @@
-import { computed, reactive } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { useLiveQuery } from '@electric-sql/pglite-vue'
 
 import self from '@/composables/localStore/useSelf'
@@ -28,11 +28,16 @@ export function useOrdersQuery() {
     date_gte: null as string | null,
     date_lte: null as string | null
   })
+  const isReady = ref(false)
 
   const query = computed(() => {
     let queryConditions = `
       WHERE o.org_id = '${org_id}' AND o._deleted = false
     `
+
+    if (params.order_id) {
+      queryConditions += ` AND o.id = '${params.order_id}'`
+    }
 
     if (params.individual_id) {
       queryConditions += ` AND o.individual_id = '${params.individual_id}'`
@@ -50,7 +55,8 @@ export function useOrdersQuery() {
       queryConditions += ` AND o.date <= '${params.date_lte}'`
     }
 
-    return `
+    return isReady.value
+      ? `
     SELECT
       o.*,
       (
@@ -113,7 +119,8 @@ export function useOrdersQuery() {
     FROM public.orders o
     ${queryConditions};
     `
+      : ''
   })
 
-  return { q: useLiveQuery<OrderData>(query, []), params }
+  return { q: useLiveQuery<OrderData>(query, []), params, isReady }
 }

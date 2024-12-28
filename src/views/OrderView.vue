@@ -96,9 +96,10 @@ const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 
-const { q, params } = useOrdersQuery()
+const { q, params, isReady } = useOrdersQuery()
 
 params.order_id = route.params.order_id as string
+isReady.value = true
 
 const order = computed(() => q.rows.value?.[0] as unknown as OrderData | undefined)
 

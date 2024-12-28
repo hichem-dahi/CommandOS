@@ -68,25 +68,36 @@ import type { OrderLineData } from '@/composables/api/orders/useGetOrderApi'
 
 const { t } = useI18n()
 
-const dateRange = ref<Date[]>([new Date(), new Date()]) // Default to today as the range
+const today = new Date()
+const thirtyDaysAgo = new Date()
+thirtyDaysAgo.setDate(today.getDate() - 30) // Subtract 30 days
 
-const { q, params } = useOrdersQuery()
+const dateRange = ref<Date[]>([thirtyDaysAgo, today]) // Set the range to 30 days before today to today
+
+const { q, params, isReady } = useOrdersQuery()
+isReady.value = true
 
 const startDate = computed(() => {
   const date = new Date(dateRange.value[0])
+  if (isNaN(date.getTime())) {
+    return null // Return null if the date is invalid
+  }
   date.setHours(0, 0, 0, 0) // Set to midnight
-  return date
+  return date.toISOString()
 })
 
 const endDate = computed(() => {
   const date = new Date(dateRange.value[dateRange.value.length - 1])
+  if (isNaN(date.getTime())) {
+    return null // Return null if the date is invalid
+  }
   date.setHours(23, 59, 59, 999) // Set to the last millisecond of the day
-  return date
+  return date.toISOString()
 })
 
 watchEffect(() => {
-  params.date_gte = startDate.value.toISOString()
-  params.date_lte = endDate.value.toISOString()
+  params.date_gte = startDate.value
+  params.date_lte = endDate.value
 })
 
 const filteredOrders = computed(() => q.rows.value || [])
@@ -141,7 +152,7 @@ function productSummary(orderlines: OrderLineData[]) {
     const product = orderlinesGrouped[productId][0]?.product
     const totalQte = sum(orderlines.map((o) => o?.qte))
 
-    productsSummaries.push(`${totalQte}m ${product?.name} `)
+    productsSummaries.push(`${totalQte}m ${product?.name}`)
   }
 
   return `${productsSummaries.join(', ')}`

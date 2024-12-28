@@ -13,9 +13,9 @@
     <FilterBar v-model="filters" />
   </div>
   <v-container>
-    <v-row v-for="(_, i) in filteredOrders" :key="i">
+    <v-row v-for="(o, i) in orders" :key="i">
       <v-col sm="12" md="6">
-        <OrderCard :order="filteredOrders[i]" />
+        <OrderCard v-if="o" :order="o" />
       </v-col>
     </v-row>
   </v-container>
@@ -23,33 +23,21 @@
 
 <script setup lang="ts">
 import { computed, reactive } from 'vue'
-import { isSameDay } from 'date-fns'
 import { mdiPlus } from '@mdi/js'
 
-import { useOrdersQuery } from '@/composables/db/orders/useGetOrdersDb'
+import { useOrdersQuery, type OrderData } from '@/composables/db/orders/useGetOrdersDb'
 
 import OrderCard from '@/views/OrdersView/OrderCard.vue'
 import FilterBar from './OrdersView/FilterBar.vue'
 
 import type { Filters } from './OrdersView/models/models'
-import type { OrderData } from '@/composables/api/orders/useGetOrdersApi'
 
-const { q } = useOrdersQuery()
+const { q, params, isReady } = useOrdersQuery()
+isReady.value = true
 
 const filters = reactive<Filters>({
   docType: null,
   dateRange: []
 })
-
-const filteredOrders = computed(
-  () =>
-    (q.rows.value?.filter((o) => {
-      const docFilter = filters.docType ? o.document_type === filters.docType : true
-      const dateFilter = filters.dateRange.length
-        ? filters.dateRange.some((selectedDate) => isSameDay(o.date, selectedDate))
-        : true
-
-      return docFilter && dateFilter
-    }) || []) as unknown as OrderData[]
-)
+const orders = computed(() => q.rows.value as unknown as OrderData[])
 </script>
