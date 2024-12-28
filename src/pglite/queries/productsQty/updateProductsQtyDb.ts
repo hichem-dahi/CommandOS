@@ -3,17 +3,19 @@ import type { PGliteWithLive } from '@electric-sql/pglite/live'
 export async function updateProductsQtyDb(db: PGliteWithLive, stockMovementsIds: string[]) {
   if (stockMovementsIds.length === 0) return
 
+  // Generate placeholders dynamically for the UUID array
+  const placeholders = stockMovementsIds.map((_, index) => `$${index + 1}`).join(', ')
+
   const query = `
-    SELECT public.adjust_product_qte(ARRAY[$1]::uuid[])
+    SELECT public.adjust_product_qte(ARRAY[${placeholders}]::uuid[])
   `
 
-  const queryValues = [stockMovementsIds]
-
   try {
-    // Execute the query to call the adjust_product_qte function
-    const result = await db.query(query, queryValues)
+    // Execute the query with spread parameters for each UUID
+    const result = await db.query(query, stockMovementsIds)
     return result
-  } catch {
+  } catch (error) {
+    console.error('Error updating product quantities:', error)
     throw new Error('Error updating product quantities:')
   }
 }
