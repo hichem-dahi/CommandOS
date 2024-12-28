@@ -70,7 +70,6 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { format } from 'date-fns'
 import { kebabCase } from 'lodash'
@@ -81,14 +80,13 @@ import { useDeleteOrdersDb } from '@/composables/db/orders/useDeleteOrderDb'
 import DeleteItemModal from '@/views/OrderView/DeleteItemModal.vue'
 
 import { DocumentType, OrderStatus } from '@/models/models'
-import type { OrderData } from '@/composables/api/orders/useGetOrdersApi'
+import { type OrderData } from '@/composables/db/orders/useGetOrdersDb'
 
 const props = defineProps<{
   order: OrderData
 }>()
 
 const { t } = useI18n()
-const router = useRouter()
 
 const deleteOrdersDb = useDeleteOrdersDb()
 
