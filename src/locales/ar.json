@@ -71,5 +71,11 @@
   "proformas": "فواتير شكلية",
   "DA": "دج",
   "document-type": "نوع المستند",
-  "save": "حفظ"
+  "save": "حفظ",
+  "sales": "المبيعات",
+  "scan": "مسح",
+  "submit": "إرسال",
+  "profile": "الملف الشخصي",
+  "organizations": "المنظمات",
+  "pick-organization": "اختر منظمة"
 }
