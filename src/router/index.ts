@@ -17,6 +17,7 @@ import InvoiceView from '@/views/OrderView/DocumentTemplates/Organization/Invoic
 import VoucherView from '@/views/OrderView/DocumentTemplates/Individual/VoucherView.vue'
 import PaymentVoucher from '@/views/OrderView/DocumentTemplates/PaymentVoucher.vue'
 import CreateSaleView from '@/views/CreateSaleView.vue'
+import OrganizationsView from '@/views/OrganizationsView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -107,6 +108,11 @@ const router = createRouter({
       path: '/auth',
       name: 'auth',
       component: AuthView
+    },
+    {
+      path: '/organizations',
+      name: 'organizations',
+      component: OrganizationsView
     }
   ]
 })
