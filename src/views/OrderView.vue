@@ -16,6 +16,17 @@
     <div class="invoice-actions d-flex flex-column align-start ga-1">
       <v-btn
         variant="text"
+        color="blue"
+        :prepend-icon="mdiCheck"
+        :loading="upsertStockMovementsDb.isLoading.value"
+        :disabled="!isConfirmable"
+        @click="confirmDialog = true"
+      >
+        {{ $t('confirm') }}
+      </v-btn>
+
+      <v-btn
+        variant="text"
         :prepend-icon="mdiCashSync"
         :disabled="isCancelled"
         @click="paymentDialog = true"
@@ -26,8 +37,8 @@
       <DocumentButtons
         v-if="order"
         :order="order"
-        :isConfirmable="isConfirmable"
-        @go-doc-page="processOrder"
+        :disabled="!isConfirmed"
+        @go-doc-page="goDocPage"
       />
 
       <v-btn
@@ -39,11 +50,7 @@
       />
       <PaymentsCard v-if="order.payments?.length" :order="order" :payments="order.payments" />
     </div>
-    <PaymentMethodModal
-      v-model:dialog="paymentMethodDialog"
-      :order="order"
-      @go-invoice="processOrder()"
-    />
+
     <PaymentModal
       :order="order"
       v-model:dialog="paymentDialog"
@@ -67,7 +74,7 @@
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { mdiCashSync, mdiChevronLeft, mdiCancel } from '@mdi/js'
+import { mdiCashSync, mdiChevronLeft, mdiCancel, mdiCheck } from '@mdi/js'
 
 import { useUpsertOrdersDb } from '@/composables/db/orders/useUpsertOrdersDb'
 import { useUpsertPaymentsDb } from '@/composables/db/payments/useUpsertPaymentsDb'
@@ -125,7 +132,12 @@ const title = computed(() => {
   }
 })
 
-const isConfirmable = computed(() => orderTableRef.value?.isConfirmable || false)
+const isConfirmable = computed(
+  () =>
+    (orderTableRef.value?.isConfirmable && order.value?.status !== OrderStatus.Confirmed) || false
+)
+
+const isConfirmed = computed(() => order.value?.status === OrderStatus.Confirmed)
 
 const isCancelled = computed(() => order.value?.status === OrderStatus.Cancelled)
 const isPending = computed(() => order.value?.status === OrderStatus.Pending)
@@ -139,7 +151,6 @@ function processOrder() {
     upsertStockMovements('deduct')
     return
   }
-  goDocPage()
 }
 
 function goDocPage() {
@@ -189,7 +200,6 @@ function addPayment(payment: TablesInsert<'payments'>) {
 }
 
 function updateProductQuantities(ids: string[]) {
-  if (!order.value) return
   updateProductsQtyDb.stockMovementsIds.value = ids
   updateProductsQtyDb.execute()
 }
@@ -277,7 +287,6 @@ watch(
       const status = data?.status
       if (status === OrderStatus.Confirmed) {
         confirmDialog.value = false
-        goDocPage()
       }
     }
   }

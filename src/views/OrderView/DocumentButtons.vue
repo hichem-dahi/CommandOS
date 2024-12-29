@@ -3,7 +3,7 @@
     <v-btn
       variant="text"
       :prepend-icon="docType.icon"
-      :disabled="!isConfirmable"
+      :disabled="disabled"
       @click="goDocPage"
       target="_blank"
       :text="$t(docType.label)"
@@ -18,7 +18,7 @@ import { DocumentType } from '@/models/models'
 
 import type { OrderData } from '@/composables/db/orders/useGetOrdersDb'
 
-defineProps<{ readonly order: OrderData; isConfirmable: boolean }>()
+defineProps<{ readonly order: OrderData; disabled: boolean }>()
 
 const emit = defineEmits(['go-doc-page'])
 
