@@ -10,7 +10,6 @@ type OrderData = {
 
 export function processStockMovementsForOrder(order: OrderData, operation: 'deduct' | 'restore') {
   const stockMovements: TablesInsert<'stock_movements'>[] = []
-  const org_id = self.value.current_org?.id
 
   order.order_lines.forEach((orderLine) => {
     const qteChange = operation === 'deduct' ? -orderLine.qte : orderLine.qte
@@ -34,6 +33,8 @@ export function createStockMovement(
   qte_change: number,
   order_id?: string
 ): TablesInsert<'stock_movements'> {
+  const org_id = self.value.current_org?.id
+
   return {
     product_id,
     qte_change,
