@@ -88,11 +88,13 @@ import {
   orderlinesForm,
   deliveryForm,
   individualForm,
-  paymentForm
+  paymentForm,
+  consumerType
 } from './CreateOrderStepper/state'
 
 import type { Validation } from '@vuelidate/core'
 import type { Tables, TablesInsert } from '@/types/database.types'
+import { ConsumerType } from '@/models/models'
 
 enum Steps {
   SelectConsumer = 1,
@@ -149,9 +151,11 @@ watchEffect(() => {
 
   if (organization) {
     form.client_id = organization.id
+    consumerType.value = ConsumerType.Organization
     step.value = Steps.CreateOrder
   } else if (individual) {
     individualForm.value = individual
+    consumerType.value = ConsumerType.Individual
     step.value = Steps.CreateOrder
   }
 })
