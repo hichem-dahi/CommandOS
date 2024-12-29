@@ -24,42 +24,13 @@
           {{ $t('confirm') }}
         </v-btn>
       </div>
-      <div v-else-if="step === Steps.SelectOrganization">
-        <v-card class="pa-4" :title="$t('pick-organization')">
-          <v-list
-            :items="organizationsItems"
-            item-title="name"
-            item-value="id"
-            link
-            @update:selected="setCurrentOrg"
-          />
-          <v-list-item
-            :append-icon="mdiPlus"
-            subtitle="Creé une organization"
-            @click="step = Steps.FillOrganizationForm"
-          ></v-list-item>
-        </v-card>
-      </div>
-      <div v-else-if="step === Steps.FillOrganizationForm">
-        <ClientForm :title="$t('your-informations')" v-model="organizationForm">
-          <template v-slot:actions>
-            <v-btn
-              block
-              :loading="insertOrganizationApi.isLoading.value"
-              @click="submitOrganization"
-              >{{ $t('confirm') }}
-            </v-btn>
-          </template>
-        </ClientForm>
-      </div>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { onMounted, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import useVuelidate from '@vuelidate/core'
 
 import self from '@/composables/localStore/useSelf'
 
@@ -69,17 +40,10 @@ import { useVerifyCodeApi } from '@/composables/api/auth/useVerifyOtpApi'
 import { useUpdateProfileApi } from '@/composables/api/auth/useUpdateProfileApi'
 import { useGetProfileApi } from '@/composables/api/auth/useGetProfileApi'
 
-import { useInsertOrganizationApi } from '@/composables/api/organizations/useInsertOrganizationApi'
-
-import ClientForm from './ClientsView/ClientForm.vue'
-import { mdiPlus } from '@mdi/js'
-
 enum Steps {
   SendEmail = 1,
   SendCode,
-  FillUserForm,
-  SelectOrganization,
-  FillOrganizationForm
+  FillUserForm
 }
 
 const router = useRouter()
@@ -88,35 +52,14 @@ const step = ref(Steps.SendEmail)
 
 const signUpApi = useSignUpApi()
 const veryifyOtpApi = useVerifyCodeApi()
-const updateProfileApi = useUpdateProfileApi()
 const getProfileApi = useGetProfileApi()
-const insertOrganizationApi = useInsertOrganizationApi()
-
-const organizations = computed(() => getProfileApi.data.value?.organizations || [])
-
-const organizationsItems = computed(() => {
-  return organizations.value.flatMap((item) => [item, { type: 'divider', inset: true }])
-})
-
-const $v = useVuelidate()
+const updateProfileApi = useUpdateProfileApi()
 
 const form = reactive({
   email: '',
   code: '',
   full_name: '',
   phone: ''
-})
-
-const organizationForm = ref({
-  name: '',
-  phone: '',
-  rc: '',
-  nif: null as number | null,
-  nis: null as number | null,
-  art: null as number | null,
-  address: '',
-  activity: '',
-  user_id: ''
 })
 
 onMounted(() => {
@@ -148,24 +91,6 @@ function submitProfile() {
   updateProfileApi.execute()
 }
 
-function submitOrganization() {
-  $v.value.$touch()
-  if (!$v.value.$invalid) {
-    insertOrganizationApi.form.value = {
-      ...organizationForm.value,
-      user_id: self.value.session?.user.id
-    }
-    insertOrganizationApi.execute()
-  }
-}
-
-function setCurrentOrg(payload: unknown) {
-  self.value.current_org = organizations.value?.find((o) => o.id === (payload as string[])[0])
-  router.push({
-    name: 'home'
-  })
-}
-
 watch(
   () => signUpApi.isSuccess.value,
   (isSuccess) => {
@@ -190,35 +115,11 @@ watch(
   () => getProfileApi.isSuccess.value,
   (isSuccess) => {
     const full_name = getProfileApi.data.value?.full_name
-    const atlest_one_organization_id = getProfileApi.data.value?.organizations[0]
 
-    if (isSuccess && full_name && atlest_one_organization_id) {
-      step.value = Steps.SelectOrganization
-    } else if (isSuccess && full_name && !atlest_one_organization_id) {
-      step.value = Steps.FillOrganizationForm
-    } else if (isSuccess && !full_name) {
+    if (isSuccess && !full_name) {
       step.value = Steps.FillUserForm
-    }
-  }
-)
-
-watch(
-  () => insertOrganizationApi.isSuccess.value,
-  (isSuccess) => {
-    if (isSuccess) {
-      getProfileApi.execute()
-    }
-  }
-)
-
-watch(
-  () => updateProfileApi.isSuccess.value,
-  (isSuccess) => {
-    const organization = updateProfileApi.data.value?.organizations[0]
-    if (isSuccess && !organization) {
-      step.value = Steps.FillOrganizationForm
-    } else if (isSuccess && organization) {
-      step.value = Steps.SelectOrganization
+    } else if (isSuccess && full_name) {
+      router.push({ name: 'organizations' })
     }
   }
 )
