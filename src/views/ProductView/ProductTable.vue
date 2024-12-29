@@ -51,7 +51,7 @@
   </v-data-table>
 </template>
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, toRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { format } from 'date-fns'
 import { sortBy } from 'lodash'
@@ -69,8 +69,9 @@ const { t } = useI18n()
 
 const stockMovementsQuery = useLiveQuery<Tables<'stock_movements'>>(
   'SELECT * FROM public.stock_movements WHERE product_id = $1;',
-  [props.product.id]
+  [toRef(() => props.product.id)]
 )
+
 const stockMovements = computed(() => stockMovementsQuery.rows.value)
 const modifyStockDialog = ref(false)
 
