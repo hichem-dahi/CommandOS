@@ -5,9 +5,9 @@ import { supabase } from '@/supabase/supabase'
 
 import self from '@/composables/localStore/useSelf'
 
-const org_id = self.value.current_org?.id
-
 export function useGetDeliveriesApi() {
+  const org_id = self.value.current_org?.id
+
   const params = reactive({
     date: '' // You can bind this to a specific date value
   })

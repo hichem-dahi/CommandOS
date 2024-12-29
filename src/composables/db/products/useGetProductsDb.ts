@@ -1,15 +1,16 @@
-import { useLiveQuery } from '@electric-sql/pglite-vue'
 import { ref, computed } from 'vue'
+import { useLiveQuery } from '@electric-sql/pglite-vue'
+
+import self from '@/composables/localStore/useSelf'
 
 import type { Tables } from '@/types/database.types'
-import self from '@/composables/localStore/useSelf'
 
 export interface ProductData extends Tables<'products'> {
   qty?: number
 }
-const org_id = self.value.current_org?.id
 
 export function useProductQuery() {
+  const org_id = self.value.current_org?.id
   const product_id = ref<string | null>(null)
 
   const query = computed(

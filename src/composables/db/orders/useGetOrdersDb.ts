@@ -18,9 +18,9 @@ export interface OrderlineData extends Tables<'order_lines'> {
   product: ProductData
 }
 
-const org_id = self.value.current_org?.id
-
 export function useOrdersQuery() {
+  const org_id = self.value.current_org?.id
+
   const params = reactive({
     order_id: null as string | null,
     client_id: null as string | null,
