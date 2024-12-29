@@ -114,7 +114,6 @@ watchEffect(() => {
   if (individualForm.value?.id) {
     form.individual_id = individualForm.value.id
   }
-  consumerType.value = form.individual_id ? ConsumerType.Individual : ConsumerType.Organization
 })
 
 export {
