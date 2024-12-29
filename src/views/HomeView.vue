@@ -17,7 +17,7 @@
               <v-btn variant="text" :prepend-icon="mdiAccount" :to="{ name: 'self' }">
                 {{ $t('profile') }}
               </v-btn>
-              <v-btn variant="text" :prepend-icon="mdiDotsVertical" :to="{ name: 'auth' }">
+              <v-btn variant="text" :prepend-icon="mdiDotsVertical" :to="{ name: 'organizations' }">
                 {{ $t('organizations') }}
               </v-btn>
               <v-select
@@ -57,8 +57,9 @@
   </v-responsive>
 </template>
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { injectPGlite } from '@electric-sql/pglite-vue'
+import { useTitle } from '@vueuse/core'
 import { mdiAccount, mdiBell, mdiBellOff, mdiDotsVertical } from '@mdi/js'
 
 import { useSync } from '@/composables/sync/useSync'
@@ -73,9 +74,13 @@ import MenuBar from './HomeView/MenuBar.vue'
 import { fetchVapidPublicKey } from '@/supabase/api/fetchVapidPublicKey'
 import { urlBase64ToUint8Array } from '@/helpers/helpers'
 
+const title = computed(() => `CommandOS: ${self.value.current_org?.name}`)
+
+useTitle(title)
+
 const db = injectPGlite()
 
-const sync = useSync()
+useSync()
 
 const insertPushSubscriptionsApi = useInsertPushSubscriptionsApi()
 
