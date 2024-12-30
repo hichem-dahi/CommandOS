@@ -115,7 +115,10 @@ watch(
 watch(
   () => getProfileApi.isSuccess.value,
   (isSuccess) => {
-    if (isSuccess) fillOrganizationForm.value = false
+    if (isSuccess && getProfileApi.data.value) {
+      self.value.user = getProfileApi.data.value
+      fillOrganizationForm.value = false
+    }
   }
 )
 </script>
