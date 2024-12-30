@@ -4,36 +4,41 @@
       density="compact"
       :label="$t('name')"
       v-model="model.name"
-      :error-messages="
-        !$v.name.$pending && $v.name.$error
-          ? [
-              $v.name.$invalid ? 'Name is required' : '',
-              $v.name.minLength.$invalid ? 'Name must be at least 3 characters' : ''
-            ].filter(Boolean)
-          : []
-      "
+      :error-messages="getErrorMessages('name')"
       @blur="$v.name.$touch()"
     />
     <v-text-field
       density="compact"
       :label="$t('phone')"
       v-model.trim="model.phone"
-      :error-messages="
-        !$v.phone.$pending && $v.phone.$error
-          ? [
-              $v.phone.$invalid ? 'Phone is required' : '',
-              $v.phone.numeric.$invalid ? 'Phone must be numeric' : '',
-              $v.phone.minLength.$invalid ? 'Phone must be at least 10 digits' : ''
-            ].filter(Boolean)
-          : []
-      "
+      :error-messages="getErrorMessages('phone')"
       @blur="$v.phone.$touch()"
     />
     <v-text-field density="compact" :label="$t('R.C')" v-model.trim="model.rc" />
-    <v-text-field density="compact" :label="$t('NIF')" v-model.trim="model.nif" />
-    <v-text-field density="compact" :label="$t('NIS')" v-model.trim="model.nis" />
-    <v-text-field density="compact" :label="$t('N.ART')" v-model.trim="model.art" />
-    <v-text-field density="compact" :label="$t('address')" v-model.trim="model.address" />
+    <v-text-field
+      density="compact"
+      :label="$t('NIF')"
+      v-model.trim="model.nif"
+      :error-messages="getErrorMessages('nif')"
+    />
+    <v-text-field
+      density="compact"
+      :label="$t('NIS')"
+      v-model.trim="model.nis"
+      :error-messages="getErrorMessages('nis')"
+    />
+    <v-text-field
+      density="compact"
+      :label="$t('N.ART')"
+      v-model.trim="model.art"
+      :error-messages="getErrorMessages('art')"
+    />
+    <v-text-field
+      density="compact"
+      :label="$t('address')"
+      v-model.trim="model.address"
+      :error-messages="getErrorMessages('address')"
+    />
     <v-text-field density="compact" :label="$t('activity')" v-model.trim="model.activity" />
 
     <!-- Pass the form and validation as slot props -->
@@ -75,4 +80,15 @@ const $v = useVuelidate(
   rules,
   toRef(() => model.value)
 )
+
+const getErrorMessages = (field: string) => {
+  const v = $v.value[field]
+  return !v.$pending && v.$error
+    ? [
+        v.required?.$invalid ? `${field} is required` : '',
+        v.numeric?.$invalid ? `${field} must be numeric` : '',
+        v.minLength?.$invalid ? `${field} must be at least 3 digits` : ''
+      ].filter(Boolean)
+    : []
+}
 </script>
