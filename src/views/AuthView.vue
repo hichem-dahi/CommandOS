@@ -123,4 +123,14 @@ watch(
     }
   }
 )
+
+watch(
+  () => updateProfileApi.isSuccess.value,
+  (isSuccess) => {
+    const full_name = updateProfileApi.data.value?.full_name
+    if (isSuccess && full_name) {
+      router.push({ name: 'organizations' })
+    }
+  }
+)
 </script>
