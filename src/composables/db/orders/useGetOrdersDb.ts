@@ -82,6 +82,7 @@ export function useOrdersQuery() {
                   'id', ol.id,
                   'order_id', ol.order_id,
                   'product_id', ol.product_id,
+                  'org_id', ol.org_id,
                   'qte', ol.qte,
                   'unit_price', ol.unit_price,
                   'unit_cost_price', ol.unit_cost_price,
@@ -101,7 +102,7 @@ export function useOrdersQuery() {
                       '_deleted', p._deleted
                     )
                     FROM public.products p
-                    LEFT JOIN public.products_qty pq ON pq.product_id = p.id
+                    LEFT JOIN public.products_qty pq ON pq.id = p.id
                     WHERE p.id = ol.product_id AND p._deleted = false
                     LIMIT 1
                 )

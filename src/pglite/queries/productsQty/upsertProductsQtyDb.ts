@@ -9,7 +9,7 @@ export async function upsertProductQtyDB(
 
   const query = `
     INSERT INTO public.products_qty (
-      product_id,
+      id,
       org_id,
       qty,
       updated_at,
@@ -28,7 +28,7 @@ export async function upsertProductQtyDB(
         )`
       )
       .join(', ')}
-    ON CONFLICT (product_id)
+    ON CONFLICT (id)
     DO UPDATE SET
       qty = EXCLUDED.qty,
       updated_at = EXCLUDED.updated_at,
@@ -38,10 +38,10 @@ export async function upsertProductQtyDB(
   `
 
   const values = productQty.flatMap((entry) => [
-    entry.product_id,
+    entry.id,
     entry.org_id, // Ensure org_id is included
     entry.qty,
-    entry.updated_at, // Default to current timestamp if not provided
+    entry.updated_at || '0001-01-01 00:00:00+00', // Default to current timestamp if not provided
     entry._deleted ?? false, // Default to false if not provided
     entry._synced ?? true // Default to true if not provided
   ])

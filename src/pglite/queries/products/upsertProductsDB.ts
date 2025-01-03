@@ -50,7 +50,7 @@ export async function upsertProductsDB(db: PGliteWithLive, products: TablesInser
     product.init_qty,
     product.org_id,
     product.bar_code || null, // Default to NULL if not provided
-    product.updated_at || null, // Default to NULL if not provided
+    product.updated_at || '0001-01-01 00:00:00+00', // Default to NULL if not provided
     product._synced ?? true, // Default to true if not provided
     product._deleted ?? false // Default to false if not provided
   ])

@@ -28,6 +28,8 @@ import { computed } from 'vue'
 import useVuelidate from '@vuelidate/core'
 import { mdiPlus } from '@mdi/js'
 
+import self from '@/composables/localStore/useSelf'
+
 import { useProductQuery } from '@/composables/db/products/useGetProductsDb'
 
 import OrderLineForm from '@/views/OrdersView/OrderLineForm.vue'
@@ -56,6 +58,7 @@ function addEmptyOrderline() {
     unit_price: 0,
     total_price: 0,
     order_id: '',
+    org_id: self.value.current_org?.id || '',
     unit_cost_price: null
   })
 }

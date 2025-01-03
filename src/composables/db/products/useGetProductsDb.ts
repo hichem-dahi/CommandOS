@@ -18,7 +18,7 @@ export function useProductQuery() {
       SELECT p.*, pq.qty 
       FROM public.products p
       LEFT JOIN public.products_qty pq 
-      ON p.id = pq.product_id 
+      ON p.id = pq.id 
       WHERE p.org_id = $1 
       ${product_id.value ? 'AND p.id = $2' : ''} 
       AND p._deleted = false;

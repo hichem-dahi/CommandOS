@@ -1,11 +1,13 @@
 import type { PGlite } from '@electric-sql/pglite'
 
 import m1 from './migrations/20241225203611_add_product_qty_table.sql?raw'
-import m2 from './migrations/add_sync.sql?raw'
+import m2 from './migrations/20250103130839_add_org_id.sql?raw'
+import m3 from './migrations/add_sync.sql?raw'
 
 const migrations = [
   { name: '01-create_tables', sql: m1 },
-  { name: '06-add_sync', sql: m2 }
+  { name: '02-add_org_id', sql: m2 },
+  { name: '03-add_sync', sql: m3 }
 ]
 
 export async function migrate(pg: PGlite) {

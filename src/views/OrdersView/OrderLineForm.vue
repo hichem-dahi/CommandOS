@@ -67,6 +67,8 @@ import useVuelidate from '@vuelidate/core'
 import { minValue, numeric, required } from '@vuelidate/validators'
 import { mdiDelete } from '@mdi/js'
 
+import self from '@/composables/localStore/useSelf'
+
 import type { Product } from '@/models/models'
 import type { TablesInsert } from '@/types/database.types'
 
@@ -75,6 +77,7 @@ const model = defineModel<TablesInsert<'order_lines'>>({
     order_id: '',
     product_id: '',
     qte: 0,
+    org_id: self.value.current_org?.id || '',
     unit_price: 0,
     total_price: 0,
     unit_cost_price: null as number | null // Optional property

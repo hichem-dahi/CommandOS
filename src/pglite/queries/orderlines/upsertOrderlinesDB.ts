@@ -11,6 +11,7 @@ export async function upsertOrderlinesDB(
       id,
       order_id,
       product_id,
+      org_id,
       qte,
       total_price,
       unit_cost_price,
@@ -22,16 +23,17 @@ export async function upsertOrderlinesDB(
     VALUES ${orderlines
       .map(
         (_, i) => `(
-          COALESCE($${i * 10 + 1}, gen_random_uuid()), 
-          $${i * 10 + 2}, 
-          $${i * 10 + 3}, 
-          $${i * 10 + 4}, 
-          $${i * 10 + 5}, 
-          $${i * 10 + 6}, 
-          $${i * 10 + 7}, 
-          $${i * 10 + 8}, 
-          COALESCE($${i * 10 + 9}, true),
-          COALESCE($${i * 10 + 10}, false)
+          COALESCE($${i * 11 + 1}, gen_random_uuid()), 
+          $${i * 11 + 2}, 
+          $${i * 11 + 3}, 
+          $${i * 11 + 4}, 
+          $${i * 11 + 5}, 
+          $${i * 11 + 6}, 
+          $${i * 11 + 7}, 
+          $${i * 11 + 8}, 
+          $${i * 11 + 9}, 
+          COALESCE($${i * 11 + 10}, true),
+          COALESCE($${i * 11 + 11}, false)
         )`
       )
       .join(', ')}
@@ -53,11 +55,12 @@ export async function upsertOrderlinesDB(
     orderline.id || null,
     orderline.order_id,
     orderline.product_id,
+    orderline.org_id,
     orderline.qte,
     orderline.total_price,
     orderline.unit_cost_price ?? null, // Default to null if not provided
     orderline.unit_price,
-    orderline.updated_at,
+    orderline.updated_at || '0001-01-01 00:00:00+00',
     orderline._synced ?? true, // Default to true if not provided
     orderline._deleted ?? false // Default to false if not provided
   ])

@@ -32,7 +32,8 @@ const defaultOrderForm = () => ({
 const defaultPaymentForm = () => ({
   date: new Date().toISOString(),
   amount: 0,
-  order_id: ''
+  order_id: '',
+  org_id: self.value.current_org?.id || ''
 })
 
 const defaultIndividualForm = () => ({
@@ -45,6 +46,7 @@ const defaultIndividualForm = () => ({
 const defaultOrderlineForm = () => ({
   id: undefined as string | undefined,
   order_id: '',
+  org_id: self.value.current_org?.id || '',
   product_id: '',
   qte: 0,
   total_price: 0,

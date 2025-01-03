@@ -124,7 +124,8 @@ function selectProduct(barcode: number) {
         unit_price: 0,
         unit_cost_price: 0,
         total_price: 0, // Total price
-        order_id: '' // Provide an order ID if needed
+        order_id: '', // Provide an order ID if needed
+        org_id: ''
       })
     }
   }
@@ -136,18 +137,19 @@ function submitSale() {
     cleanForm()
     form.status = OrderStatus.Confirmed
     form.document_type = DocumentType.Voucher
-    const org_id = self.value.current_org?.id
-    if (org_id) {
-      upsertOrdersDb.form.value = [{ ...form, org_id, _synced: false }]
-      upsertOrdersDb.execute()
-    }
+    const org_id = self.value.current_org?.id || ''
+    upsertOrdersDb.form.value = [{ ...form, org_id, _synced: false }]
+    upsertOrdersDb.execute()
   }
 }
 
 function insertPayment(payment: TablesInsert<'payments'>) {
+  const org_id = self.value.current_org?.id || ''
+
   upsertPaymentsDb.form.value = [
     {
       ...payment,
+      org_id,
       _synced: false
     }
   ]
@@ -192,11 +194,14 @@ watch(
 watch(
   () => upsertOrdersDb.isSuccess.value,
   (isSuccess) => {
-    const order_id = upsertOrdersDb.data.value?.[0].id
-    if (isSuccess && order_id) {
+    const order = upsertOrdersDb.data.value?.[0]
+    const org_id = order?.org_id
+    const order_id = order?.id
+    if (isSuccess && order_id && org_id) {
       upsertOrderlinesDb.form.value = orderlinesForm.value?.map((o) => ({
         ...o,
         order_id,
+        org_id,
         _synced: false
       }))
       upsertOrderlinesDb.execute()

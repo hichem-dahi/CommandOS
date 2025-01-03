@@ -10,18 +10,22 @@ export async function upsertPaymentsDB(db: PGliteWithLive, payments: TablesInser
       amount,
       date,
       order_id,
+      org_id,
+      updated_at,
       _synced,
       _deleted
     )
     VALUES ${payments
       .map(
         (_, i) => `(
-          COALESCE($${i * 6 + 1}, gen_random_uuid()), 
-          $${i * 6 + 2}, 
-          $${i * 6 + 3}, 
-          $${i * 6 + 4}, 
-          COALESCE($${i * 6 + 5}, true),
-          COALESCE($${i * 6 + 6}, false)
+          COALESCE($${i * 8 + 1}, gen_random_uuid()), 
+          $${i * 8 + 2}, 
+          $${i * 8 + 3}, 
+          $${i * 8 + 4}, 
+          $${i * 8 + 5}, 
+          $${i * 8 + 6}, 
+          COALESCE($${i * 8 + 7}, true),
+          COALESCE($${i * 8 + 8}, false)
         )`
       )
       .join(', ')}
@@ -30,6 +34,8 @@ export async function upsertPaymentsDB(db: PGliteWithLive, payments: TablesInser
       amount = EXCLUDED.amount,
       date = EXCLUDED.date,
       order_id = EXCLUDED.order_id,
+      org_id = EXCLUDED.org_id,
+      updated_at = EXCLUDED.updated_at,
       _synced = COALESCE(EXCLUDED._synced, true),
       _deleted = COALESCE(EXCLUDED._deleted, false)
       RETURNING *;
@@ -40,6 +46,8 @@ export async function upsertPaymentsDB(db: PGliteWithLive, payments: TablesInser
     payment.amount,
     payment.date,
     payment.order_id,
+    payment.org_id,
+    payment.updated_at || '0001-01-01 00:00:00+00',
     payment._synced ?? true, // Default `_synced` to true if not provided
     payment._deleted ?? false // Default `_deleted` to false if not provided
   ])

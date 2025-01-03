@@ -141,8 +141,9 @@ import { mdiDelete, mdiPlus } from '@mdi/js'
 import { useUpsertOrderlinesDb } from '@/composables/db/orderlines/useUpsertOrderlinesDb'
 import { useUpsertOrdersDb } from '@/composables/db/orders/useUpsertOrdersDb'
 import { useSoftDeleteOrderlinesDb } from '@/composables/db/orderlines/useSoftDeleteOrderlinesDb'
-
 import { useProductQuery } from '@/composables/db/products/useGetProductsDb'
+
+import self from '@/composables/localStore/useSelf'
 
 import OrderLineForm from '@/views/OrdersView/OrderLineForm.vue'
 import DeleteItemModal from './DeleteItemModal.vue'
@@ -152,11 +153,11 @@ import type { Validation } from '@vuelidate/core'
 import type { TablesInsert } from '@/types/database.types'
 import type { OrderData, OrderlineData } from '@/composables/db/orders/useGetOrdersDb'
 
+const { t } = useI18n()
+
 const props = defineProps<{ order: OrderData }>()
 
 const { q: productsQuery } = useProductQuery()
-
-const { t } = useI18n()
 
 const softDeleteOrderlinesDb = useSoftDeleteOrderlinesDb()
 const upsertOrderlinesDb = useUpsertOrderlinesDb()
@@ -166,14 +167,15 @@ const newlineDialog = ref(false)
 const deleteDialog = ref(false)
 const isSuccess = ref(false)
 const proxyOrder = ref(cloneDeep(props.order))
-const proxyOrderlines = ref(proxyOrder.value.order_lines)
+const proxyOrderlines = ref(proxyOrder.value.order_lines || [])
 const selectedOrderlineIndex = ref<number>()
 const newOrderline = ref({
   product_id: '',
+  order_id: '',
+  org_id: self.value.current_org?.id || '',
   qte: 0,
   unit_price: 0,
   total_price: 0,
-  order_id: '',
   unit_cost_price: null
 })
 
@@ -290,11 +292,11 @@ function addOrderline(form: TablesInsert<'order_lines'>, v: Validation) {
 }
 
 function cancelEdit() {
-  proxyOrderlines.value = cloneDeep(props.order.order_lines)
+  proxyOrderlines.value = cloneDeep(props.order.order_lines || [])
 }
 
 function confirmEdit() {
-  softDeleteOrderlinesDb.ids.value = props.order.order_lines?.map((ol) => ol.id)
+  softDeleteOrderlinesDb.ids.value = (props.order.order_lines || []).map((ol) => ol.id)
   softDeleteOrderlinesDb.execute()
 }
 
@@ -306,7 +308,6 @@ watch(
         rest.order_id = props.order.id
         return { ...rest, _synced: false, _deleted: false }
       })
-
       upsertOrderlinesDb.execute()
     }
   }

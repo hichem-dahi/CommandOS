@@ -236,6 +236,7 @@ function upsertOrderlines(form?: TablesInsert<'order_lines'>[]) {
   if (form)
     upsertOrderlinesDb.form.value = form.map((o) => ({
       ...o,
+      org_id: self.value.current_org?.id || '',
       order_id: upsertOrdersDb.data.value?.[0].id || '',
       _synced: false
     }))

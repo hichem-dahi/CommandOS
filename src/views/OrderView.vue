@@ -195,7 +195,9 @@ function upsertStockMovements(operation: 'deduct' | 'restore') {
 }
 
 function addPayment(payment: TablesInsert<'payments'>) {
-  upsertPaymentDb.form.value = [{ ...payment, _synced: false }]
+  const org_id = self.value.current_org?.id || ''
+
+  upsertPaymentDb.form.value = [{ ...payment, org_id, _synced: false }]
   upsertPaymentDb.execute()
 }
 

@@ -29,6 +29,8 @@
 <script setup lang="ts">
 import { computed, reactive } from 'vue'
 
+import self from '@/composables/localStore/useSelf'
+
 import type { TablesInsert } from '@/types/database.types'
 import type { OrderData } from '@/composables/db/orders/useGetOrdersDb'
 
@@ -40,6 +42,7 @@ const dialog = defineModel<boolean>('dialog')
 const form = reactive<TablesInsert<'payments'>>({
   amount: 0,
   date: new Date().toISOString(),
+  org_id: self.value.current_org?.id || '',
   order_id: props.order.id
 })
 

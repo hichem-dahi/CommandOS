@@ -11,7 +11,10 @@ BEGIN
         EXECUTE format('ALTER TABLE public.%I ADD COLUMN IF NOT EXISTS _synced BOOLEAN DEFAULT FALSE;', tbl.table_name);
 
         -- Add `updated_at` column with type TEXT if it doesn't exist
-        EXECUTE format('ALTER TABLE public.%I ADD COLUMN IF NOT EXISTS updated_at TEXT;', tbl.table_name);
+        EXECUTE format(
+            'ALTER TABLE public.%I ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT ''0001-01-01 00:00:00+00'';',
+            tbl.table_name
+        );
         
         -- Add `_deleted` column with default FALSE and NOT NULL constraint
         EXECUTE format(

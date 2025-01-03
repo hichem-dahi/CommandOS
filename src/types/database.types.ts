@@ -160,6 +160,7 @@ export type Database = {
           _synced: boolean
           id: string
           order_id: string
+          org_id: string
           product_id: string
           qte: number
           total_price: number
@@ -172,6 +173,7 @@ export type Database = {
           _synced?: boolean
           id?: string
           order_id: string
+          org_id: string
           product_id: string
           qte: number
           total_price: number
@@ -184,6 +186,7 @@ export type Database = {
           _synced?: boolean
           id?: string
           order_id?: string
+          org_id?: string
           product_id?: string
           qte?: number
           total_price?: number
@@ -204,6 +207,13 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_lines_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -374,6 +384,7 @@ export type Database = {
           date: string
           id: string
           order_id: string
+          org_id: string
           updated_at: string
         }
         Insert: {
@@ -383,6 +394,7 @@ export type Database = {
           date: string
           id?: string
           order_id: string
+          org_id: string
           updated_at?: string
         }
         Update: {
@@ -392,6 +404,7 @@ export type Database = {
           date?: string
           id?: string
           order_id?: string
+          org_id?: string
           updated_at?: string
         }
         Relationships: [
@@ -400,6 +413,13 @@ export type Database = {
             columns: ["order_id"]
             isOneToOne: false
             referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -458,40 +478,40 @@ export type Database = {
         Row: {
           _deleted: boolean
           _synced: boolean
+          id: string
           org_id: string
-          product_id: string
           qty: number
           updated_at: string
         }
         Insert: {
           _deleted?: boolean
           _synced?: boolean
+          id: string
           org_id: string
-          product_id: string
           qty: number
           updated_at?: string
         }
         Update: {
           _deleted?: boolean
           _synced?: boolean
+          id?: string
           org_id?: string
-          product_id?: string
           qty?: number
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "product_qty_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: true
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "products_qty_org_id_fkey"
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_qty_product_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "products"
             referencedColumns: ["id"]
           },
         ]

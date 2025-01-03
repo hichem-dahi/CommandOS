@@ -42,6 +42,7 @@ export interface OrderLine {
   id: string
   order_id: string
   product_id: string
+  org_id: string
   qte: number
   unit_price: number
   unit_cost_price: number | null

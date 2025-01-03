@@ -62,9 +62,10 @@ import { injectPGlite } from '@electric-sql/pglite-vue'
 import { useTitle } from '@vueuse/core'
 import { mdiAccount, mdiBell, mdiBellOff, mdiDotsVertical } from '@mdi/js'
 
-import { useSync } from '@/composables/sync/useSync'
+import { useSyncTables } from '@/composables/sync/useSyncTables'
 
 import { useInsertPushSubscriptionsApi } from '@/composables/api/pushSubscriptions/useInsertPushSubscriptionsApi'
+
 import { upsertOrganizationDB } from '@/pglite/queries/organizations/upsertOrganizationDB'
 
 import self from '@/composables/localStore/useSelf'
@@ -80,7 +81,7 @@ useTitle(title)
 
 const db = injectPGlite()
 
-useSync()
+useSyncTables()
 
 const insertPushSubscriptionsApi = useInsertPushSubscriptionsApi()
 
