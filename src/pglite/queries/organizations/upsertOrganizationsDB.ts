@@ -58,7 +58,7 @@ export async function upsertOrganizationsDB(
     org.address || null, // Optional field, default to null
     org.activity || null, // Optional field, default to null
     org.org_id || null, // Optional field, default to null
-    org.updated_at || null, // Optional field, default to null
+    org.updated_at || '0001-01-01 00:00:00+00', // Optional field, default to null
     org._synced ?? true, // Default to true if not provided
     org._deleted ?? false // Default to false if not provided
   ])

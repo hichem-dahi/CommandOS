@@ -36,7 +36,7 @@ export async function upsertIndividualsDB(
     org.name,
     org.phone,
     org.org_id || null,
-    org.updated_at || null, // Default to NULL if not provided
+    org.updated_at || '0001-01-01 00:00:00+00', // Default to NULL if not provided
     org._synced ?? true // Default to true if not provided
   ])
 

@@ -87,7 +87,7 @@ export async function upsertOrdersDB(db: PGliteWithLive, orders: TablesInsert<'o
     order.total_price,
     order.ttc || null,
     order.tva || null,
-    order.updated_at || null,
+    order.updated_at || '0001-01-01 00:00:00+00',
     order._synced ?? true,
     order._deleted ?? false
   ])

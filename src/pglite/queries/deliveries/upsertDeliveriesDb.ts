@@ -50,7 +50,7 @@ export async function upsertDeliveriesDB(
     delivery.license_plate,
     delivery.phone || null,
     delivery.org_id, // Including org_id before updated_at
-    delivery.updated_at || null, // Default to NULL if not provided
+    delivery.updated_at || '0001-01-01 00:00:00+00', // Default to NULL if not provided
     delivery._synced ?? true // Default to true if not provided
   ])
 

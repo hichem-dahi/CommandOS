@@ -52,7 +52,7 @@ export async function upsertStockMovementsDB(
     movement.date,
     movement.order_id || null, // Allow null for orders
     movement.org_id,
-    movement.updated_at,
+    movement.updated_at || '0001-01-01 00:00:00+00',
     movement._synced ?? true // Default to true if not provided
   ])
 

@@ -46,7 +46,7 @@ export async function upsertNotificationsDB(
     notification.org_id,
     notification.title,
     notification.body,
-    notification.updated_at || null, // Defaults to NOW() in query if NULL
+    notification.updated_at || '0001-01-01 00:00:00+00', // Defaults to NOW() in query if NULL
     notification._synced ?? true, // Defaults to TRUE if not provided
     notification._deleted ?? false // Default _deleted to false if not provided
   ])
