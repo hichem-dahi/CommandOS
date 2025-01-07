@@ -153,10 +153,13 @@ export async function useSyncTables(selectedTables: TablesName[] = [...TABLES]) 
     }
 
     const result = await db?.query<MaxDateResult>(
-      `SELECT MAX(updated_at) AS max_date FROM public.${tableName};`
+      `SELECT TO_CHAR(MAX(updated_at), 'YYYY-MM-DD"T"HH24:MI:SS.USOF') AS max_date 
+      FROM public.${tableName};`
     )
-    const date = result?.rows?.[0]?.max_date || ''
-    const { data: pulledData, error } = await pullTableData(tableName, { date })
+
+    const maxDate = result?.rows?.[0]?.max_date || '1970-01-01T00:00:00.000000+00:00'
+    // Adding explicit microseconds format
+    const { data: pulledData, error } = await pullTableData(tableName, { date: maxDate })
     if (pulledData && !error && db) {
       await upsertDataDB(db, pulledData, tableName)
     } else {
