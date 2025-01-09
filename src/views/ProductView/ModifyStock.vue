@@ -31,6 +31,7 @@ import { required } from '@vuelidate/validators'
 
 import { updateProductStock } from '@/composables/useStockManage'
 import { useUpsertStockMovementsDb } from '@/composables/db/stockMovements/useUpsertStockMovementsDb'
+import { useUpdateProductsQtyDb } from '@/composables/db/products/useUpdateProductsQtyDb'
 
 import type { Product } from '@/models/models'
 
@@ -39,6 +40,7 @@ const dialog = defineModel<boolean>()
 const props = defineProps<{ product: Product }>()
 
 const upsertStockMovementsDb = useUpsertStockMovementsDb()
+const updateProductsQtyDb = useUpdateProductsQtyDb()
 
 const notZero = (value: any) => value !== null && value !== undefined && value !== 0
 
@@ -56,13 +58,25 @@ function saveStock() {
   $v.value.$touch()
   if (!$v.value.$invalid && form.qte) {
     const stockMovements = updateProductStock(props.product.id, form.qte)
-    upsertStockMovementsDb.form.value = [stockMovements]
+    upsertStockMovementsDb.form.value = [{ ...stockMovements, _synced: false }]
     upsertStockMovementsDb.execute()
   }
 }
 
 watch(
   () => upsertStockMovementsDb.isSuccess.value,
+  (isSuccess) => {
+    if (isSuccess) {
+      updateProductsQtyDb.stockMovementsIds.value = upsertStockMovementsDb.data.value.map(
+        (s) => s.id
+      )
+      updateProductsQtyDb.execute()
+    }
+  }
+)
+
+watch(
+  () => updateProductsQtyDb.isSuccess.value,
   (isSuccess) => {
     if (isSuccess) {
       emits('success')
