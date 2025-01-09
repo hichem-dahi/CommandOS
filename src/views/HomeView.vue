@@ -1,14 +1,27 @@
 <template>
-  <v-responsive class="border rounded">
+  <v-responsive>
     <v-app>
-      <v-app-bar color="blue-grey-lighten-3" class="text-white" title="CommandOS">
+      <v-app-bar class="px-4" height="80" theme="light" color="blue-grey-lighten-5">
+        <template v-slot:title> <h4 style="color: #0d2c40">CommandOS</h4> </template>
+        <template v-slot:prepend>
+          <img class="" src="/logo-cropped.png" width="48" alt="logo" />
+        </template>
         <template v-slot:append>
+          <v-btn
+            :prepend-icon="mdiSync"
+            variant="plain"
+            :color="isSynced ? 'green' : 'orange'"
+            @click="syncTables"
+          >
+            {{ $t('sync') }}
+          </v-btn>
           <v-btn
             id="enable-notifications"
             variant="text"
             :icon="isPermissionGranted ? mdiBell : mdiBellOff"
             @click="requestNotificationPermission"
           />
+
           <v-menu :close-on-content-click="false">
             <template v-slot:activator="{ props }">
               <v-btn v-bind="props" variant="text" :icon="mdiDotsVertical" />
@@ -19,6 +32,9 @@
               </v-btn>
               <v-btn variant="text" :prepend-icon="mdiDotsVertical" :to="{ name: 'organizations' }">
                 {{ $t('organizations') }}
+              </v-btn>
+              <v-btn variant="text" @click="logout">
+                {{ $t('logout') }}
               </v-btn>
               <v-select
                 variant="underlined"
@@ -60,7 +76,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { injectPGlite } from '@electric-sql/pglite-vue'
 import { useTitle } from '@vueuse/core'
-import { mdiAccount, mdiBell, mdiBellOff, mdiDotsVertical } from '@mdi/js'
+import { mdiAccount, mdiBell, mdiBellOff, mdiDotsVertical, mdiSync } from '@mdi/js'
 
 import { useSyncTables } from '@/composables/sync/useSyncTables'
 
@@ -74,6 +90,7 @@ import MenuBar from './HomeView/MenuBar.vue'
 
 import { fetchVapidPublicKey } from '@/supabase/api/fetchVapidPublicKey'
 import { urlBase64ToUint8Array } from '@/helpers/helpers'
+import { supabase } from '@/supabase/supabase'
 
 const title = computed(() => `CommandOS: ${self.value.current_org?.name}`)
 
@@ -81,11 +98,12 @@ useTitle(title)
 
 const db = injectPGlite()
 
-useSyncTables()
+syncTables()
 
 const insertPushSubscriptionsApi = useInsertPushSubscriptionsApi()
 
 const deferredPrompt = ref()
+const isSynced = ref(false)
 const isPermissionGranted = ref(Notification.permission === 'granted')
 
 onMounted(async () => {
@@ -178,5 +196,14 @@ function saveSubscriptionToSupabase(
     auth: keys.auth
   }
   insertPushSubscriptionsApi.execute()
+}
+
+async function syncTables() {
+  await useSyncTables()
+  isSynced.value = true
+}
+
+async function logout() {
+  await supabase.auth.signOut()
 }
 </script>

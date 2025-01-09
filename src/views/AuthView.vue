@@ -1,9 +1,13 @@
 <template>
-  <div class="d-flex justify-center align-center pa-4" style="height: 100vh">
+  <div class="d-flex justify-center align-center" style="height: 100vh">
     <div
-      class="inner"
+      class="inner text-center pa-12"
       :class="{ 'w-33': $vuetify.display.lgAndUp, 'w-100': !$vuetify.display.lgAndUp }"
     >
+      <div class="w-100 text-center py-12">
+        <img class="mx-auto mb-4" src="/logo.png" height="200" alt="logo" />
+        <h2 style="color: #0d2c40">CommandOS</h2>
+      </div>
       <div v-if="step === Steps.SendEmail">
         <v-text-field label="email" v-model="form.email" />
         <v-btn block :loading="signUpApi.isLoading.value" @click="submitEmail">
@@ -19,7 +23,6 @@
       <div v-else-if="step === Steps.FillUserForm">
         <v-text-field :label="$t('name')" v-model="form.full_name" />
         <v-text-field :label="$t('phone')" v-model="form.phone" />
-
         <v-btn block :loading="updateProfileApi.isLoading.value" @click="submitProfile">
           {{ $t('confirm') }}
         </v-btn>
