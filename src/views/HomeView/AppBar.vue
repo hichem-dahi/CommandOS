@@ -1,0 +1,96 @@
+<template>
+  <v-app-bar class="px-4" height="80" theme="light" color="blue-grey-lighten-5">
+    <template v-slot:title>
+      <h4 v-if="!$vuetify.display.mobile" style="color: #0d2c40">CommandOS</h4>
+    </template>
+    <template v-slot:prepend>
+      <img class="" src="/logo-cropped.png" width="48" alt="logo" />
+    </template>
+    <template v-slot:append>
+      <v-btn
+        :prepend-icon="mdiSync"
+        variant="plain"
+        :color="isSynced ? 'green' : 'orange'"
+        @click="callSyncTables"
+        :loading="isSyncLoading"
+      >
+        {{ $t('sync') }}
+      </v-btn>
+      <v-btn
+        id="enable-notifications"
+        variant="text"
+        :icon="isPermissionGranted ? mdiBell : mdiBellOff"
+        @click="requestNotificationPermission"
+      />
+
+      <v-menu :close-on-content-click="false">
+        <template v-slot:activator="{ props }">
+          <v-btn v-bind="props" variant="text" :icon="mdiDotsVertical" />
+        </template>
+        <v-card class="d-flex flex-column align-start px-4 py-2">
+          <v-btn variant="text" :prepend-icon="mdiAccount" :to="{ name: 'self' }">
+            {{ $t('profile') }}
+          </v-btn>
+          <v-btn variant="text" :prepend-icon="mdiDotsVertical" :to="{ name: 'organizations' }">
+            {{ $t('organizations') }}
+          </v-btn>
+          <v-btn variant="text" @click="logout">
+            {{ $t('logout') }}
+          </v-btn>
+          <v-select
+            variant="underlined"
+            density="compact"
+            v-model="$i18n.locale"
+            :items="$i18n.availableLocales"
+            hide-details
+          />
+        </v-card>
+      </v-menu>
+    </template>
+  </v-app-bar>
+</template>
+<script setup lang="ts">
+import { onMounted, ref } from 'vue'
+import { supabase } from '@/supabase/supabase'
+import { mdiAccount, mdiBell, mdiBellOff, mdiDotsVertical, mdiSync } from '@mdi/js'
+
+import { syncTables } from '@/sync/syncTables'
+import { injectPGlite } from '@electric-sql/pglite-vue'
+import { useIsSynced } from '@/composables/sync/useIsSynced'
+
+const db = injectPGlite()
+
+const { isSynced } = useIsSynced()
+
+const isPermissionGranted = ref(Notification.permission === 'granted')
+
+const isSyncLoading = ref(false)
+
+async function callSyncTables() {
+  isSyncLoading.value = true
+  if (db) await syncTables(db)
+  isSyncLoading.value = false
+}
+
+async function logout() {
+  await supabase.auth.signOut()
+}
+
+onMounted(async () => {
+  await db?.waitReady
+  if (db) syncTables(db)
+
+  await requestNotificationPermission()
+})
+
+async function requestNotificationPermission() {
+  await Notification.requestPermission()
+
+  if (Notification.permission === 'denied') {
+    alert('You have denied notification permission. Please change it in your settings.')
+  } else {
+    console.log('Notification permission denied')
+  }
+  isPermissionGranted.value = Notification.permission === 'granted'
+}
+</script>
