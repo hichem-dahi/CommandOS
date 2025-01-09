@@ -20,6 +20,10 @@ export default defineConfig({
       srcDir: 'src',
       filename: 'service-worker.js',
       injectRegister: 'auto',
+      devOptions: {
+        enabled: true, // Enables SW in development for testing
+        type: 'module'
+      },
       injectManifest: {
         maximumFileSizeToCacheInBytes: 10 * 1024 ** 2,
         globPatterns: ['**/*.{js,css,html,wasm,data}']
