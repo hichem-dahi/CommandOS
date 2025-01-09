@@ -1,5 +1,11 @@
-import { createHandlerBoundToURL, precacheAndRoute } from 'workbox-precaching'
+import {
+  createHandlerBoundToURL,
+  precacheAndRoute,
+  cleanupOutdatedCaches
+} from 'workbox-precaching'
 import { NavigationRoute, registerRoute } from 'workbox-routing'
+
+cleanupOutdatedCaches()
 
 precacheAndRoute(self.__WB_MANIFEST)
 
