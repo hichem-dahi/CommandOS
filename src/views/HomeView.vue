@@ -2,7 +2,9 @@
   <v-responsive>
     <v-app>
       <v-app-bar class="px-4" height="80" theme="light" color="blue-grey-lighten-5">
-        <template v-slot:title> <h4 style="color: #0d2c40">CommandOS</h4> </template>
+        <template v-slot:title>
+          <h4 v-if="!$vuetify.display.mobile" style="color: #0d2c40">CommandOS</h4>
+        </template>
         <template v-slot:prepend>
           <img class="" src="/logo-cropped.png" width="48" alt="logo" />
         </template>
