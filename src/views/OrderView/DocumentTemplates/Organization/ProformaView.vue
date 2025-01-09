@@ -77,7 +77,6 @@ import { mdiChevronLeft } from '@mdi/js'
 import { format } from 'date-fns'
 import { useLiveQuery } from '@electric-sql/pglite-vue'
 
-import products from '@/composables/localStore/useProductStore'
 import self from '@/composables/localStore/useSelf'
 
 import { ConsumerType } from '@/models/models'
@@ -189,10 +188,9 @@ const organizationInfo = computed(() => {
 
 const items = computed(() =>
   proforma.value?.order_lines.map((o, i) => {
-    const product = getProduct(o.product_id)
     return {
       index: i,
-      product_name: product?.name,
+      product_name: o.product?.name,
       qte: o.qte,
       unit_price: o.unit_price,
       total_price: o.total_price
@@ -207,8 +205,6 @@ const totalItems = computed(() => {
     'T.T.C': round((proforma.value?.total_price! * 119) / 100, 0)
   }
 })
-
-const getProduct = (id: string) => products.value.find((e) => e.id == id)
 
 function print() {
   window.print()

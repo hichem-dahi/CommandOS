@@ -98,7 +98,6 @@ import { format } from 'date-fns'
 import { useLiveQuery } from '@electric-sql/pglite-vue'
 import { mdiChevronLeft } from '@mdi/js'
 
-import organizations from '@/composables/localStore/useOrganizationsStore'
 import self from '@/composables/localStore/useSelf'
 
 import { ConsumerType, DocumentType } from '@/models/models'
@@ -210,7 +209,7 @@ const selfInfo = computed(() => {
 })
 
 const consumer = computed(() => {
-  let organization = { ...organizations.value.find((c) => c.id === order.value?.org_id) }
+  let organization = { ...order.value?.client }
   let individual = order.value?.individual as any
 
   if (Object.keys(organization).length) {
