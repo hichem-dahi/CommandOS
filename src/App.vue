@@ -39,7 +39,6 @@ onMounted(async () => {
       getProfileApi.execute()
     } else {
       self.value.session = undefined
-
       router.push('/auth')
     }
   })
@@ -50,15 +49,6 @@ watch(
   (isSuccess) => {
     if (isSuccess && getProfileApi.data.value) {
       self.value.user = getProfileApi.data.value
-    }
-  }
-)
-
-watch(
-  () => getProfileApi.error.value,
-  async (error) => {
-    if (error) {
-      await supabase.auth.signOut()
     }
   }
 )
