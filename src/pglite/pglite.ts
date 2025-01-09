@@ -9,7 +9,6 @@ worker({
     const pg = await PGlite.create({
       dataDir: 'idb://myDb',
       relaxedDurability: true,
-      debug: 1,
       extensions: {
         live
       }
