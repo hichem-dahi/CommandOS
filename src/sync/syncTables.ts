@@ -1,7 +1,6 @@
-import { injectPGlite } from '@electric-sql/pglite-vue'
 import { supabase } from '@/supabase/supabase'
 
-import self from '../localStore/useSelf'
+import self from '../composables/localStore/useSelf'
 
 import type { Tables, TablesInsert } from '@/types/database.types'
 import type { PGliteWithLive } from '@electric-sql/pglite/live'
@@ -133,8 +132,7 @@ function buildUpsertQuery<T extends TablesName>(
   `
 }
 
-export async function useSyncTables(selectedTables: TablesName[] = [...TABLES]) {
-  const db = injectPGlite()
+export async function syncTables(db: PGliteWithLive, selectedTables: TablesName[] = [...TABLES]) {
   const results: Partial<Record<TablesName, QueryResponse<Tables<TablesName>>>> = {}
 
   for (const tableName of selectedTables) {
