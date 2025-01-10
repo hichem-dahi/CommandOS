@@ -1,5 +1,4 @@
-import type { TablesInsert } from '@/types/database.types'
-import type { Product } from '@/models/models'
+import type { Tables, TablesInsert } from '@/types/database.types'
 import type { PGliteWithLive } from '@electric-sql/pglite/live'
 
 export async function upsertProductsDB(db: PGliteWithLive, products: TablesInsert<'products'>[]) {
@@ -55,7 +54,7 @@ export async function upsertProductsDB(db: PGliteWithLive, products: TablesInser
     product._deleted ?? false // Default to false if not provided
   ])
   try {
-    return db.query<Product>(query, queryValues)
+    return db.query<Tables<'products'>>(query, queryValues)
   } catch (error) {
     throw new Error('Products not inserted/upserted successfully.')
   }

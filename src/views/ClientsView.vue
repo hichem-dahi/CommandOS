@@ -28,7 +28,6 @@ import self from '@/composables/localStore/useSelf'
 
 import ClientCard from '@/views/ClientsView/ClientCard.vue'
 
-import type { Individual, Organization } from '@/models/models'
 import type { Tables } from '@/types/database.types'
 
 const organizationsQuery = useLiveQuery<Tables<'organizations'>>(
@@ -41,6 +40,10 @@ const individualsQuery = useLiveQuery<Tables<'individuals'>>(
   [self.value.current_org?.id]
 )
 
-const individuals = computed(() => individualsQuery.rows.value as unknown as Individual[])
-const organizations = computed(() => organizationsQuery.rows.value as unknown as Organization[])
+const individuals = computed(
+  () => individualsQuery.rows.value as unknown as Tables<'individuals'>[]
+)
+const organizations = computed(
+  () => organizationsQuery.rows.value as unknown as Tables<'organizations'>[]
+)
 </script>

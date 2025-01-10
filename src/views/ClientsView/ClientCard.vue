@@ -71,9 +71,10 @@ import DeleteItemModal from '@/views/OrderView/DeleteItemModal.vue'
 import { useSoftDeleteIndividualsDb } from '@/composables/db/individuals/useSoftDeleteIndividualsDb'
 import { useSoftDeleteOrganizationsDB } from '@/composables/db/organizations/useSoftDeleteOrganizationsDb'
 
-import { ConsumerType, type Organization, type Individual } from '@/models/models'
+import { ConsumerType } from '@/models/models'
+import type { Tables } from '@/types/database.types'
 
-const client = defineModel<Organization | Individual>()
+const client = defineModel<Tables<'organizations'> | Tables<'individuals'>>()
 
 const softDeleteIndividualsDb = useSoftDeleteIndividualsDb()
 const softDeleteOrganizationsDb = useSoftDeleteOrganizationsDB()

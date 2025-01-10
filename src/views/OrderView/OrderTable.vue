@@ -148,9 +148,9 @@ import self from '@/composables/localStore/useSelf'
 import OrderLineForm from '@/views/OrdersView/OrderLineForm.vue'
 import DeleteItemModal from './DeleteItemModal.vue'
 
-import { ConsumerType, OrderStatus, type Product } from '@/models/models'
+import { ConsumerType, OrderStatus } from '@/models/models'
 import type { Validation } from '@vuelidate/core'
-import type { TablesInsert } from '@/types/database.types'
+import type { Tables, TablesInsert } from '@/types/database.types'
 import type { OrderData, OrderlineData } from '@/composables/db/orders/useGetOrdersDb'
 
 const { t } = useI18n()
@@ -255,7 +255,9 @@ const items = computed(
     }) || []
 )
 
-const products = computed(() => (productsQuery.rows?.value || []) as unknown as Product[])
+const products = computed(
+  () => (productsQuery.rows?.value || []) as unknown as Tables<'products'>[]
+)
 
 const availableProducts = computed(() =>
   products.value.filter((e) => {

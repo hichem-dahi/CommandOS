@@ -69,8 +69,8 @@ import { mdiDelete } from '@mdi/js'
 
 import self from '@/composables/localStore/useSelf'
 
-import type { Product } from '@/models/models'
 import type { TablesInsert } from '@/types/database.types'
+import type { ProductData } from '@/composables/db/products/useGetProductsDb'
 
 const model = defineModel<TablesInsert<'order_lines'>>({
   default: {
@@ -84,7 +84,11 @@ const model = defineModel<TablesInsert<'order_lines'>>({
   }
 })
 
-const props = defineProps<{ availableProducts?: Product[]; products: Product[]; isNew: boolean }>()
+const props = defineProps<{
+  availableProducts?: ProductData[]
+  products: ProductData[]
+  isNew: boolean
+}>()
 const emits = defineEmits(['add', 'delete'])
 
 const orderLineRules = {

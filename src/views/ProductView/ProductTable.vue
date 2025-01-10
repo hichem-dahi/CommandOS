@@ -60,10 +60,10 @@ import { mdiOpenInNew } from '@mdi/js'
 
 import ModifyStock from './ModifyStock.vue'
 
-import type { Product } from '@/models/models'
 import type { Tables } from '@/types/database.types'
+import type { ProductData } from '@/composables/db/products/useGetProductsDb'
 
-const props = defineProps<{ product: Product }>()
+const props = defineProps<{ product: ProductData }>()
 
 const { t } = useI18n()
 

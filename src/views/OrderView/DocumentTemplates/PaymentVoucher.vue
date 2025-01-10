@@ -93,11 +93,11 @@ import { mdiChevronLeft } from '@mdi/js'
 import self from '@/composables/localStore/useSelf'
 
 import type { OrderData, OrderLineData } from '@/composables/api/orders/useGetOrderApi'
-import type { Payment } from '@/models/models'
+import type { Tables } from '@/types/database.types'
 
 const route = useRoute()
 
-const paymentQuery = useLiveQuery<Payment>(
+const paymentQuery = useLiveQuery<Tables<'payments'>>(
   `
     SELECT 
       p.* 

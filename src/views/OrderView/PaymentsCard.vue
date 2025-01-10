@@ -29,10 +29,10 @@ import { computed } from 'vue'
 import { format } from 'date-fns'
 import { mdiOpenInNew } from '@mdi/js'
 
-import type { Payment } from '@/models/models'
 import type { OrderData } from '@/composables/db/orders/useGetOrdersDb'
+import type { Tables } from '@/types/database.types'
 
-const props = defineProps<{ order: OrderData; payments: Payment[] }>()
+const props = defineProps<{ order: OrderData; payments: Tables<'payments'>[] }>()
 
 const paymentItems = computed(() => {
   const lines: { id: string; subtitle: string }[] = []

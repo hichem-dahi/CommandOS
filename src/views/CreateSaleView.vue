@@ -72,12 +72,12 @@ import {
   resetOrderForm
 } from './OrdersView/CreateOrderStepper/state'
 
-import { DocumentType, OrderStatus, type Product } from '@/models/models'
-import type { TablesInsert } from '@/types/database.types'
+import { DocumentType, OrderStatus } from '@/models/models'
+import type { Tables, TablesInsert } from '@/types/database.types'
 
 const { q: productsQuery } = useProductQuery()
 
-const products = computed(() => (productsQuery.rows.value || []) as unknown as Product[])
+const products = computed(() => (productsQuery.rows.value || []) as unknown as Tables<'products'>[])
 
 const upsertOrdersDb = useUpsertOrdersDb()
 const upsertOrderlinesDb = useUpsertOrderlinesDb()

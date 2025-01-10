@@ -20,11 +20,9 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { mdiChevronLeft } from '@mdi/js'
 
-import { useProductQuery } from '@/composables/db/products/useGetProductsDb'
+import { useProductQuery, type ProductData } from '@/composables/db/products/useGetProductsDb'
 
 import ProductTable from './ProductView/ProductTable.vue'
-
-import type { Product } from '@/models/models'
 
 const route = useRoute()
 
@@ -32,7 +30,7 @@ const { q, product_id } = useProductQuery()
 
 product_id.value = route.params.product_id as string
 
-const product = computed(() => (q.rows.value?.[0] as unknown as Product) || undefined)
+const product = computed(() => (q.rows.value?.[0] as unknown as ProductData) || undefined)
 </script>
 
 <style>

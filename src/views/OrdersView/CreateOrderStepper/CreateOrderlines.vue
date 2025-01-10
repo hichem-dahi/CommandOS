@@ -34,15 +34,16 @@ import { useProductQuery } from '@/composables/db/products/useGetProductsDb'
 
 import OrderLineForm from '@/views/OrdersView/OrderLineForm.vue'
 
-import type { OrderLine, Product } from '@/models/models'
-
 import { orderlinesForm } from './state'
+import type { Tables } from '@/types/database.types'
 
 const $v = useVuelidate()
 
 const { q: productsQuery } = useProductQuery()
 
-const products = computed(() => (productsQuery?.rows.value || []) as unknown as Product[])
+const products = computed(
+  () => (productsQuery?.rows.value || []) as unknown as Tables<'products'>[]
+)
 
 const availableProducts = computed(() =>
   products.value.filter((e) => {
@@ -63,7 +64,7 @@ function addEmptyOrderline() {
   })
 }
 
-function deleteOrderline(orderLine: OrderLine) {
+function deleteOrderline(orderLine: Tables<'order_lines'>) {
   const index = orderlinesForm.value?.indexOf(orderLine) || 0
   orderlinesForm.value?.splice(index, 1)
 }

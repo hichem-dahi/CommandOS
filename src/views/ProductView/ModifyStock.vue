@@ -33,11 +33,11 @@ import { updateProductStock } from '@/composables/useStockManage'
 import { useUpsertStockMovementsDb } from '@/composables/db/stockMovements/useUpsertStockMovementsDb'
 import { useUpdateProductsQtyDb } from '@/composables/db/products/useUpdateProductsQtyDb'
 
-import type { Product } from '@/models/models'
+import type { ProductData } from '@/composables/db/products/useGetProductsDb'
 
 const emits = defineEmits(['success'])
 const dialog = defineModel<boolean>()
-const props = defineProps<{ product: Product }>()
+const props = defineProps<{ product: ProductData }>()
 
 const upsertStockMovementsDb = useUpsertStockMovementsDb()
 const updateProductsQtyDb = useUpdateProductsQtyDb()

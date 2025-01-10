@@ -40,8 +40,7 @@ import { useUpdateProfileApi } from '@/composables/api/auth/useUpdateProfileApi'
 import { useUpsertOrganizationsApi } from '@/composables/api/organizations/useUpsertOrganizationsApi'
 
 import ClientForm from './ClientsView/ClientForm.vue'
-
-import type { Organization } from '@/models/models'
+import type { Tables } from '@/types/database.types'
 
 const $v = useVuelidate()
 
@@ -84,7 +83,7 @@ function submitProfile() {
 function submitNewProfile() {
   $v.value.$touch()
   if (!$v.value.$invalid) {
-    upsertOrganizationsApi.form.value = [organizationForm] as Organization[]
+    upsertOrganizationsApi.form.value = [organizationForm] as Tables<'organizations'>[]
     upsertOrganizationsApi.execute()
   }
 }
