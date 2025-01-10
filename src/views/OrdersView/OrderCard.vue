@@ -17,7 +17,7 @@
         </div>
         <div>
           <span class="font-weight-bold">{{ $t('date') }}:</span>
-          <span>&nbsp;{{ format(order.date, 'yyyy-MM-dd') }}</span>
+          <span>&nbsp;{{ format(order.date, 'yyyy-MM-dd, p') }}</span>
         </div>
         <div>
           <span class="font-weight-bold">{{ $t('total') }}:</span>
