@@ -43,8 +43,8 @@ CREATE OR REPLACE FUNCTION "public"."increment_doc_index"() RETURNS "trigger"
     LANGUAGE "plpgsql"
     AS $$
 DECLARE
-  new_index integer;
-  exists_in_db boolean;
+  new_index INTEGER;
+  exists_in_db BOOLEAN;
 BEGIN
   -- Check if the ID exists in the database with status = 1
   SELECT EXISTS (
@@ -54,8 +54,10 @@ BEGIN
   )
   INTO exists_in_db;
 
-  -- Only proceed if the order status is being updated to 'Confirmed' (1), and it doesn't already exist in the database with status = 1
-  IF NEW.status = 1 AND NOT exists_in_db THEN
+  -- Only proceed if the order status is being updated to 'Confirmed' (1), 
+  -- it doesn't already exist in the database with status = 1, 
+  -- and NEW.doc_index is NULL
+  IF NEW.status = 1 AND NOT exists_in_db AND NEW.doc_index IS NULL THEN
     -- Fetch the current maximum index for the specified document type and organization
     SELECT COALESCE(MAX(doc_index), 0) + 1
     INTO new_index
@@ -64,7 +66,7 @@ BEGIN
       AND org_id = NEW.org_id;
 
     -- Set the new doc_index for the current order
-    NEW.doc_index = new_index;
+    NEW.doc_index := new_index;
   END IF;
 
   RETURN NEW;
@@ -72,16 +74,20 @@ END;
 $$;
 
 
+
 ALTER FUNCTION "public"."increment_doc_index"() OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."set_order_index"() RETURNS "trigger"
     LANGUAGE "plpgsql"
-    AS $$DECLARE
+    AS $$
+DECLARE
   max_index INTEGER;
 BEGIN
-   -- Ensure the trigger is only executed for inserts, not conflict resolution updates
-    IF NOT EXISTS (SELECT 1 FROM public.orders WHERE id = NEW.id) THEN
+  -- Ensure the trigger is only executed for inserts, not conflict resolution updates
+  IF NOT EXISTS (SELECT 1 FROM public.orders WHERE id = NEW.id) THEN
+    -- Only set the index if NEW.index is NULL
+    IF NEW.index IS NULL THEN
       -- Get the highest index for the organization (org_id)
       SELECT COALESCE(MAX(index), 0) INTO max_index
       FROM public.orders
@@ -90,8 +96,11 @@ BEGIN
       -- Set the NEW index value to be the max index + 1
       NEW.index := max_index + 1;
     END IF;
-   RETURN NEW;
-END;$$;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
 
 
 ALTER FUNCTION "public"."set_order_index"() OWNER TO "postgres";
