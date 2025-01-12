@@ -1,11 +1,14 @@
 <template>
   <v-app-bar class="px-4" theme="light" color="blue-grey-lighten-5">
-    <template v-slot:title>
-      <h4 v-if="!$vuetify.display.mobile" style="color: #0d2c40">CommandOS</h4>
-    </template>
     <template v-slot:prepend>
-      <img class="" src="/logo-cropped.png" width="48" alt="logo" />
+      <v-app-bar-nav-icon variant="text" @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
+      <img class="" src="/logo-cropped.png" width="32" alt="logo" />
     </template>
+
+    <template v-slot:title>
+      <h5 v-if="!$vuetify.display.mobile" style="color: #0d2c40">CommandOS</h5>
+    </template>
+
     <template v-slot:append>
       <v-btn
         :prepend-icon="mdiSync"
@@ -52,12 +55,14 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { supabase } from '@/supabase/supabase'
+import { injectPGlite } from '@electric-sql/pglite-vue'
 import { mdiAccount, mdiBell, mdiBellOff, mdiDotsVertical, mdiSync } from '@mdi/js'
 
-import { syncTables } from '@/sync/syncTables'
-import { injectPGlite } from '@electric-sql/pglite-vue'
 import { useIsSynced } from '@/composables/sync/useIsSynced'
-import MenuBar from './MenuBar.vue'
+
+import { syncTables } from '@/sync/syncTables'
+
+const drawer = defineModel<boolean>('drawer')
 
 const db = injectPGlite()
 

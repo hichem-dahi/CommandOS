@@ -1,13 +1,14 @@
 <template>
   <v-responsive>
     <v-app style="background: linear-gradient(135deg, #f9ffff, #fafafc)">
-      <AppBar />
+      <AppBar v-model:drawer="drawer" />
+
       <v-main>
+        <v-navigation-drawer v-model="drawer" expand-on-hover :rail="!$vuetify.display.mobile">
+          <MenuBar />
+        </v-navigation-drawer>
+
         <v-container>
-          <v-row class="my-6" align="center">
-            <MenuBar />
-          </v-row>
-          <v-divider class="my-5" />
           <router-view></router-view>
         </v-container>
       </v-main>
@@ -16,7 +17,7 @@
   </v-responsive>
 </template>
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { injectPGlite } from '@electric-sql/pglite-vue'
 import { useTitle } from '@vueuse/core'
 
@@ -40,6 +41,8 @@ useTitle(title)
 const db = injectPGlite()
 
 const insertPushSubscriptionsApi = useInsertPushSubscriptionsApi()
+
+const drawer = ref(true)
 
 onMounted(async () => {
   await db?.waitReady

@@ -1,31 +1,29 @@
 <template>
-  <v-tabs v-model="tab" align-tabs="center" slider-color="#f78166">
-    <v-tab
+  <v-list density="compact" nav>
+    <v-list-item
       v-for="item in menuItems"
       :key="item.route"
       :value="item.route"
       :prepend-icon="item.icon"
-      class="text-none"
+      :active="route.name === item.route"
+      active-color="#BF360C"
       @click="navigateTo(item.route)"
+      class="text-none"
     >
-      {{ item.label }}
-    </v-tab>
-  </v-tabs>
+      <v-list-item-title>{{ item.label }}</v-list-item-title>
+    </v-list-item>
+  </v-list>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-
 import { mdiAccountGroup, mdiHistory, mdiWarehouse, mdiReceiptText, mdiCart } from '@mdi/js'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
-
 const router = useRouter()
 const route = useRoute()
-
-const tab = ref(route.name)
 
 const menuItems = computed(() => [
   {
@@ -46,7 +44,6 @@ const menuItems = computed(() => [
     icon: mdiReceiptText,
     color: 'medium-emphasis'
   },
-
   {
     label: t('sales'),
     route: 'create-sale',
