@@ -4,7 +4,7 @@ import { injectPGlite } from '@electric-sql/pglite-vue'
 
 import { softDeleteOrdersDB } from '@/pglite/queries/orders/softDeleteOrdersDB'
 
-export function useSoftDeleteOrderlinesDb() {
+export function useSoftDeleteOrdersDb() {
   const db = injectPGlite()
 
   const ids = ref<string[]>()

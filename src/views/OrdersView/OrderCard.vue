@@ -61,7 +61,7 @@
     </template>
     <DeleteItemModal
       v-model="deleteDialog"
-      :isLoading="deleteOrdersDb.isLoading.value"
+      :isLoading="softDeleteOrdersDb.isLoading.value"
       @confirm="deleteOrder"
       @close="deleteDialog = false"
     />
@@ -73,9 +73,10 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { format } from 'date-fns'
 import { kebabCase } from 'lodash'
+
 import { mdiDotsVertical } from '@mdi/js'
 
-import { useDeleteOrdersDb } from '@/composables/db/orders/useDeleteOrderDb'
+import { useSoftDeleteOrdersDb } from '@/composables/db/orders/useSoftDeleteOrdersDb'
 
 import DeleteItemModal from '@/views/OrderView/DeleteItemModal.vue'
 
@@ -88,7 +89,7 @@ const props = defineProps<{
 
 const { t } = useI18n()
 
-const deleteOrdersDb = useDeleteOrdersDb()
+const softDeleteOrdersDb = useSoftDeleteOrdersDb()
 
 const deleteDialog = ref(false)
 
@@ -104,12 +105,12 @@ const isConfirmed = computed(() => props.order?.status === OrderStatus.Confirmed
 const isCancelled = computed(() => props.order?.status === OrderStatus.Cancelled)
 
 function deleteOrder() {
-  deleteOrdersDb.ids.value = [props.order.id]
-  deleteOrdersDb.execute()
+  softDeleteOrdersDb.ids.value = [props.order.id]
+  softDeleteOrdersDb.execute()
 }
 
 watch(
-  () => deleteOrdersDb.isSuccess.value,
+  () => softDeleteOrdersDb.isSuccess.value,
   (isSuccess) => {
     if (isSuccess) {
       deleteDialog.value = false
