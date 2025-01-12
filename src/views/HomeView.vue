@@ -1,10 +1,10 @@
 <template>
   <v-responsive>
-    <v-app>
+    <v-app style="background: linear-gradient(135deg, #f9ffff, #fafafc)">
       <AppBar />
       <v-main>
         <v-container>
-          <v-row class="my-10" align="center">
+          <v-row class="my-6" align="center">
             <MenuBar />
           </v-row>
           <v-divider class="my-5" />

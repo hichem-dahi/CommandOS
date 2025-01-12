@@ -1,5 +1,5 @@
 <template>
-  <v-app-bar class="px-4" height="80" theme="light" color="blue-grey-lighten-5">
+  <v-app-bar class="px-4" theme="light" color="blue-grey-lighten-5">
     <template v-slot:title>
       <h4 v-if="!$vuetify.display.mobile" style="color: #0d2c40">CommandOS</h4>
     </template>
@@ -57,6 +57,7 @@ import { mdiAccount, mdiBell, mdiBellOff, mdiDotsVertical, mdiSync } from '@mdi/
 import { syncTables } from '@/sync/syncTables'
 import { injectPGlite } from '@electric-sql/pglite-vue'
 import { useIsSynced } from '@/composables/sync/useIsSynced'
+import MenuBar from './MenuBar.vue'
 
 const db = injectPGlite()
 
