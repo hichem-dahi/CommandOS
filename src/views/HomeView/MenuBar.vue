@@ -1,14 +1,15 @@
 <template>
-  <v-tabs v-model="tab" :items="menuItems" align-tabs="center" slider-color="#0d2c40">
-    <template v-slot:tab="{ item }">
-      <v-tab
-        :prepend-icon="item.icon"
-        :text="item.label"
-        :value="item.route"
-        class="text-none"
-        @click="navigateTo(item.route)"
-      ></v-tab>
-    </template>
+  <v-tabs v-model="tab" align-tabs="center" slider-color="#f78166">
+    <v-tab
+      v-for="item in menuItems"
+      :key="item.route"
+      :value="item.route"
+      :prepend-icon="item.icon"
+      class="text-none"
+      @click="navigateTo(item.route)"
+    >
+      {{ item.label }}
+    </v-tab>
   </v-tabs>
 </template>
 
@@ -31,37 +32,32 @@ const menuItems = computed(() => [
     label: t('clients'),
     route: 'clients',
     icon: mdiAccountGroup,
-    color: 'medium-emphasis',
-    component: 'ClientsComponent'
+    color: 'medium-emphasis'
   },
   {
     label: t('warehouse'),
     route: 'warehouse',
     icon: mdiWarehouse,
-    color: 'medium-emphasis',
-    component: 'WarehouseComponent'
+    color: 'medium-emphasis'
   },
   {
     label: t('orders'),
     route: 'orders',
     icon: mdiReceiptText,
-    color: 'medium-emphasis',
-    component: 'OrdersComponent'
+    color: 'medium-emphasis'
   },
 
   {
     label: t('sales'),
     route: 'create-sale',
     icon: mdiCart,
-    color: 'medium-emphasis',
-    component: 'SalesComponent'
+    color: 'medium-emphasis'
   },
   {
     label: t('history'),
     route: 'orders-history',
     icon: mdiHistory,
-    color: 'medium-emphasis',
-    component: 'HistoryComponent'
+    color: 'medium-emphasis'
   }
 ])
 
