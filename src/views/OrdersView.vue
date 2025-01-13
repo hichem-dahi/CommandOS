@@ -33,6 +33,7 @@ import FilterBar from './OrdersView/FilterBar.vue'
 import type { Filters } from './OrdersView/models/models'
 
 const { q, isReady } = useOrdersQuery()
+
 isReady.value = true
 
 const filters = reactive<Filters>({

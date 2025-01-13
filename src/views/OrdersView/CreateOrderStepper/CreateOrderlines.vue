@@ -30,7 +30,7 @@ import { mdiPlus } from '@mdi/js'
 
 import self from '@/composables/localStore/useSelf'
 
-import { useProductQuery } from '@/composables/db/products/useGetProductsDb'
+import { useProductsQuery } from '@/composables/db/products/useGetProductsDb'
 
 import OrderLineForm from '@/views/OrdersView/OrderLineForm.vue'
 
@@ -39,7 +39,7 @@ import type { Tables } from '@/types/database.types'
 
 const $v = useVuelidate()
 
-const { q: productsQuery } = useProductQuery()
+const { q: productsQuery } = useProductsQuery()
 
 const products = computed(
   () => (productsQuery?.rows.value || []) as unknown as Tables<'products'>[]

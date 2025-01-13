@@ -141,7 +141,7 @@ import { mdiDelete, mdiPlus } from '@mdi/js'
 import { useUpsertOrderlinesDb } from '@/composables/db/orderlines/useUpsertOrderlinesDb'
 import { useUpsertOrdersDb } from '@/composables/db/orders/useUpsertOrdersDb'
 import { useSoftDeleteOrderlinesDb } from '@/composables/db/orderlines/useSoftDeleteOrderlinesDb'
-import { useProductQuery } from '@/composables/db/products/useGetProductsDb'
+import { useProductsQuery } from '@/composables/db/products/useGetProductsDb'
 
 import self from '@/composables/localStore/useSelf'
 
@@ -157,7 +157,7 @@ const { t } = useI18n()
 
 const props = defineProps<{ order: OrderData }>()
 
-const { q: productsQuery } = useProductQuery()
+const { q: productsQuery } = useProductsQuery()
 
 const softDeleteOrderlinesDb = useSoftDeleteOrderlinesDb()
 const upsertOrderlinesDb = useUpsertOrderlinesDb()

@@ -57,7 +57,7 @@ import { useUpsertStockMovementsDb } from '@/composables/db/stockMovements/useUp
 
 import { processStockMovementsForOrder } from '@/composables/useStockManage'
 
-import { useProductQuery } from '@/composables/db/products/useGetProductsDb'
+import { useProductsQuery } from '@/composables/db/products/useGetProductsDb'
 
 import self from '@/composables/localStore/useSelf'
 
@@ -75,7 +75,7 @@ import {
 import { DocumentType, OrderStatus } from '@/models/models'
 import type { Tables, TablesInsert } from '@/types/database.types'
 
-const { q: productsQuery } = useProductQuery()
+const { q: productsQuery } = useProductsQuery()
 
 const products = computed(() => (productsQuery.rows.value || []) as unknown as Tables<'products'>[])
 

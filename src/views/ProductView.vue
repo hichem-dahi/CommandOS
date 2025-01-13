@@ -20,13 +20,13 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { mdiChevronLeft } from '@mdi/js'
 
-import { useProductQuery, type ProductData } from '@/composables/db/products/useGetProductsDb'
+import { useProductsQuery, type ProductData } from '@/composables/db/products/useGetProductsDb'
 
 import ProductTable from './ProductView/ProductTable.vue'
 
 const route = useRoute()
 
-const { q, product_id } = useProductQuery()
+const { q, product_id } = useProductsQuery()
 
 product_id.value = route.params.product_id as string
 
