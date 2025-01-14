@@ -15,12 +15,12 @@
 import { ref, watchEffect } from 'vue'
 import JsBarcode from 'jsbarcode'
 
-import type { TablesUpdate } from '@/types/database.types'
+import type { TablesInsert } from '@/types/database.types'
 
 const dialog = defineModel<boolean>('dialog')
 const model = defineModel<number | null>('barcode')
 
-const props = defineProps<{ product: TablesUpdate<'products'> }>()
+const props = defineProps<{ product: TablesInsert<'products'> }>()
 
 const barcodeRef = ref<SVGSVGElement | null>(null)
 
