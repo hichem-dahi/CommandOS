@@ -9,6 +9,7 @@ const TABLES = [
   'deliveries',
   'individuals',
   'organizations',
+  'products_categories',
   'products',
   'orders',
   'order_lines',
@@ -89,7 +90,7 @@ async function pushTableData(
 
 export async function upsertDataDB(
   db: PGliteWithLive,
-  data: Tables<TablesName>[],
+  data: TablesInsert<TablesName>[],
   tableName: TablesName
 ) {
   if (!data?.length) {

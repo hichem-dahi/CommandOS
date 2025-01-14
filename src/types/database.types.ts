@@ -228,7 +228,7 @@ export type Database = {
           doc_index: number | null
           document_type: number
           id: string
-          index: number
+          index: number | null
           individual_id: string | null
           org_id: string
           paid_price: number
@@ -248,7 +248,7 @@ export type Database = {
           doc_index?: number | null
           document_type: number
           id?: string
-          index?: number
+          index?: number | null
           individual_id?: string | null
           org_id: string
           paid_price: number
@@ -268,7 +268,7 @@ export type Database = {
           doc_index?: number | null
           document_type?: number
           id?: string
-          index?: number
+          index?: number | null
           individual_id?: string | null
           org_id?: string
           paid_price?: number
@@ -429,6 +429,7 @@ export type Database = {
           _deleted: boolean
           _synced: boolean
           bar_code: number | null
+          category_id: string | null
           code: string
           cost_price: number | null
           id: string
@@ -442,6 +443,7 @@ export type Database = {
           _deleted?: boolean
           _synced?: boolean
           bar_code?: number | null
+          category_id?: string | null
           code: string
           cost_price?: number | null
           id?: string
@@ -455,6 +457,7 @@ export type Database = {
           _deleted?: boolean
           _synced?: boolean
           bar_code?: number | null
+          category_id?: string | null
           code?: string
           cost_price?: number | null
           id?: string
@@ -466,7 +469,49 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "products_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "products_categories"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "products_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products_categories: {
+        Row: {
+          _deleted: boolean
+          _synced: boolean
+          id: string
+          name: string
+          org_id: string
+          updated_at: string
+        }
+        Insert: {
+          _deleted?: boolean
+          _synced?: boolean
+          id?: string
+          name: string
+          org_id: string
+          updated_at?: string
+        }
+        Update: {
+          _deleted?: boolean
+          _synced?: boolean
+          id?: string
+          name?: string
+          org_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_categories_org_id_fkey"
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organizations"

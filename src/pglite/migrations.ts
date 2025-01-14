@@ -3,13 +3,15 @@ import type { PGlite } from '@electric-sql/pglite'
 import m1 from './migrations/20241225203611_add_product_qty_table.sql?raw'
 import m2 from './migrations/20250103130839_add_org_id.sql?raw'
 import m3 from './migrations/20250112131109_remove_order_index.sql?raw'
-import m4 from './migrations/add_sync.sql?raw'
+import m4 from './migrations/20250113190416_add_products_categories_table.sql?raw'
+import m5 from './migrations/add_sync.sql?raw'
 
 const migrations = [
   { name: '01-create_tables', sql: m1 },
   { name: '02-add_org_id', sql: m2 },
   { name: '03-remove_order_index', sql: m3 },
-  { name: '04-add_sync', sql: m4 }
+  { name: '04-add_category_field_products', sql: m4 },
+  { name: '05-add_sync', sql: m5 }
 ]
 
 export async function migrate(pg: PGlite) {
