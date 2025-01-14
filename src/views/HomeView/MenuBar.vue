@@ -10,7 +10,7 @@
       @click="navigateTo(item.route)"
       class="text-none"
     >
-      <v-list-item-title>{{ item.label }}</v-list-item-title>
+      <v-list-item-title class="text-medium-emphasis">{{ item.label }}</v-list-item-title>
     </v-list-item>
   </v-list>
 </template>
