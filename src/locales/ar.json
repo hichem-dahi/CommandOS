@@ -11,6 +11,7 @@
   "name": "الاسم",
   "quantity": "الكمية",
   "price": "السعر",
+  "sell-price": "سعر البيع",
   "cost-price": "سعر الشراء",
   "add": "إضافة",
   "Code is required": "الكود مطلوب",

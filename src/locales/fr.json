@@ -11,6 +11,7 @@
   "name": "Nom",
   "quantity": "Quantité",
   "price": "Prix",
+  "sell-price": "Prix de vente",
   "cost-price": "Prix d'achat",
   "add": "Ajouter",
   "Code is required": "Le code est requis",
