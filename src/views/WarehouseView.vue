@@ -97,6 +97,7 @@ async function submitForm() {
 
     const category_id = upsertDataDb.data.value?.[0].id || categoryForm.value.id
     await upsertProductsDb({ ...form.value, org_id, category_id })
+    dialog.value = false
   }
 }
 
@@ -107,13 +108,4 @@ async function upsertProductsCategoriesDb(categoryData: TablesInsert<'products_c
 async function upsertProductsDb(productData: TablesInsert<'products'>) {
   await upsertDataDb.execute([{ ...productData, _synced: false }], 'products')
 }
-
-watch(
-  () => upsertDataDb.isSuccess.value,
-  (isSuccess) => {
-    if (isSuccess) {
-      dialog.value = false
-    }
-  }
-)
 </script>
