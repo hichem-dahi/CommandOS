@@ -104,7 +104,7 @@ const printBarcodeAsImage = async (svg: SVGElement) => {
         <title>Print Image</title>
         <style>
          @page {
-            size: ${dims.value.height} ${dims.value.width}; /* Set the page size to 40mm by 200mm */
+            size: ${dims.value.height}mm ${dims.value.width}mm; /* Set the page size to 40mm by 200mm */
             margin: 0; /* Set margins to 0 to fully utilize the page size */
           }
           body {
