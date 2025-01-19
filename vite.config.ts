@@ -28,7 +28,7 @@ export default defineConfig({
         maximumFileSizeToCacheInBytes: 10 * 1024 ** 2,
         globPatterns: ['**/*.{js,css,html,wasm,data}']
       },
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
+      includeAssets: ['favicon.ico', 'logo.png', 'logo-cropped.png'],
       manifest: {
         theme_color: '#ffffff',
         background_color: '#2EC6FE',
