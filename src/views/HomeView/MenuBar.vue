@@ -6,7 +6,7 @@
       :value="item.route"
       :prepend-icon="item.icon"
       :active="route.name === item.route"
-      active-color="#BF360C"
+      color="#BF360C"
       @click="navigateTo(item.route)"
       class="text-none"
     >

@@ -1,12 +1,8 @@
 <template>
-  <v-app-bar class="px-4" theme="light" color="blue-grey-lighten-5">
+  <v-app-bar theme="light" color="blue-grey-lighten-5">
     <template v-slot:prepend>
       <v-app-bar-nav-icon variant="text" @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
-      <img class="" src="/logo-cropped.png" width="32" alt="logo" />
-    </template>
-
-    <template v-slot:title>
-      <h5 v-if="!$vuetify.display.mobile" style="color: #0d2c40">CommandOS</h5>
+      <img src="/logo-cropped.png" width="48" alt="logo" />
     </template>
 
     <template v-slot:append>
@@ -74,7 +70,7 @@ const isSyncLoading = ref(false)
 
 async function callSyncTables() {
   isSyncLoading.value = true
-  if (db) await syncTables(db)
+  //if (db) await syncTables(db)
   isSyncLoading.value = false
 }
 

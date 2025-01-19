@@ -78,5 +78,7 @@
   "submit": "إرسال",
   "profile": "الملف الشخصي",
   "organizations": "المنظمات",
-  "pick-organization": "اختر منظمة"
+  "pick-organization": "اختر منظمة",
+  "barcode": "الباركود",
+  "category": "الفئة"
 }

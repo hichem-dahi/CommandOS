@@ -141,7 +141,7 @@ import { mdiDelete, mdiPlus } from '@mdi/js'
 import { useUpsertOrderlinesDb } from '@/composables/db/orderlines/useUpsertOrderlinesDb'
 import { useUpsertOrdersDb } from '@/composables/db/orders/useUpsertOrdersDb'
 import { useSoftDeleteOrderlinesDb } from '@/composables/db/orderlines/useSoftDeleteOrderlinesDb'
-import { useProductsQuery } from '@/composables/db/products/useGetProductsDb'
+import { useProductsQuery, type ProductData } from '@/composables/db/products/useGetProductsDb'
 
 import self from '@/composables/localStore/useSelf'
 
@@ -255,9 +255,7 @@ const items = computed(
     }) || []
 )
 
-const products = computed(
-  () => (productsQuery.rows?.value || []) as unknown as Tables<'products'>[]
-)
+const products = computed(() => (productsQuery.rows?.value || []) as unknown as ProductData[])
 
 const availableProducts = computed(() =>
   products.value.filter((e) => {

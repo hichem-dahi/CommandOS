@@ -1,12 +1,12 @@
 <template>
   <div class="d-flex align-start flex-wrap ga-8 pa-4">
-    <v-btn class="my-5" variant="tonal" size="small" :append-icon="mdiPlus" @click="dialog = true">
+    <v-btn class="my-5" variant="tonal" size="small" :append-icon="mdiPlus" @click="toggleDialog">
       {{ $t('add-product') }}
     </v-btn>
     <v-dialog max-width="400px" v-model="dialog">
-      <ProductForm v-model="form">
+      <ProductForm v-model:product="form" v-model:category="categoryForm">
         <template v-slot:actions>
-          <v-btn block :loading="upsertProductsDb.isLoading.value" @click="submitForm()">
+          <v-btn block :loading="upsertDataDb.isLoading.value" @click="submitForm">
             {{ $t('add') }}
           </v-btn>
         </template>
@@ -17,8 +17,8 @@
   </div>
   <v-container>
     <v-row>
-      <v-col v-for="(_, i) in filteredProducts" :key="i" sm="12" md="3">
-        <ProductCard v-model="filteredProducts[i]" />
+      <v-col v-for="product in filteredProducts" :key="product.id" sm="12" md="3">
+        <ProductCard :product="product" />
       </v-col>
     </v-row>
   </v-container>
@@ -31,20 +31,22 @@ import { mdiPlus } from '@mdi/js'
 
 import self from '@/composables/localStore/useSelf'
 
-import { useUpsertProductsDb } from '@/composables/db/products/useUpsertProductsDb'
-import { useProductQuery } from '@/composables/db/products/useGetProductsDb'
+import { useProductsQuery, type ProductData } from '@/composables/db/products/useGetProductsDb'
+import { useUpsertDataDb } from '@/composables/db/useUpsertDataDb'
 
 import ProductForm from '@/views/WarehouseView/ProductForm.vue'
 import ProductCard from '@/views/WarehouseView/ProductCard.vue'
 import FilterBar from './WarehouseView/FilterBar.vue'
 
+import type { TablesInsert } from '@/types/database.types'
+
 const $v = useVuelidate()
 
-const { q: productsQuery } = useProductQuery()
+const { q: productsQuery } = useProductsQuery()
 
-const products = computed(() => productsQuery.rows.value || [])
+const products = computed(() => (productsQuery.rows.value || []) as unknown as ProductData[])
 
-const upsertProductsDb = useUpsertProductsDb()
+const upsertDataDb = useUpsertDataDb()
 
 const dialog = ref(false)
 
@@ -56,6 +58,7 @@ const filters = reactive({
 const form = ref({
   code: '',
   name: '',
+  category_id: '',
   org_id: '',
   init_qty: 0,
   price: 0,
@@ -63,33 +66,50 @@ const form = ref({
   bar_code: null as number | null
 })
 
+const categoryForm = ref<TablesInsert<'products_categories'>>({
+  name: '',
+  org_id: self.value.current_org?.id || ''
+})
+
 const filteredProducts = computed(() =>
-  products.value?.filter((o) => {
-    const name = filters.name ? o.name.includes(filters.name) : true
-    const barcode = filters.barcode && o.bar_code ? o.bar_code === filters.barcode : true
-    return name && barcode
+  products.value?.filter((product) => {
+    const matchesName = filters.name ? product.name.includes(filters.name) : true
+    const matchesBarcode =
+      filters.barcode && product.bar_code ? product.bar_code === filters.barcode : true
+    return matchesName && matchesBarcode
   })
 )
+
+function toggleDialog() {
+  dialog.value = !dialog.value
+}
 
 async function submitForm() {
   $v.value.$touch()
   if (!$v.value.$invalid) {
-    const org_id = self.value.current_org?.id
-    if (org_id) {
-      upsertProductsDb.form.value = [
-        {
-          ...form.value,
-          org_id,
-          _synced: false
-        }
-      ]
-      upsertProductsDb.execute()
-    }
+    const org_id = self.value.current_org?.id || ''
+
+    await upsertProductsCategoriesDb({
+      ...categoryForm.value,
+      org_id,
+      _synced: false
+    })
+
+    const category_id = upsertDataDb.data.value?.[0].id || categoryForm.value.id
+    await upsertProductsDb({ ...form.value, org_id, category_id })
   }
 }
 
+async function upsertProductsCategoriesDb(categoryData: TablesInsert<'products_categories'>) {
+  await upsertDataDb.execute([{ ...categoryData, _synced: false }], 'products_categories')
+}
+
+async function upsertProductsDb(productData: TablesInsert<'products'>) {
+  await upsertDataDb.execute([{ ...productData, _synced: false }], 'products')
+}
+
 watch(
-  () => upsertProductsDb.isSuccess.value,
+  () => upsertDataDb.isSuccess.value,
   (isSuccess) => {
     if (isSuccess) {
       dialog.value = false

@@ -5,8 +5,7 @@
       :class="{ 'w-33': $vuetify.display.lgAndUp, 'w-100': !$vuetify.display.lgAndUp }"
     >
       <div class="w-100 text-center py-12">
-        <img class="mx-auto mb-4" src="/logo.png" height="200" alt="logo" />
-        <h2 style="color: #0d2c40">CommandOS</h2>
+        <img class="mx-auto mb-4" src="/logo-cropped.png" height="80" alt="logo" />
       </div>
       <div v-if="step === Steps.SendEmail">
         <v-text-field label="email" v-model="form.email" />

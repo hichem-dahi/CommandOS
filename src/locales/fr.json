@@ -78,5 +78,7 @@
   "submit": "Soumettre",
   "profile": "Profil",
   "organizations": "Organisations",
-  "pick-organization": "Choisir une organisation"
+  "pick-organization": "Choisir une organisation",
+  "barcode": "code-barres",
+  "category": "catégorie"
 }

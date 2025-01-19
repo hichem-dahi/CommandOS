@@ -12,7 +12,11 @@ export function useGetProductsCategoriesDb() {
       SELECT *
       FROM public.products_categories
       WHERE org_id = $1 
-      AND _deleted = false;
+      AND _deleted = false 
+      AND id IN (
+      SELECT DISTINCT category_id
+        FROM products
+      );
     `
   )
 

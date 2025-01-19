@@ -18,7 +18,7 @@ import JsBarcode from 'jsbarcode'
 import type { TablesInsert } from '@/types/database.types'
 
 const dialog = defineModel<boolean>('dialog')
-const model = defineModel<number | null>('barcode')
+const model = defineModel<number | string | null>('barcode')
 
 const props = defineProps<{ product: TablesInsert<'products'> }>()
 
