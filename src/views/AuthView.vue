@@ -8,7 +8,7 @@
         <img class="mx-auto mb-4" src="/logo-cropped.png" height="80" alt="logo" />
       </div>
       <div v-if="step === Steps.SendEmail">
-        <v-text-field label="email" v-model="form.email" />
+        <v-text-field label="email" v-model.trim="form.email" />
         <v-btn block :loading="signUpApi.isLoading.value" @click="submitEmail">
           {{ $t('confirm') }}
         </v-btn>
@@ -74,7 +74,7 @@ onMounted(() => {
 })
 
 function submitEmail() {
-  signUpApi.params.email = form.email
+  signUpApi.params.email = form.email.toLowerCase()
   signUpApi.execute()
 }
 
