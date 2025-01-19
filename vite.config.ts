@@ -30,32 +30,26 @@ export default defineConfig({
       },
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
       manifest: {
-        start_url: '/',
-        name: 'CommandOS',
-        short_name: 'COS',
-        description: 'CommandOS description',
         theme_color: '#ffffff',
+        background_color: '#2EC6FE',
         icons: [
           {
-            src: 'pwa-192x192.png',
-            sizes: '192x192',
+            purpose: 'maskable',
+            sizes: '512x512',
+            src: 'icon512_maskable.png',
             type: 'image/png'
           },
           {
-            src: 'pwa-512x512.png',
+            purpose: 'any',
             sizes: '512x512',
+            src: 'icon512_rounded.png',
             type: 'image/png'
           }
         ],
-        screenshots: [
-          {
-            src: 'pwa-512x512.png',
-            sizes: '640x320',
-            type: 'image/png',
-            form_factor: 'wide',
-            label: 'Wonder Widgets'
-          }
-        ]
+        orientation: 'any',
+        display: 'standalone',
+        name: 'CommandOS',
+        short_name: 'CO'
       }
     })
   ],
