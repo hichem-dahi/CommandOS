@@ -6,6 +6,11 @@
         <div class="product-title">{{ product.name }}</div>
         <svg ref="barcodeRef"></svg>
       </div>
+      <div class="pa-2">
+        <v-text-field density="compact" suffix="mm" label="height" v-model="dims.height" />
+        <v-text-field density="compact" suffix="mm" label="width" v-model="dims.width" />
+        <v-checkbox density="compact" label="reverse" v-model="isReverse"></v-checkbox>
+      </div>
       <v-btn @click="printBarcode">{{ $t('print') }}</v-btn>
     </v-card>
   </v-dialog>
@@ -23,6 +28,13 @@ const model = defineModel<number | string | null>('barcode')
 const props = defineProps<{ product: TablesInsert<'products'> }>()
 
 const barcodeRef = ref<SVGSVGElement | null>(null)
+
+const dims = ref({
+  height: 20,
+  width: 40
+})
+
+const isReverse = ref(false)
 
 const printBarcode = async () => {
   if (barcodeRef.value) {
@@ -91,8 +103,9 @@ const printBarcodeAsImage = async (svg: SVGElement) => {
       <head>
         <title>Print Image</title>
         <style>
-          @page {
-            margin: 10mm;
+         @page {
+            size: ${dims.value.height} ${dims.value.width}; /* Set the page size to 40mm by 200mm */
+            margin: 0; /* Set margins to 0 to fully utilize the page size */
           }
           body {
             margin: 0;
@@ -107,8 +120,14 @@ const printBarcodeAsImage = async (svg: SVGElement) => {
             width: 100%;
             height: 100%;
             object-fit: contain;
-            transform: rotate(90deg); /* Rotate the image */
+           ${
+             isReverse.value
+               ? `
+            transform: rotate(90deg); /* Rotate the image if isReverse is true */
             transform-origin: center; /* Set rotation pivot point */
+          `
+               : ''
+           }
           }
         </style>
       </head>
