@@ -7,9 +7,26 @@
         <svg ref="barcodeRef"></svg>
       </div>
       <div class="pa-2">
-        <v-text-field density="compact" suffix="mm" label="height" v-model="dims.height" />
-        <v-text-field density="compact" suffix="mm" label="width" v-model="dims.width" />
-        <v-checkbox density="compact" label="reverse" v-model="isReverse"></v-checkbox>
+        <v-checkbox hide-details density="compact" label="dimensions" v-model="isModifyDims" />
+        <div class="dims-input d-flex ga-5 pa-2" v-if="isModifyDims">
+          <v-text-field
+            hide-details
+            density="compact"
+            type="number"
+            suffix="mm"
+            :label="$t('height')"
+            v-model="dims.height"
+          />
+          <v-text-field
+            hide-details
+            density="compact"
+            type="number"
+            suffix="mm"
+            :label="$t('width')"
+            v-model="dims.width"
+          />
+        </div>
+        <v-checkbox hide-details density="compact" :label="$t('reverse')" v-model="isReverse" />
       </div>
       <v-btn @click="printBarcode">{{ $t('print') }}</v-btn>
     </v-card>
@@ -35,6 +52,7 @@ const dims = ref({
 })
 
 const isReverse = ref(false)
+const isModifyDims = ref(false)
 
 const printBarcode = async () => {
   if (barcodeRef.value) {
@@ -43,6 +61,7 @@ const printBarcode = async () => {
     console.error('Barcode element not found!')
   }
 }
+
 watchEffect(() => {
   if (barcodeRef.value) {
     if (model.value) {
@@ -104,7 +123,7 @@ const printBarcodeAsImage = async (svg: SVGElement) => {
         <title>Print Image</title>
         <style>
          @page {
-            size: ${dims.value.width}mm ${dims.value.height}mm; /* Set the page size to 40mm by 20mm */
+           ${isModifyDims.value ? `size: ${dims.value.width}mm ${dims.value.height}mm;` : ''}  /* Set the page size to 40mm by 20mm */
             margin: 0; /* Set margins to 0 to fully utilize the page size */
           }
           body {
@@ -143,6 +162,7 @@ const printBarcodeAsImage = async (svg: SVGElement) => {
 
   printImage.onload = () => {
     printWindow.print()
+    printWindow.close()
   }
 
   // Optional: Close the print window after printing (user experience consideration)
