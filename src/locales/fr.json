@@ -72,13 +72,16 @@
   "proformas": "Préformas",
   "DA": "DA",
   "document-type": "Type de document",
-  "save": "sauvegarder",
+  "save": "Sauvegarder",
   "sales": "Ventes",
   "scan": "Scanner",
   "submit": "Soumettre",
   "profile": "Profil",
   "organizations": "Organisations",
   "pick-organization": "Choisir une organisation",
-  "barcode": "code-barres",
-  "category": "catégorie"
+  "barcode": "Code-barres",
+  "category": "Catégorie",
+  "height": "Hauteur",
+  "width": "Largeur",
+  "reverse": "Inverser"
 }

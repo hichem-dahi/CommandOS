@@ -80,5 +80,8 @@
   "organizations": "المنظمات",
   "pick-organization": "اختر منظمة",
   "barcode": "الباركود",
-  "category": "الفئة"
+  "category": "الفئة",
+  "height": "الارتفاع",
+  "width": "العرض",
+  "reverse": "عكس"
 }
