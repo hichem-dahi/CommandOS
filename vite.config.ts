@@ -49,7 +49,7 @@ export default defineConfig({
         orientation: 'any',
         display: 'standalone',
         name: 'CommandOS',
-        short_name: 'CO'
+        short_name: 'CommandOS'
       }
     })
   ],
