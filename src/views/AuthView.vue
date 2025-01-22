@@ -2,36 +2,80 @@
   <div class="d-flex justify-center align-center" style="height: 100vh">
     <div
       class="inner text-center pa-12"
-      :class="{ 'w-33': $vuetify.display.lgAndUp, 'w-100': !$vuetify.display.lgAndUp }"
+      :class="{ 'w-50': $vuetify.display.lgAndUp, 'w-100': !$vuetify.display.lgAndUp }"
     >
       <div class="w-100 text-center py-12">
-        <img class="mx-auto mb-4" src="/logo-cropped.png" height="80" alt="logo" />
+        <img class="mx-auto mb-4" src="/logo-aes-cropped.png" height="60" alt="logo" />
       </div>
-      <div v-if="step === Steps.SendEmail">
-        <v-text-field label="email" v-model.trim="form.email" />
-        <v-btn block :loading="signUpApi.isLoading.value" @click="submitEmail">
-          {{ $t('confirm') }}
-        </v-btn>
-      </div>
-      <div v-else-if="step === Steps.SendCode">
-        <v-otp-input label="code" v-model="form.code" />
-        <v-btn block :loading="veryifyOtpApi.isLoading.value" @click="submitCode">
-          {{ $t('confirm') }}
-        </v-btn>
-      </div>
-      <div v-else-if="step === Steps.FillUserForm">
-        <v-text-field :label="$t('name')" v-model="form.full_name" />
-        <v-text-field :label="$t('phone')" v-model="form.phone" />
-        <v-btn block :loading="updateProfileApi.isLoading.value" @click="submitProfile">
-          {{ $t('confirm') }}
-        </v-btn>
-      </div>
+      <v-card class="py-8 px-6 text-center mx-auto ma-4" elevation="2" max-width="400" width="100%">
+        <div v-if="step === Steps.SendEmail">
+          <h3 class="text-h6 mb-4">{{ $t('Submit Your Email') }}</h3>
+
+          <v-text-field
+            :placeholder="$t('email')"
+            :prepend-inner-icon="mdiEmailOutline"
+            variant="outlined"
+            v-model="form.email"
+            :error-messages="isError ? signUpApi.state.value?.error?.message : null"
+          ></v-text-field>
+          <v-btn color="#37474F" block :loading="signUpApi.isLoading.value" @click="submitEmail">
+            {{ $t('confirm') }}
+          </v-btn>
+        </div>
+
+        <div v-else-if="step === Steps.SendCode">
+          <h3 class="text-h6 mb-4">{{ $t('Verify Your Account') }}</h3>
+
+          <div class="text-body-2">
+            {{ $t('We sent a verification code to') }} {{ form.email }}<br />
+          </div>
+
+          <v-sheet color="surface">
+            <v-otp-input
+              v-model="form.code"
+              variant="solo"
+              :error-messages="isError ? veryifyOtpApi.state.value?.error?.message : null"
+            ></v-otp-input>
+            <div class="text-red text-caption">
+              {{ veryifyOtpApi.state.value?.error?.message }}
+            </div>
+          </v-sheet>
+
+          <v-btn
+            class="my-4"
+            color="gray"
+            :loading="veryifyOtpApi.isLoading.value"
+            @click="submitCode"
+          >
+            {{ $t('confirm') }}
+          </v-btn>
+
+          <div class="text-caption">
+            {{ $t("Didn't receive the code?") }}
+            <a href="#" @click.prevent="form.code = ''">{{ $t('Resend') }}</a>
+          </div>
+        </div>
+
+        <div v-else-if="step === Steps.FillUserForm">
+          <h3 class="text-h6 mb-4">{{ $t('Complete Your Profile') }}</h3>
+
+          <v-text-field :label="$t('name')" v-model="form.full_name" />
+          <v-text-field :label="$t('phone')" v-model="form.phone" />
+
+          <div v-if="isError" class="text-red text-caption">
+            {{ updateProfileApi.state.value?.error?.message }}
+          </div>
+          <v-btn block :loading="updateProfileApi.isLoading.value" @click="submitProfile">
+            {{ $t('confirm') }}
+          </v-btn>
+        </div>
+      </v-card>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { onMounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 import self from '@/composables/localStore/useSelf'
@@ -41,6 +85,7 @@ import { useVerifyCodeApi } from '@/composables/api/auth/useVerifyOtpApi'
 
 import { useUpdateProfileApi } from '@/composables/api/auth/useUpdateProfileApi'
 import { useGetProfileApi } from '@/composables/api/auth/useGetProfileApi'
+import { mdiEmailOutline } from '@mdi/js'
 
 enum Steps {
   SendEmail = 1,
@@ -51,6 +96,7 @@ enum Steps {
 const router = useRouter()
 
 const step = ref(Steps.SendEmail)
+const isError = ref(false)
 
 const signUpApi = useSignUpApi()
 const veryifyOtpApi = useVerifyCodeApi()
@@ -72,6 +118,14 @@ onMounted(() => {
     getProfileApi.execute()
   }
 })
+
+const errorMessage = computed(
+  () =>
+    signUpApi.state.value?.error?.message ||
+    getProfileApi.state.value?.error?.message ||
+    veryifyOtpApi.state.value?.error?.message ||
+    updateProfileApi.state.value?.error?.message
+)
 
 function submitEmail() {
   signUpApi.params.email = form.email.toLowerCase()
@@ -135,4 +189,11 @@ watch(
     }
   }
 )
+
+watch(errorMessage, (errorMessage) => {
+  if (errorMessage) {
+    isError.value = true
+    setTimeout(() => (isError.value = false), 2000)
+  }
+})
 </script>
