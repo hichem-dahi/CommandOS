@@ -31,7 +31,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { onMounted, reactive, watch } from 'vue'
+import { onMounted, reactive, watch, watchEffect } from 'vue'
 import useVuelidate from '@vuelidate/core'
 
 import self from '@/composables/localStore/useSelf'
@@ -63,7 +63,7 @@ const organizationForm = reactive({
 const updateProfileApi = useUpdateProfileApi()
 const upsertOrganizationsApi = useUpsertOrganizationsApi()
 
-onMounted(() => {
+watchEffect(() => {
   Object.assign(userForm, {
     full_name: self.value.user?.full_name,
     phone: self.value.user?.phone
