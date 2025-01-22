@@ -2,7 +2,7 @@
   <v-app-bar theme="light" color="blue-grey-lighten-5">
     <template v-slot:prepend>
       <v-app-bar-nav-icon variant="text" @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
-      <img src="/logo-cropped.png" width="48" alt="logo" />
+      <img src="/logo-aes-cropped.png" width="150" alt="logo" />
     </template>
 
     <template v-slot:append>
@@ -70,7 +70,7 @@ const isSyncLoading = ref(false)
 
 async function callSyncTables() {
   isSyncLoading.value = true
-  //if (db) await syncTables(db)
+  if (db) await syncTables(db)
   isSyncLoading.value = false
 }
 
