@@ -83,5 +83,10 @@
   "category": "الفئة",
   "height": "الارتفاع",
   "width": "العرض",
-  "reverse": "عكس"
+  "reverse": "عكس",
+  "Verify Your Account": "تحقق من حسابك",
+  "We sent a verification code to": "لقد أرسلنا رمز تحقق إلى",
+  "Didn't receive the code?": "لم تتلقَ الرمز؟",
+  "Resend": "إعادة الإرسال",
+  "Submit Your Email": "قدم بريدك الإلكتروني"
 }
