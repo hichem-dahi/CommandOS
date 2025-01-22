@@ -49,7 +49,7 @@
   </v-app-bar>
 </template>
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import { supabase } from '@/supabase/supabase'
 import { injectPGlite } from '@electric-sql/pglite-vue'
 import { mdiAccount, mdiBell, mdiBellOff, mdiDotsVertical, mdiSync } from '@mdi/js'
@@ -57,6 +57,8 @@ import { mdiAccount, mdiBell, mdiBellOff, mdiDotsVertical, mdiSync } from '@mdi/
 import { useIsSynced } from '@/composables/sync/useIsSynced'
 
 import { syncTables } from '@/sync/syncTables'
+
+let syncInterval: ReturnType<typeof setInterval> | null = null
 
 const drawer = defineModel<boolean>('drawer')
 
@@ -80,9 +82,17 @@ async function logout() {
 
 onMounted(async () => {
   await db?.waitReady
-  if (db) syncTables(db)
+  callSyncTables()
+  syncInterval = setInterval(callSyncTables, 300000) // 300,000 ms = 5 min
 
   await requestNotificationPermission()
+})
+
+onUnmounted(() => {
+  // Clear the interval when the component is unmounted
+  if (syncInterval) {
+    clearInterval(syncInterval)
+  }
 })
 
 async function requestNotificationPermission() {
