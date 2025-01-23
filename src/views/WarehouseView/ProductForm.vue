@@ -21,6 +21,7 @@
       item-title="name"
       v-model="category"
       @update:model-value="(e) => handleCategoryChange(e)"
+      density="comfortable"
     >
     </v-combobox>
 
@@ -92,8 +93,6 @@ import { isString } from 'lodash'
 import { mdiBarcodeScan, mdiEye, mdiRefresh } from '@mdi/js'
 
 import { useGetProductsCategoriesDb } from '@/composables/db/products/useGetProductsCategoriesDb'
-
-import self from '@/composables/localStore/useSelf'
 
 import BarcodeViewModal from './modals/BarcodeViewModal.vue'
 import BarcodeScannerModal from './modals/BarcodeScannerModal.vue'
