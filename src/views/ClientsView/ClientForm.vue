@@ -18,19 +18,22 @@
     <v-text-field
       density="compact"
       :label="$t('NIF')"
-      v-model.trim="model.nif"
+      v-model.trim.number="model.nif"
+      @update:model-value="(e) => (e ? (model.nif = Number(e.trim())) : (model.nif = null))"
       :error-messages="getErrorMessages('nif')"
     />
     <v-text-field
       density="compact"
       :label="$t('NIS')"
-      v-model.trim="model.nis"
+      v-model="model.nis"
+      @update:model-value="(e) => (e ? (model.nis = Number(e.trim())) : (model.nis = null))"
       :error-messages="getErrorMessages('nis')"
     />
     <v-text-field
       density="compact"
       :label="$t('N.ART')"
-      v-model.trim="model.art"
+      v-model.trim.number="model.art"
+      @update:model-value="(e) => (e ? (model.art = Number(e.trim())) : (model.art = null))"
       :error-messages="getErrorMessages('art')"
     />
     <v-text-field
@@ -51,7 +54,7 @@ import { toRef } from 'vue'
 import useVuelidate from '@vuelidate/core'
 import { required, minLength, numeric } from '@vuelidate/validators'
 
-const props = defineProps<{ title: string }>()
+defineProps<{ title: string }>()
 
 //TODO: review default model usage
 const model = defineModel({
@@ -83,11 +86,12 @@ const $v = useVuelidate(
 
 const getErrorMessages = (field: string) => {
   const v = $v.value[field]
+
   return !v.$pending && v.$error
     ? [
         v.required?.$invalid ? `${field} is required` : '',
         v.numeric?.$invalid ? `${field} must be numeric` : '',
-        v.minLength?.$invalid ? `${field} must be at least 3 digits` : ''
+        v.minLength?.$invalid ? `${field} must be at least ${v.minLength?.$params.min} digits` : ''
       ].filter(Boolean)
     : []
 }
