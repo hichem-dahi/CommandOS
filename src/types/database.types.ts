@@ -237,6 +237,7 @@ export type Database = {
           total_price: number
           ttc: number | null
           tva: number | null
+          type: Database["public"]["Enums"]["sale_type"]
           updated_at: string
         }
         Insert: {
@@ -257,6 +258,7 @@ export type Database = {
           total_price: number
           ttc?: number | null
           tva?: number | null
+          type?: Database["public"]["Enums"]["sale_type"]
           updated_at?: string
         }
         Update: {
@@ -277,6 +279,7 @@ export type Database = {
           total_price?: number
           ttc?: number | null
           tva?: number | null
+          type?: Database["public"]["Enums"]["sale_type"]
           updated_at?: string
         }
         Relationships: [
@@ -826,7 +829,7 @@ export type Database = {
           }
     }
     Enums: {
-      [_ in never]: never
+      sale_type: "order" | "sale"
     }
     CompositeTypes: {
       http_header: {

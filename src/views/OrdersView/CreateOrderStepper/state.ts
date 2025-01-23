@@ -23,6 +23,7 @@ const defaultOrderForm = () => ({
   doc_index: null,
   status: OrderStatus.Pending,
   payment_method: null,
+  type: 'order' as 'order' | 'sale',
   paid_price: 0,
   total_price: 0,
   tva: 0,

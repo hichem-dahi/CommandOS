@@ -1,6 +1,7 @@
 <template>
   <div class="d-flex align-start flex-wrap ga-8 pa-4">
     <v-btn
+      v-if="$vuetify.display.mobile"
       class="my-5"
       variant="tonal"
       size="small"
@@ -32,19 +33,32 @@
           <v-spacer></v-spacer>
 
           <v-btn variant="text" color="blue" @click="submitSale" :loading="isLoading">{{
-            $t('submit')
+            $t('confirm')
           }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-col>
-    <v-col v-if="showScanner" @detected="selectProduct" sm="12" md="6">
-      <BarcodeScanner />
+
+    <v-col v-if="showScanner" sm="12" md="6">
+      <BarcodeScanner @detected="selectProduct" />
     </v-col>
   </v-row>
+
+  <v-container>
+    <div class="d-flex align-start flex-wrap ga-8 pa-4">
+      <v-divider v-if="!$vuetify.display.mobile" vertical />
+      <FilterBar v-model="filters" />
+    </div>
+    <v-row justify="start" v-for="(o, i) in orders" :key="i">
+      <v-col sm="12" md="6">
+        <OrderCard v-if="o" :order="o" />
+      </v-col>
+    </v-row>
+  </v-container>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import useVuelidate from '@vuelidate/core'
 import { mdiBarcodeScan } from '@mdi/js'
 
@@ -57,12 +71,14 @@ import { useUpsertStockMovementsDb } from '@/composables/db/stockMovements/useUp
 
 import { processStockMovementsForOrder } from '@/composables/useStockManage'
 
+import { useOrdersQuery, type OrderData } from '@/composables/db/orders/useGetOrdersDb'
 import { useProductsQuery } from '@/composables/db/products/useGetProductsDb'
 
 import self from '@/composables/localStore/useSelf'
 
 import CreateOrderlines from './OrdersView/CreateOrderStepper/CreateOrderlines.vue'
 import BarcodeScanner from '@/components/BarcodeScanner.vue'
+import OrderCard from './OrdersView/OrderCard.vue'
 
 import {
   cleanForm,
@@ -74,8 +90,20 @@ import {
 
 import { DocumentType, OrderStatus } from '@/models/models'
 import type { Tables, TablesInsert } from '@/types/database.types'
+import type { Filters } from './OrdersView/models/models'
+import FilterBar from './OrdersView/FilterBar.vue'
 
 const { q: productsQuery } = useProductsQuery()
+const { q: ordersQuery, isReady, params } = useOrdersQuery()
+params.type = 'sale'
+isReady.value = true
+
+const filters = reactive<Filters>({
+  docType: null,
+  dateRange: []
+})
+
+const orders = computed(() => ordersQuery.rows.value as unknown as OrderData[])
 
 const products = computed(() => (productsQuery.rows.value || []) as unknown as Tables<'products'>[])
 
@@ -96,6 +124,21 @@ const isLoading = computed(
     upsertOrdersDb.isLoading.value ||
     upsertPaymentsDb.isLoading.value
 )
+
+const handlePaste = (event: ClipboardEvent) => {
+  const pastedData = event.clipboardData?.getData('text')
+  if (pastedData && !isNaN(Number(pastedData))) {
+    selectProduct(Number(pastedData))
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('paste', handlePaste)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('paste', handlePaste)
+})
 
 function selectProduct(barcode: number) {
   // Find the product using the barcode
@@ -138,7 +181,7 @@ function submitSale() {
     form.status = OrderStatus.Confirmed
     form.document_type = DocumentType.Voucher
     const org_id = self.value.current_org?.id || ''
-    upsertOrdersDb.form.value = [{ ...form, org_id, _synced: false }]
+    upsertOrdersDb.form.value = [{ ...form, type: 'sale', org_id, _synced: false }]
     upsertOrdersDb.execute()
   }
 }

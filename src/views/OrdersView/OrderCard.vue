@@ -7,7 +7,7 @@
     variant="elevated"
     :to="{ name: 'order', params: { order_id: order.id } }"
   >
-    <template v-slot:title> {{ $t('order') }} {{ $t('N°') }} {{ order.index }} </template>
+    <template v-slot:title> {{ $t(order.type) }} {{ $t('N°') }} {{ order.index }} </template>
 
     <template v-slot:text>
       <div class="order-info py-0">
@@ -37,12 +37,11 @@
         {{ docTitle }}
       </v-btn>
     </v-card-actions>
-    <template v-if="order.status !== OrderStatus.Pending" v-slot:append>
+    <template v-slot:append>
       <v-chip v-if="isConfirmed" variant="tonal" color="green">{{ $t('confirmed') }}</v-chip>
       <v-chip v-else-if="isCancelled" variant="tonal" color="red">{{ $t('cancelled') }}</v-chip>
-    </template>
-    <template v-else v-slot:append>
-      <v-menu>
+      <v-chip v-else-if="isPending" variant="tonal">{{ $t('unconfirmed') }}</v-chip>
+      <v-menu v-if="isPending">
         <template v-slot:activator="{ props }">
           <v-btn
             v-bind="props"
@@ -103,6 +102,7 @@ const consumerName = computed(() => props.order.client?.name || props.order.indi
 
 const isConfirmed = computed(() => props.order?.status === OrderStatus.Confirmed)
 const isCancelled = computed(() => props.order?.status === OrderStatus.Cancelled)
+const isPending = computed(() => props.order?.status === OrderStatus.Pending)
 
 function deleteOrder() {
   softDeleteOrdersDb.ids.value = [props.order.id]

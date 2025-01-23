@@ -70,7 +70,6 @@
     />
   </div>
 </template>
-
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -129,7 +128,7 @@ const title = computed(() => {
   if (order.value?.document_type == DocumentType.Proforma) {
     return t('preforma')
   } else {
-    return `${t('order')} ${t('N°')} ${order.value?.index}`
+    return `${t(order.value?.type || '')} ${t('N°')} ${order.value?.index}`
   }
 })
 

@@ -12,6 +12,7 @@ export async function upsertOrdersDB(db: PGliteWithLive, orders: TablesInsert<'o
       delivery_id,
       doc_index,
       document_type,
+      type,
       individual_id,
       org_id,
       paid_price,
@@ -27,23 +28,24 @@ export async function upsertOrdersDB(db: PGliteWithLive, orders: TablesInsert<'o
     VALUES ${orders
       .map(
         (_, i) => `(
-          COALESCE($${i * 17 + 1}, gen_random_uuid()),
-          $${i * 17 + 2},
-          $${i * 17 + 3},
-          $${i * 17 + 4},
-          $${i * 17 + 5},
-          $${i * 17 + 6},
-          $${i * 17 + 7},
-          $${i * 17 + 8},
-          $${i * 17 + 9},
-          $${i * 17 + 10},
-          $${i * 17 + 11},
-          $${i * 17 + 12},
-          $${i * 17 + 13},
-          $${i * 17 + 14},
-          $${i * 17 + 15},
-          COALESCE($${i * 17 + 16}, true),
-          COALESCE($${i * 17 + 17}, false)
+          COALESCE($${i * 18 + 1}, gen_random_uuid()),
+          $${i * 18 + 2},
+          $${i * 18 + 3},
+          $${i * 18 + 4},
+          $${i * 18 + 5},
+          $${i * 18 + 6},
+          $${i * 18 + 7},
+          $${i * 18 + 8},
+          $${i * 18 + 9},
+          $${i * 18 + 10},
+          $${i * 18 + 11},
+          $${i * 18 + 12},
+          $${i * 18 + 13},
+          $${i * 18 + 14},
+          $${i * 18 + 15},
+          $${i * 18 + 16},
+          COALESCE($${i * 18 + 17}, true),
+          COALESCE($${i * 18 + 18}, false)
         )`
       )
       .join(', ')}
@@ -54,6 +56,7 @@ export async function upsertOrdersDB(db: PGliteWithLive, orders: TablesInsert<'o
       delivery_id = EXCLUDED.delivery_id,
       doc_index = EXCLUDED.doc_index,
       document_type = EXCLUDED.document_type,
+      type = EXCLUDED.type,
       individual_id = EXCLUDED.individual_id,
       org_id = EXCLUDED.org_id,
       paid_price = EXCLUDED.paid_price,
@@ -75,6 +78,7 @@ export async function upsertOrdersDB(db: PGliteWithLive, orders: TablesInsert<'o
     order.delivery_id || null,
     order.doc_index || null,
     order.document_type,
+    order.type || 'order', // Default to 1 for 'order'
     order.individual_id || null,
     order.org_id,
     order.paid_price,
