@@ -228,7 +228,10 @@ function upsertPayment(form?: TablesInsert<'payments'>) {
 }
 
 function upsertIndividual(form?: TablesInsert<'individuals'>) {
-  if (form) upsertIndividualsDb.form.value = [{ ...form, _synced: false }]
+  if (form)
+    upsertIndividualsDb.form.value = [
+      { ...form, org_id: self.value.current_org?.id || '', _synced: false }
+    ]
   upsertIndividualsDb.execute()
 }
 
