@@ -55,7 +55,7 @@ const filters = reactive({
   barcode: null
 })
 
-const form = ref({
+const defaultProductForm = () => ({
   code: '',
   name: '',
   category_id: '',
@@ -65,6 +65,8 @@ const form = ref({
   cost_price: null as number | null,
   bar_code: null as number | null
 })
+
+const form = ref(defaultProductForm())
 
 const categoryForm = ref<TablesInsert<'products_categories'>>({
   name: '',
@@ -97,6 +99,7 @@ async function submitForm() {
 
     const category_id = upsertDataDb.data.value?.[0].id || categoryForm.value.id
     await upsertProductsDb({ ...form.value, org_id, category_id })
+    form.value = defaultProductForm()
     dialog.value = false
   }
 }
