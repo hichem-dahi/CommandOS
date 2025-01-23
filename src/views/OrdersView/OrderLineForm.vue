@@ -1,64 +1,60 @@
 <template>
-  <v-row align="end" no-gutters>
-    <v-col cols="4">
-      <v-select
-        class="mr-3"
-        :label="$t('product')"
-        variant="underlined"
-        inset
-        :error="!$v.product_id.$pending && $v.product_id.$error"
-        :items="availableProducts"
-        item-value="id"
-        item-title="name"
-        v-model="model.product_id"
-        hide-no-data
-        hide-details
-      >
-        <template v-slot:selection>
-          <span>{{ selectedProduct?.name }}</span>
-        </template>
-      </v-select>
-    </v-col>
-    <v-col class="mr-3">
-      <v-number-input
-        :label="$t('quantity')"
-        variant="underlined"
-        inset
-        :disabled="!model.product_id"
-        hide-details
-        control-variant="stacked"
-        :error="!$v.qte.$pending && $v.qte.$error"
-        :suffix="`/${selectedProduct?.qty ?? 0}`"
-        :max="selectedProduct?.qty ?? undefined"
-        :min="0"
-        v-model="model.qte"
-      />
-    </v-col>
-    <v-col class="mr-3">
-      <v-number-input
-        :label="$t('U.P')"
-        variant="underlined"
-        inset
-        :disabled="!model.qte"
-        hide-details
-        control-variant="stacked"
-        :error="!$v.unit_price.$pending && $v.unit_price.$error"
-        :min="0"
-        v-model="model.unit_price"
-      />
-    </v-col>
-    <v-col cols="1">
-      <v-btn
-        v-if="!isNew"
-        color="medium-emphasis"
-        variant="text"
-        :icon="mdiDelete"
-        size="small"
-        @click="emits('delete', model)"
-      />
-    </v-col>
-  </v-row>
-  <slot name="actions" :form="model" :v="$v"></slot>
+  <div class="d-flex align-end ga-5">
+    <v-select
+      style="flex: 1; min-width: 0"
+      :label="$t('product')"
+      variant="underlined"
+      inset
+      :error="!$v.product_id.$pending && $v.product_id.$error"
+      :items="availableProducts"
+      item-value="id"
+      item-title="name"
+      v-model="model.product_id"
+      hide-no-data
+      hide-details
+    >
+      <template v-slot:selection>
+        <span>{{ selectedProduct?.name }}</span>
+      </template>
+    </v-select>
+    <v-number-input
+      style="flex: 1; min-width: 0"
+      :label="$t('quantity')"
+      variant="underlined"
+      inset
+      :disabled="!model.product_id"
+      hide-details
+      control-variant="stacked"
+      :error="!$v.qte.$pending && $v.qte.$error"
+      :suffix="`/${selectedProduct?.qty ?? 0}`"
+      :max="selectedProduct?.qty ?? undefined"
+      :min="0"
+      v-model="model.qte"
+    />
+    <v-number-input
+      style="flex: 1; min-width: 0"
+      :label="$t('U.P')"
+      variant="underlined"
+      inset
+      :disabled="!model.qte"
+      hide-details
+      control-variant="stacked"
+      :error="!$v.unit_price.$pending && $v.unit_price.$error"
+      :min="0"
+      v-model="model.unit_price"
+    />
+    <v-btn
+      v-if="!isNew"
+      class="flex-none"
+      color="medium-emphasis"
+      width="40"
+      variant="text"
+      :icon="mdiDelete"
+      size="small"
+      @click="emits('delete', model)"
+    />
+    <div v-else class="flex-none" style="width: 40px"></div>
+  </div>
 </template>
 
 <script setup lang="ts">

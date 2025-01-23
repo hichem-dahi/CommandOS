@@ -31,7 +31,7 @@
                 :disabled="!availableProducts.length"
                 v-bind="props"
               >
-                New product
+                {{ $t('add-product') }}
               </v-btn>
             </template>
             <v-card class="pa-4 pb-0">
@@ -42,22 +42,14 @@
                   :is-new="true"
                   :availableProducts="availableProducts"
                   :products="products"
-                >
-                  <template v-slot:actions="{ form, v }">
-                    <v-card-actions>
-                      <v-spacer></v-spacer>
-                      <v-btn
-                        variant="text"
-                        size="small"
-                        color="blue"
-                        @click="addOrderline(form, v)"
-                      >
-                        {{ $t('add') }}
-                      </v-btn>
-                    </v-card-actions>
-                  </template>
-                </OrderLineForm>
+                />
               </v-card-text>
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn variant="text" size="small" color="blue" @click="addOrderline(newOrderline)">
+                  {{ $t('add') }}
+                </v-btn>
+              </v-card-actions>
             </v-card>
           </v-dialog>
           <div>
@@ -135,6 +127,7 @@
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { format } from 'date-fns'
+import { useVuelidate } from '@vuelidate/core'
 import { cloneDeep, isEqual, isNumber, sum } from 'lodash'
 import { mdiDelete, mdiPlus } from '@mdi/js'
 
@@ -149,11 +142,12 @@ import OrderLineForm from '@/views/OrdersView/OrderLineForm.vue'
 import DeleteItemModal from './DeleteItemModal.vue'
 
 import { ConsumerType, OrderStatus } from '@/models/models'
-import type { Validation } from '@vuelidate/core'
-import type { Tables, TablesInsert } from '@/types/database.types'
+import type { TablesInsert } from '@/types/database.types'
 import type { OrderData, OrderlineData } from '@/composables/db/orders/useGetOrdersDb'
 
 const { t } = useI18n()
+
+const $v = useVuelidate()
 
 const props = defineProps<{ order: OrderData }>()
 
@@ -281,9 +275,9 @@ const closeDelete = () => {
   deleteDialog.value = false
 }
 
-function addOrderline(form: TablesInsert<'order_lines'>, v: Validation) {
-  v.$touch()
-  if (!v.$invalid) {
+function addOrderline(form: TablesInsert<'order_lines'>) {
+  $v.value.$touch()
+  if (!$v.value.$invalid) {
     const product = products.value.find((p) => p.id === form.product_id)
     if (!product) return
     proxyOrderlines.value?.push({ ...form, product } as OrderlineData)
@@ -365,7 +359,7 @@ defineExpose({
 }
 
 .total-info {
-  text-transform: cDbtalize;
+  text-transform: capitalize;
   font-size: 0.85rem;
   padding: 0 1rem;
 }
