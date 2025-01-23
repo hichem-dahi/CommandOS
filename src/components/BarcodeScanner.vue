@@ -2,7 +2,14 @@
   <v-card>
     <v-card-title>{{ $t('Scan your barcode') }}</v-card-title>
     <v-card-text>
-      <video height="500" ref="videoRef" class="barcode-video" autoplay playsinline></video>
+      <video
+        height="300"
+        width="300"
+        ref="videoRef"
+        class="barcode-video"
+        autoplay
+        playsinline
+      ></video>
     </v-card-text>
   </v-card>
 </template>
