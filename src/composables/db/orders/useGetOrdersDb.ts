@@ -24,8 +24,10 @@ export function useOrdersQuery() {
     client_id: null as string | null,
     individual_id: null as string | null,
     date_gte: null as string | null,
-    date_lte: null as string | null
+    date_lte: null as string | null,
+    type: null as 'order' | 'sale' | null
   })
+
   const isReady = ref(false)
 
   const query = computed(() => {
@@ -51,6 +53,10 @@ export function useOrdersQuery() {
 
     if (params.date_lte) {
       queryConditions += ` AND o.date <= '${params.date_lte}'`
+    }
+
+    if (params.type) {
+      queryConditions += ` AND o.type = '${params.type}'`
     }
 
     return isReady.value
