@@ -15,7 +15,7 @@
             :placeholder="$t('email')"
             :prepend-inner-icon="mdiEmailOutline"
             variant="outlined"
-            v-model="form.email"
+            v-model.trim="form.email"
             :error-messages="isError ? signUpApi.state.value?.error?.message : null"
           ></v-text-field>
           <v-btn color="#37474F" block :loading="signUpApi.isLoading.value" @click="submitEmail">
