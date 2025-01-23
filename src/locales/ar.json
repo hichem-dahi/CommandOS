@@ -88,5 +88,7 @@
   "We sent a verification code to": "لقد أرسلنا رمز تحقق إلى",
   "Didn't receive the code?": "لم تتلقَ الرمز؟",
   "Resend": "إعادة الإرسال",
-  "Submit Your Email": "قدم بريدك الإلكتروني"
+  "Submit Your Email": "قدم بريدك الإلكتروني",
+  "sale": "بيع",
+  "unconfirmed": "غير مؤكد"
 }
