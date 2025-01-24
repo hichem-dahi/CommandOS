@@ -25,7 +25,7 @@
             <template v-slot:activator="{ props }">
               <v-btn
                 variant="text"
-                size="small"
+                size="x-small"
                 :append-icon="mdiPlus"
                 color="primary"
                 :disabled="!availableProducts.length"
@@ -36,7 +36,7 @@
             </template>
             <v-card class="pa-4 pb-0">
               <v-card-title>{{ $t('add-product') }}</v-card-title>
-              <v-card-text>
+              <v-card-text class="px-2">
                 <OrderLineForm
                   v-model="newOrderline"
                   :is-new="true"
