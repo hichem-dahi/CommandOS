@@ -217,6 +217,7 @@ function insertNotification(title: string, body: string) {
       title,
       body,
       org_id,
+      url: `/order/${order.value?.id}`,
       _synced: false
     }
   ]

@@ -5,7 +5,8 @@ import m2 from './migrations/20250103130839_add_org_id.sql?raw'
 import m3 from './migrations/20250112131109_remove_order_index.sql?raw'
 import m4 from './migrations/20250113190416_add_products_categories_table.sql?raw'
 import m5 from './migrations/20250122182527_add_order_sale_type.sql?raw'
-import m6 from './migrations/add_sync.sql?raw'
+import m6 from './migrations/20250124174156_add_url_field_notifications.sql?raw'
+import m7 from './migrations/add_sync.sql?raw'
 
 const migrations = [
   { name: '01-create_tables', sql: m1 },
@@ -13,7 +14,8 @@ const migrations = [
   { name: '03-remove_order_index', sql: m3 },
   { name: '04-add_category_field_products', sql: m4 },
   { name: '05-add_order_sale_type', sql: m5 },
-  { name: '06-add_sync', sql: m6 }
+  { name: '05-add_url_field_notifications', sql: m6 },
+  { name: '06-add_sync', sql: m7 }
 ]
 
 export async function migrate(pg: PGlite) {

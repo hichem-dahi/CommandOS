@@ -26,3 +26,10 @@ self.addEventListener('push', (event) => {
 
   event.waitUntil(self.registration.showNotification(data.title, options))
 })
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close()
+  const url = event.notification.data.url
+  // eslint-disable-next-line no-undef
+  event.waitUntil(clients.openWindow(url))
+})

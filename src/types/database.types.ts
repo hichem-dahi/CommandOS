@@ -125,6 +125,7 @@ export type Database = {
           org_id: string
           title: string
           updated_at: string
+          url: string | null
         }
         Insert: {
           _deleted?: boolean | null
@@ -134,6 +135,7 @@ export type Database = {
           org_id: string
           title: string
           updated_at?: string
+          url?: string | null
         }
         Update: {
           _deleted?: boolean | null
@@ -143,6 +145,7 @@ export type Database = {
           org_id?: string
           title?: string
           updated_at?: string
+          url?: string | null
         }
         Relationships: [
           {

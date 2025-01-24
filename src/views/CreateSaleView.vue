@@ -206,6 +206,7 @@ function insertNotification(title: string, body: string) {
       title,
       body,
       org_id,
+      url: `/order/${upsertOrdersDb.data.value?.[0].id}`,
       _synced: false
     }
   ]

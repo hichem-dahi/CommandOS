@@ -13,6 +13,7 @@ export async function upsertNotificationsDB(
       org_id,
       title,
       body,
+      url,        
       updated_at,
       _synced,
       _deleted
@@ -20,13 +21,14 @@ export async function upsertNotificationsDB(
     VALUES ${notifications
       .map(
         (_, i) => `(
-          COALESCE($${i * 7 + 1}, gen_random_uuid()),
-          $${i * 7 + 2},
-          $${i * 7 + 3},
-          $${i * 7 + 4},
-          $${i * 7 + 5},
-          COALESCE($${i * 7 + 6}, true),
-          COALESCE($${i * 7 + 7}, false)  -- Default _deleted to false if not provided
+          COALESCE($${i * 8 + 1}, gen_random_uuid()),
+          $${i * 8 + 2},
+          $${i * 8 + 3},
+          $${i * 8 + 4},
+          $${i * 8 + 5},
+          $${i * 8 + 6},
+          COALESCE($${i * 8 + 7}, true),
+          COALESCE($${i * 8 + 8}, false)
         )`
       )
       .join(', ')}
@@ -35,9 +37,10 @@ export async function upsertNotificationsDB(
       org_id = EXCLUDED.org_id,
       title = EXCLUDED.title,
       body = EXCLUDED.body,
+      url = EXCLUDED.url,  -- Update URL on conflict
       updated_at = EXCLUDED.updated_at,
       _synced = COALESCE(EXCLUDED._synced, true),
-      _deleted = COALESCE(EXCLUDED._deleted, false) -- Update _deleted on conflict
+      _deleted = COALESCE(EXCLUDED._deleted, false)
     RETURNING *;
   `
 
@@ -46,6 +49,7 @@ export async function upsertNotificationsDB(
     notification.org_id,
     notification.title,
     notification.body,
+    notification.url || null, // Add URL field, defaulting to NULL if not provided
     notification.updated_at || '0001-01-01 00:00:00+00', // Defaults to NOW() in query if NULL
     notification._synced ?? true, // Defaults to TRUE if not provided
     notification._deleted ?? false // Default _deleted to false if not provided

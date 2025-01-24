@@ -9,6 +9,7 @@ interface Notification {
   id: string
   org_id: string
   body: string
+  url: string
 }
 
 interface WebhookPayload {
