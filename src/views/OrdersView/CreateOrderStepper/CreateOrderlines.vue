@@ -1,7 +1,7 @@
 <template>
   <div class="pa-2">
     <template v-for="(_, i) in orderlinesForm" :key="i">
-      <OrderLineForm
+      <OrderlineForm
         v-if="orderlinesForm?.[i]"
         v-model="orderlinesForm[i]"
         :is-new="i == 0"
@@ -32,7 +32,7 @@ import self from '@/composables/localStore/useSelf'
 
 import { useProductsQuery, type ProductData } from '@/composables/db/products/useGetProductsDb'
 
-import OrderLineForm from '@/views/OrdersView/OrderLineForm.vue'
+import OrderlineForm from '@/views/OrdersView/OrderlineForm.vue'
 
 import { orderlinesForm } from './state'
 import type { Tables } from '@/types/database.types'

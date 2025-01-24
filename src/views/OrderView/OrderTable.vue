@@ -37,7 +37,7 @@
             <v-card class="pa-4 pb-0">
               <v-card-title>{{ $t('add-product') }}</v-card-title>
               <v-card-text class="px-2">
-                <OrderLineForm
+                <OrderlineForm
                   v-model="newOrderline"
                   :is-new="true"
                   :availableProducts="availableProducts"
@@ -138,7 +138,7 @@ import { useProductsQuery, type ProductData } from '@/composables/db/products/us
 
 import self from '@/composables/localStore/useSelf'
 
-import OrderLineForm from '@/views/OrdersView/OrderLineForm.vue'
+import OrderlineForm from '@/views/OrdersView/OrderlineForm.vue'
 import DeleteItemModal from './DeleteItemModal.vue'
 
 import { ConsumerType, OrderStatus } from '@/models/models'
