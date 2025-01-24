@@ -30,10 +30,12 @@
     <v-col sm="12" md="7">
       <v-list lines="three">
         <template v-for="item in historyItems" :key="item.orderId || item.title">
-          <v-list-item>
+          <v-list-item elevation="1">
             <v-list-item-title> <div v-html="item.title"></div> </v-list-item-title>
-            <v-list-item-subtitle class="pa-2"> {{ item.summary }} </v-list-item-subtitle>
-            <v-list-item-subtitle class="pa-4">
+            <v-list-item-subtitle class="py-2 text-high-emphasis opacity-100">
+              {{ item.summary }}
+            </v-list-item-subtitle>
+            <v-list-item-subtitle class="pt-2 text-caption">
               <div v-html="item.total"></div
             ></v-list-item-subtitle>
           </v-list-item>
@@ -45,9 +47,9 @@
           class="pa-4"
           v-html="
             `
-              &mdash; Total: ${sum(filteredOrders.map((o) => Number(o.total_price)))} ${t('DA')}<br />
-              &mdash; Payé: ${sum(filteredOrders.map((o) => Number(o.paid_price)))} ${t('DA')}<br />
-              &mdash; Restant: ${sum(filteredOrders.map((o) => Number(o.total_price) - Number(o.paid_price)))} ${t('DA')}
+              Total: ${sum(filteredOrders.map((o) => Number(o.total_price)))} ${t('DA')}<br />
+              Payé: ${sum(filteredOrders.map((o) => Number(o.paid_price)))} ${t('DA')}<br />
+              Restant: ${sum(filteredOrders.map((o) => Number(o.total_price) - Number(o.paid_price)))} ${t('DA')}
             `
           "
         ></div>
@@ -110,9 +112,9 @@ const historyItems = computed(() => {
       title: `${intro}`,
       summary: productSummary(allOrderlinesByDate.value[date]),
       total: `
-        &mdash; Total: ${sum(groupedOrders.value[date].map((o) => Number(o.total_price)))} ${t('DA')}<br>
-        &mdash; Payé: ${sum(groupedOrders.value[date].map((o) => Number(o.paid_price)))} ${t('DA')}<br>
-        &mdash; Restant: ${sum(groupedOrders.value[date].map((o) => Number(o.total_price - o.paid_price)))} ${t('DA')}
+        Total: ${sum(groupedOrders.value[date].map((o) => Number(o.total_price)))} ${t('DA')}<br>
+        Payé: ${sum(groupedOrders.value[date].map((o) => Number(o.paid_price)))} ${t('DA')}<br>
+        Restant: ${sum(groupedOrders.value[date].map((o) => Number(o.total_price - o.paid_price)))} ${t('DA')}
       `
     }
     groupedSummary.push(dateSummaryitem)
@@ -152,7 +154,7 @@ function productSummary(orderlines: OrderLineData[]) {
     const product = orderlinesGrouped[productId][0]?.product
     const totalQte = sum(orderlines.map((o) => o?.qte))
 
-    productsSummaries.push(`${totalQte}m ${product?.name}`)
+    productsSummaries.push(`${totalQte} ${product?.name}`)
   }
 
   return `${productsSummaries.join(', ')}`
