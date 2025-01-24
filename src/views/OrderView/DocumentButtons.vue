@@ -1,5 +1,6 @@
 <template>
   <v-btn
+    v-if="docType"
     ref="bt"
     variant="text"
     :prepend-icon="docType.icon"
