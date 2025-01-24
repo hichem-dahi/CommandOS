@@ -15,8 +15,6 @@
     </div>
     <div class="invoice-actions d-flex flex-column align-start ga-1">
       <v-btn
-        color="white"
-        class="text-light-blue"
         rounded="xl"
         :prepend-icon="mdiCheck"
         :loading="upsertStockMovementsDb.isLoading.value"
