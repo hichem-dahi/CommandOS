@@ -1,9 +1,9 @@
 <template>
-  <div class="d-flex align-end ga-5">
+  <div class="d-flex align-end ga-2">
     <v-select
       style="flex: 1; min-width: 0"
       :label="$t('product')"
-      variant="underlined"
+      variant="outlined"
       inset
       :error="!$v.product_id.$pending && $v.product_id.$error"
       :items="availableProducts"
@@ -20,7 +20,7 @@
     <v-number-input
       style="flex: 1; min-width: 0"
       :label="$t('quantity')"
-      variant="underlined"
+      variant="outlined"
       inset
       :disabled="!model.product_id"
       hide-details
@@ -34,7 +34,7 @@
     <v-number-input
       style="flex: 1; min-width: 0"
       :label="$t('U.P')"
-      variant="underlined"
+      variant="outlined"
       inset
       :disabled="!model.qte"
       hide-details
