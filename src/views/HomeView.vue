@@ -51,7 +51,6 @@ onMounted(async () => {
     await upsertOrganizationDB(db, org)
   }
   await registerPushSubscription()
-  await registerPeriodicDbSync()
 })
 
 async function registerPushSubscription() {
@@ -106,18 +105,5 @@ function saveSubscriptionToSupabase(
     auth: keys.auth
   }
   insertPushSubscriptionsApi.execute()
-}
-
-async function registerPeriodicDbSync() {
-  const registration = await navigator.serviceWorker.ready
-  if ('periodicSync' in navigator.serviceWorker.ready) {
-    try {
-      await (registration as any).periodicSync.register('sync-db', {
-        minInterval: 60 * 1000
-      })
-    } catch {
-      console.log('Periodic Sync could not be registered!')
-    }
-  }
 }
 </script>
