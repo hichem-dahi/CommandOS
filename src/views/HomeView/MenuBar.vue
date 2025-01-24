@@ -4,13 +4,16 @@
       v-for="item in menuItems"
       :key="item.route"
       :value="item.route"
-      :prepend-icon="item.icon"
       :active="route.name === item.route"
       color="#BF360C"
       @click="navigateTo(item.route)"
-      class="text-none"
     >
-      <v-list-item-title class="text-medium-emphasis">{{ item.label }}</v-list-item-title>
+      <template v-slot:prepend>
+        <v-icon :icon="item.icon"></v-icon>
+      </template>
+      <v-list-item-title class="font-weight-bold text-medium-emphasis">{{
+        item.label
+      }}</v-list-item-title>
     </v-list-item>
   </v-list>
 </template>
@@ -18,7 +21,13 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { mdiAccountGroup, mdiHistory, mdiWarehouse, mdiReceiptText, mdiCart } from '@mdi/js'
+import {
+  mdiHistory,
+  mdiWarehouse,
+  mdiAccountGroupOutline,
+  mdiReceiptTextOutline,
+  mdiCartOutline
+} from '@mdi/js'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
@@ -29,7 +38,7 @@ const menuItems = computed(() => [
   {
     label: t('clients'),
     route: 'clients',
-    icon: mdiAccountGroup,
+    icon: mdiAccountGroupOutline,
     color: 'medium-emphasis'
   },
   {
@@ -41,13 +50,13 @@ const menuItems = computed(() => [
   {
     label: t('orders'),
     route: 'orders',
-    icon: mdiReceiptText,
+    icon: mdiReceiptTextOutline,
     color: 'medium-emphasis'
   },
   {
     label: t('sales'),
     route: 'create-sale',
-    icon: mdiCart,
+    icon: mdiCartOutline,
     color: 'medium-emphasis'
   },
   {
