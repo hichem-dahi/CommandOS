@@ -47,13 +47,13 @@
       v-if="!isNew"
       class="flex-none"
       color="medium-emphasis"
-      width="40"
+      width="30"
       variant="text"
       :icon="mdiDelete"
       size="small"
       @click="emits('delete', model)"
     />
-    <div v-else class="flex-none" style="width: 40px"></div>
+    <div v-else class="flex-none" style="width: 30px"></div>
   </div>
 </template>
 
