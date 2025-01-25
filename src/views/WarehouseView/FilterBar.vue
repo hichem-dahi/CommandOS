@@ -5,11 +5,11 @@
       hide-details
       v-model="model.name"
       max-width="368"
-      min-width="100"
-      :label="$t('name')"
+      min-width="200"
+      :placeholder="labels"
       clearable
     />
-    <v-btn variant="text" :append-icon="mdiBarcodeScan" @click="showScanner = true">{{
+    <v-btn variant="text" size="small" :append-icon="mdiBarcodeScan" @click="showScanner = true">{{
       $t('scan')
     }}</v-btn>
     <BarcodeScannerModal v-model:barcode="model.barcode" v-model:dialog="showScanner" />
@@ -20,13 +20,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { mdiBarcodeScan } from '@mdi/js'
 
 import BarcodeScannerModal from './modals/BarcodeScannerModal.vue'
 
+const { t } = useI18n()
+
 const model = defineModel<{ name: string | null; barcode: number | null }>({ required: true })
+
 const showScanner = ref(false)
+
+const labels = computed(() => `${t('code')}, ${t('name')}, ${t('category')}`)
 
 const clearBarcode = () => {
   model.value.barcode = null

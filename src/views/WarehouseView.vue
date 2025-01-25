@@ -25,7 +25,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref, watch } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { useVuelidate } from '@vuelidate/core'
 import { mdiPlus } from '@mdi/js'
 
@@ -75,9 +75,11 @@ const categoryForm = ref<TablesInsert<'products_categories'>>({
 
 const filteredProducts = computed(() =>
   products.value?.filter((product) => {
-    const matchesName = filters.name ? product.name.includes(filters.name) : true
+    const productStr = JSON.stringify(product)
+    const matchesName = productStr ? productStr.includes(filters.name || '') : true
     const matchesBarcode =
       filters.barcode && product.bar_code ? product.bar_code === filters.barcode : true
+
     return matchesName && matchesBarcode
   })
 )
