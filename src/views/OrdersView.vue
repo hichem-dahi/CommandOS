@@ -22,7 +22,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive } from 'vue'
+import { computed, reactive, watchEffect } from 'vue'
 import { mdiPlus } from '@mdi/js'
 
 import { useOrdersQuery, type OrderData } from '@/composables/db/orders/useGetOrdersDb'
@@ -32,14 +32,42 @@ import FilterBar from './OrdersView/FilterBar.vue'
 
 import type { Filters } from './OrdersView/models/models'
 
-const { q, isReady, params } = useOrdersQuery()
+const today = new Date()
+const thirtyDaysAgo = new Date()
+thirtyDaysAgo.setDate(today.getDate() - 30)
 
+const { q, isReady, params } = useOrdersQuery()
 params.type = 'order'
 isReady.value = true
 
 const filters = reactive<Filters>({
   docType: null,
-  dateRange: []
+  dateRange: [thirtyDaysAgo, today]
 })
+
 const orders = computed(() => q.rows.value as unknown as OrderData[])
+
+const startDate = computed(() => {
+  const date = new Date(filters.dateRange[0])
+  if (isNaN(date.getTime())) {
+    return null
+  }
+  date.setHours(0, 0, 0, 0)
+  return date.toISOString()
+})
+
+const endDate = computed(() => {
+  const date = new Date(filters.dateRange[filters.dateRange.length - 1])
+  if (isNaN(date.getTime())) {
+    return null
+  }
+  date.setHours(23, 59, 59, 999)
+  return date.toISOString()
+})
+
+watchEffect(() => {
+  params.date_gte = startDate.value
+  params.date_lte = endDate.value
+  params.doc_type = filters.docType
+})
 </script>
