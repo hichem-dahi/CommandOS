@@ -1,5 +1,5 @@
 <template>
-  <div class="filters d-flex align-end ga-6">
+  <div class="filters d-flex flex-wrap align-end ga-6">
     <v-text-field
       variant="underlined"
       hide-details
@@ -13,6 +13,7 @@
       $t('scan')
     }}</v-btn>
     <BarcodeScannerModal v-model:barcode="model.barcode" v-model:dialog="showScanner" />
+
     <v-chip v-if="model.barcode" :value="!!model.barcode" closable @click:close="clearBarcode">
       {{ model.barcode }}
     </v-chip>

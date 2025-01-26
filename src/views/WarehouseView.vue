@@ -78,7 +78,7 @@ const filteredProducts = computed(() =>
     const productStr = JSON.stringify(product)
     const matchesName = productStr ? productStr.includes(filters.name || '') : true
     const matchesBarcode =
-      filters.barcode && product.bar_code ? product.bar_code === filters.barcode : true
+      filters.barcode && product.bar_code ? product.bar_code == filters.barcode : true
 
     return matchesName && matchesBarcode
   })
