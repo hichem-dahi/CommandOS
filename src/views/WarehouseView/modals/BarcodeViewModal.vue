@@ -68,9 +68,10 @@ watchEffect(() => {
       JsBarcode(barcodeRef.value, model.value.toString(), {
         text: `${props.product.price} DA`,
         width: 2, // Narrower bars for clarity
-        height: 60, // Adjust height for barcode
+        height: 40, // Adjust height for barcode
         fontSize: 14, // Font size for text below barcode
-        margin: 10 // Spacing around barcode
+        margin: 8, // Spacing around barcode
+        fontOptions: 'bold'
       })
     } else {
       barcodeRef.value.innerHTML = ''
@@ -93,11 +94,11 @@ const svgToImage = (svg: SVGElement) => {
         ctx.fillRect(0, 0, canvas.width, canvas.height)
 
         ctx.fillStyle = '#000'
-        ctx.font = '16px Arial'
+        ctx.font = 'bold 16px Arial' // Added 'bold' here
         ctx.textAlign = 'center'
         ctx.fillText(props.product.name || '', canvas.width / 2, 16)
 
-        ctx.drawImage(img, 0, 32)
+        ctx.drawImage(img, 0, 20)
       }
       resolve(canvas.toDataURL('image/png'))
     }
@@ -122,10 +123,6 @@ const printBarcodeAsImage = async (svg: SVGElement) => {
       <head>
         <title>Print Image</title>
         <style>
-         @page {
-           ${isModifyDims.value ? `size: ${dims.value.width}mm ${dims.value.height}mm;` : ''}  /* Set the page size to 40mm by 20mm */
-            margin: 0; /* Set margins to 0 to fully utilize the page size */
-          }
           body {
             margin: 0;
             padding: 0;
