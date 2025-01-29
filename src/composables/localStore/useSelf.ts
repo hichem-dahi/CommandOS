@@ -17,4 +17,12 @@ const self = useLocalStorage<Profile>('self', {
   current_org: undefined
 })
 
+export function resetLocalAuth() {
+  self.value = {
+    user: undefined,
+    session: undefined,
+    current_org: undefined
+  }
+}
+
 export default self

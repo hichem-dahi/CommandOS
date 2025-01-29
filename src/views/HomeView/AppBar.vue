@@ -57,6 +57,7 @@ import { supabase } from '@/supabase/supabase'
 import { injectPGlite } from '@electric-sql/pglite-vue'
 import { mdiBell, mdiBellOff, mdiDotsVertical, mdiSync } from '@mdi/js'
 
+import { resetLocalAuth } from '@/composables/localStore/useSelf'
 import { useIsSynced } from '@/composables/sync/useIsSynced'
 
 import { syncTables } from '@/sync/syncTables'
@@ -81,6 +82,7 @@ async function callSyncTables() {
 
 async function logout() {
   await supabase.auth.signOut()
+  resetLocalAuth()
 }
 
 onMounted(async () => {

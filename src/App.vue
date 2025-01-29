@@ -2,7 +2,7 @@
   <router-view></router-view>
 </template>
 <script setup lang="ts">
-import { onMounted, watch } from 'vue'
+import { onMounted, watch, watchEffect } from 'vue'
 import { useRouter } from 'vue-router'
 import { providePGlite } from '@electric-sql/pglite-vue'
 import { PGliteWorker } from '@electric-sql/pglite/worker'
@@ -37,11 +37,12 @@ onMounted(async () => {
       self.value.session = _session
       getProfileApi.userId.value = _session.user.id
       getProfileApi.execute()
-    } else {
-      self.value.session = undefined
-      router.push('/auth')
     }
   })
+})
+
+watchEffect(() => {
+  if (!self.value.session) router.push('/auth')
 })
 
 watch(
