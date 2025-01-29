@@ -95,7 +95,7 @@
         <div v-for="(value, key) in totalItems" :key="key">
           <div>
             <span class="font-weight-medium"> {{ $t(key) }}:&nbsp; </span>
-            <span :class="{ 'text-red': key === 'remaining' }">{{ value }} DA</span>
+            <span :class="{ 'text-red': key === 'remaining' }">{{ value }} {{ $t('DA') }}</span>
           </div>
         </div>
       </div>
@@ -107,7 +107,7 @@
       <v-btn
         :disabled="!isModfiable"
         :loading="isLoading"
-        variant="text"
+        variant="elevated"
         color="blue"
         size="small"
         @click="confirmEdit"
