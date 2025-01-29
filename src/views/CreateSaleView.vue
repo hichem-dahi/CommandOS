@@ -15,24 +15,26 @@
     <v-col sm="12" md="6">
       <v-card class="py-2 px-2">
         <v-card-title>{{ $t('add-sale') }}</v-card-title>
-        <CreateOrderlines> </CreateOrderlines>
+        <v-card-text>
+          <CreateOrderlines> </CreateOrderlines>
+          <div class="d-flex justify-end">
+            <v-number-input
+              density="comfortable"
+              variant="outlined"
+              max-width="100"
+              :label="$t('payment')"
+              inset
+              controlVariant="stacked"
+              :max="form.total_price"
+              :min="0"
+              v-model="paymentForm.amount"
+            />
+          </div>
+        </v-card-text>
 
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-number-input
-            class="ml-auto"
-            max-width="200"
-            :label="$t('payment')"
-            inset
-            controlVariant="stacked"
-            :suffix="`/${form.total_price} ${$t('DA')}`"
-            :max="form.total_price"
-            :min="0"
-            v-model="paymentForm.amount"
-          />
-          <v-spacer></v-spacer>
-
-          <v-btn variant="text" color="blue" @click="submitSale" :loading="isLoading">{{
+        <v-card-actions class="justify-space-between">
+          <v-card-title> {{ $t('total') }}: {{ form.total_price }} {{ $t('DA') }} </v-card-title>
+          <v-btn variant="outlined" color="blue" @click="submitSale" :loading="isLoading">{{
             $t('confirm')
           }}</v-btn>
         </v-card-actions>
@@ -58,7 +60,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import useVuelidate from '@vuelidate/core'
 import { mdiBarcodeScan } from '@mdi/js'
 
@@ -79,6 +81,7 @@ import self from '@/composables/localStore/useSelf'
 import CreateOrderlines from './OrdersView/CreateOrderStepper/CreateOrderlines.vue'
 import BarcodeScanner from '@/components/BarcodeScanner.vue'
 import OrderCard from './OrdersView/OrderCard.vue'
+import FilterBar from './OrdersView/FilterBar.vue'
 
 import {
   cleanForm,
@@ -91,7 +94,6 @@ import {
 import { DocumentType, OrderStatus } from '@/models/models'
 import type { Tables, TablesInsert } from '@/types/database.types'
 import type { Filters } from './OrdersView/models/models'
-import FilterBar from './OrdersView/FilterBar.vue'
 
 const { q: productsQuery } = useProductsQuery()
 const { q: ordersQuery, isReady, params } = useOrdersQuery()
@@ -102,6 +104,9 @@ const filters = reactive<Filters>({
   docType: null,
   dateRange: []
 })
+
+const lastBarcode = ref('')
+let buffer = ''
 
 const orders = computed(() => ordersQuery.rows.value as unknown as OrderData[])
 
@@ -125,22 +130,31 @@ const isLoading = computed(
     upsertPaymentsDb.isLoading.value
 )
 
-const handlePaste = (event: ClipboardEvent) => {
-  const pastedData = event.clipboardData?.getData('text')
-  if (pastedData && !isNaN(Number(pastedData))) {
-    selectProduct(Number(pastedData))
+function handleKeyDown(event: KeyboardEvent) {
+  if (event.key === 'Enter') {
+    if (buffer) {
+      lastBarcode.value = buffer
+      selectProduct(lastBarcode.value)
+      console.log('Scanned barcode:', buffer)
+    }
+    buffer = ''
+    return
+  }
+
+  if (event.key.length === 1) {
+    buffer += event.key
   }
 }
 
 onMounted(() => {
-  window.addEventListener('paste', handlePaste)
+  document.addEventListener('keydown', handleKeyDown)
 })
 
-onBeforeUnmount(() => {
-  window.removeEventListener('paste', handlePaste)
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleKeyDown)
 })
 
-function selectProduct(barcode: number) {
+function selectProduct(barcode: string) {
   // Find the product using the barcode
   const product = products.value.find((p) => p.bar_code == barcode)
   if (!product) return // Exit if no product is found
