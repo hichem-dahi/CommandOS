@@ -1,6 +1,7 @@
 <template>
   <div class="d-flex align-end ga-2">
     <v-select
+      density="compact"
       style="flex: 1; min-width: 0"
       :label="$t('product')"
       variant="outlined"
@@ -18,6 +19,7 @@
       </template>
     </v-select>
     <v-number-input
+      density="compact"
       style="flex: 1; min-width: 0"
       :label="$t('quantity')"
       variant="outlined"
@@ -26,12 +28,12 @@
       hide-details
       control-variant="stacked"
       :error="!$v.qte.$pending && $v.qte.$error"
-      :suffix="`/${selectedProduct?.qty ?? 0}`"
       :max="selectedProduct?.qty ?? undefined"
       :min="0"
       v-model="model.qte"
     />
     <v-number-input
+      density="compact"
       style="flex: 1; min-width: 0"
       :label="$t('U.P')"
       variant="outlined"

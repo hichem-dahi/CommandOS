@@ -2,6 +2,7 @@
   <div class="pa-2">
     <template v-for="(_, i) in orderlinesForm" :key="i">
       <OrderlineForm
+        class="my-4"
         v-if="orderlinesForm?.[i]"
         v-model="orderlinesForm[i]"
         :is-new="i == 0"

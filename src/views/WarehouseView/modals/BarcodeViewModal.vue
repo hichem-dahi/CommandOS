@@ -180,6 +180,6 @@ const printBarcodeAsImage = async (svg: SVGElement) => {
   align-items: center;
   margin: auto;
   text-align: center;
-  border: 1px solid #ccc; /* Optional border for visual debugging */
+  border: 1px solid #dddddd; /* Optional border for visual debugging */
 }
 </style>
