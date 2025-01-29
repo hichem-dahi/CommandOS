@@ -19,7 +19,7 @@ import { ref, onBeforeUnmount, watch } from 'vue'
 import { BarcodeDetector } from 'barcode-detector/pure'
 
 const emits = defineEmits<{
-  (event: 'detected', value: number): void
+  (event: 'detected', value: string): void
 }>()
 
 const videoRef = ref<HTMLVideoElement | null>(null)
@@ -73,7 +73,7 @@ const activateScanner = async () => {
           if (barcodes.length > 0) {
             barcodes.forEach((barcode: { rawValue: string | null | undefined }) => {
               console.log('Detected barcode:', barcode.rawValue)
-              emits('detected', Number(barcode.rawValue))
+              if (barcode.rawValue) emits('detected', barcode.rawValue)
             })
           }
         } catch (err) {

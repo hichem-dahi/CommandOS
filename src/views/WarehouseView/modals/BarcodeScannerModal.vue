@@ -13,9 +13,9 @@
 import BarcodeScanner from '@/components/BarcodeScanner.vue'
 
 const dialog = defineModel<boolean>('dialog')
-const model = defineModel<number | null>('barcode')
+const model = defineModel<string | null>('barcode')
 
-const handleDetected = (barcode: number) => {
+const handleDetected = (barcode: string) => {
   model.value = barcode
   dialog.value = false
 }

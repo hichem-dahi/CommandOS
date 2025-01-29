@@ -29,7 +29,7 @@ import BarcodeScannerModal from './modals/BarcodeScannerModal.vue'
 
 const { t } = useI18n()
 
-const model = defineModel<{ name: string | null; barcode: number | null }>({ required: true })
+const model = defineModel<{ name: string | null; barcode: string | null }>({ required: true })
 
 const showScanner = ref(false)
 

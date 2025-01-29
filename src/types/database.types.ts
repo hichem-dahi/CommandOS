@@ -434,7 +434,7 @@ export type Database = {
         Row: {
           _deleted: boolean
           _synced: boolean
-          bar_code: number | null
+          bar_code: string | null
           category_id: string | null
           code: string
           cost_price: number | null
@@ -448,7 +448,7 @@ export type Database = {
         Insert: {
           _deleted?: boolean
           _synced?: boolean
-          bar_code?: number | null
+          bar_code?: string | null
           category_id?: string | null
           code: string
           cost_price?: number | null
@@ -462,7 +462,7 @@ export type Database = {
         Update: {
           _deleted?: boolean
           _synced?: boolean
-          bar_code?: number | null
+          bar_code?: string | null
           category_id?: string | null
           code?: string
           cost_price?: number | null
@@ -698,6 +698,12 @@ export type Database = {
       adjust_product_qte: {
         Args: {
           stock_movement_ids: string[]
+        }
+        Returns: undefined
+      }
+      apply_org_rls: {
+        Args: {
+          table_name: string
         }
         Returns: undefined
       }

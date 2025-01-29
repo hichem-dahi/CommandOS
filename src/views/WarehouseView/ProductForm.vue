@@ -117,7 +117,7 @@ const model = defineModel('product', {
     init_qty: 0,
     price: 0,
     cost_price: null as number | null,
-    bar_code: null as number | null
+    bar_code: null as string | null
   }
 })
 
