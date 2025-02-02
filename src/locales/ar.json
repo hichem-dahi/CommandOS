@@ -90,5 +90,6 @@
   "Resend": "إعادة الإرسال",
   "Submit Your Email": "قدم بريدك الإلكتروني",
   "sale": "بيع",
-  "unconfirmed": "غير مؤكد"
+  "unconfirmed": "غير مؤكد",
+  "wait-to-resend": "انتظر {time} ثانية لإرسال رمز آخر"
 }

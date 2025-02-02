@@ -50,9 +50,11 @@
             {{ $t('confirm') }}
           </v-btn>
 
-          <div class="text-caption">
-            {{ $t("Didn't receive the code?") }}
-            <a href="#" @click.prevent="form.code = ''">{{ $t('Resend') }}</a>
+          <div class="text-caption text-medium-emphasis">
+            <a v-if="codeTimer === 0" href="#" @click.prevent="submitEmail">{{ $t('Resend') }}</a>
+            <span v-else>
+              {{ $t('wait-to-resend').replace('xx', codeTimer.toString()) }}
+            </span>
           </div>
         </div>
 
@@ -110,6 +112,21 @@ const form = reactive({
   phone: ''
 })
 
+const codeTimer = ref(30)
+let interval: NodeJS.Timeout | null = null
+
+const startTimer = () => {
+  if (interval) clearInterval(interval) // Clear previous timer if exists
+  codeTimer.value = 30
+  interval = setInterval(() => {
+    if (codeTimer.value > 0) {
+      codeTimer.value--
+    } else {
+      clearInterval(interval!)
+    }
+  }, 1000)
+}
+
 onMounted(() => {
   const session = self.value.session
   if (session?.user) {
@@ -142,8 +159,9 @@ function submitProfile() {
 watch(
   () => signUpApi.isSuccess.value,
   (isSuccess) => {
-    if (isSuccess && step.value == Steps.SendEmail) {
-      step.value = Steps.SendCode
+    if (isSuccess) {
+      if (step.value == Steps.SendEmail) step.value = Steps.SendCode
+      startTimer()
     }
   }
 )
