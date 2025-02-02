@@ -35,7 +35,6 @@
               v-model="form.code"
               variant="solo"
               @update:focused="pasteOtpFromClipboard"
-              autofocus
               :error-messages="isError ? veryifyOtpApi.state.value?.error?.message : null"
             ></v-otp-input>
             <div class="text-red text-caption">
