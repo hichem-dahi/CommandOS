@@ -2,7 +2,7 @@
   <div class="d-flex align-end ga-2">
     <v-select
       density="compact"
-      style="flex: 1; min-width: 0"
+      style="flex: 3; min-width: 0"
       :label="$t('product')"
       variant="outlined"
       inset
@@ -19,8 +19,9 @@
       </template>
     </v-select>
     <v-number-input
+      class="orderline-input"
       density="compact"
-      style="flex: 1; min-width: 0"
+      style="flex: 2; min-width: 0"
       :label="$t('quantity')"
       variant="outlined"
       inset
@@ -33,8 +34,9 @@
       v-model="model.qte"
     />
     <v-number-input
+      class="orderline-input"
       density="compact"
-      style="flex: 1; min-width: 0"
+      style="flex: 2; min-width: 0"
       :label="$t('U.P')"
       variant="outlined"
       inset
@@ -120,3 +122,11 @@ watch(selectedProduct, (newProduct) => {
   }
 })
 </script>
+
+<style>
+.orderline-input {
+  .v-number-input__control {
+    display: none;
+  }
+}
+</style>
