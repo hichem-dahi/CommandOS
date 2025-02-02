@@ -34,6 +34,8 @@
             <v-otp-input
               v-model="form.code"
               variant="solo"
+              @update:focused="pasteOtpFromClipboard"
+              autofocus
               :error-messages="isError ? veryifyOtpApi.state.value?.error?.message : null"
             ></v-otp-input>
             <div class="text-red text-caption">
@@ -115,18 +117,6 @@ const form = reactive({
 const codeTimer = ref(30)
 let interval: NodeJS.Timeout | null = null
 
-const startTimer = () => {
-  if (interval) clearInterval(interval) // Clear previous timer if exists
-  codeTimer.value = 30
-  interval = setInterval(() => {
-    if (codeTimer.value > 0) {
-      codeTimer.value--
-    } else {
-      clearInterval(interval!)
-    }
-  }, 1000)
-}
-
 onMounted(() => {
   const session = self.value.session
   if (session?.user) {
@@ -156,6 +146,30 @@ function submitProfile() {
   updateProfileApi.execute()
 }
 
+const startTimer = () => {
+  if (interval) clearInterval(interval) // Clear previous timer if exists
+  codeTimer.value = 30
+  interval = setInterval(() => {
+    if (codeTimer.value > 0) {
+      codeTimer.value--
+    } else {
+      clearInterval(interval!)
+    }
+  }, 1000)
+}
+
+const pasteOtpFromClipboard = async () => {
+  try {
+    const text = await navigator.clipboard.readText()
+    if (/^\d{6}$/.test(text)) {
+      // Assuming a 6-digit OTP
+      form.code = text
+      submitCode()
+    }
+  } catch (error) {
+    console.error('Clipboard read failed:', error)
+  }
+}
 watch(
   () => signUpApi.isSuccess.value,
   (isSuccess) => {
