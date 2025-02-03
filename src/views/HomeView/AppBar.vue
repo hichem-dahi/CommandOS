@@ -53,6 +53,7 @@
 </template>
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { supabase } from '@/supabase/supabase'
 import { injectPGlite } from '@electric-sql/pglite-vue'
 import { mdiBell, mdiBellOff, mdiDotsVertical, mdiSync } from '@mdi/js'
@@ -67,6 +68,8 @@ let syncInterval: ReturnType<typeof setInterval> | null = null
 const drawer = defineModel<boolean>('drawer')
 
 const db = injectPGlite()
+
+const router = useRouter()
 
 const { isSynced } = useIsSynced()
 
@@ -83,6 +86,7 @@ async function callSyncTables() {
 async function logout() {
   await supabase.auth.signOut()
   resetLocalAuth()
+  router.push('/auth')
 }
 
 onMounted(async () => {

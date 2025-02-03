@@ -2,7 +2,7 @@
   <router-view></router-view>
 </template>
 <script setup lang="ts">
-import { onMounted, watch, watchEffect } from 'vue'
+import { onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { providePGlite } from '@electric-sql/pglite-vue'
 import { PGliteWorker } from '@electric-sql/pglite/worker'
@@ -32,25 +32,23 @@ const router = useRouter()
 const getProfileApi = useGetProfileApi()
 
 onMounted(async () => {
-  supabase.auth.onAuthStateChange(async (_, _session) => {
+  supabase.auth.onAuthStateChange((_, _session) => {
     if (_session) {
       self.value.session = _session
-      getProfileApi.userId.value = _session.user.id
-      getProfileApi.execute()
     }
   })
-})
 
-watchEffect(() => {
-  if (!self.value.session) router.push('/auth')
+  getProfileApi.userId.value = self.value.session?.user.id
+  getProfileApi.execute()
 })
 
 watch(
-  () => getProfileApi.isSuccess.value,
+  () => getProfileApi.isReady.value,
   (isSuccess) => {
     if (isSuccess && getProfileApi.data.value) {
       self.value.user = getProfileApi.data.value
     }
+    if (!self.value.user?.full_name) router.push('/auth')
   }
 )
 </script>
