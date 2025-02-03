@@ -51,8 +51,8 @@ const upsertDataDb = useUpsertDataDb()
 const dialog = ref(false)
 
 const filters = reactive({
-  name: null,
-  barcode: null
+  name: '',
+  barcode: ''
 })
 
 const defaultProductForm = () => ({
@@ -75,8 +75,8 @@ const categoryForm = ref<TablesInsert<'products_categories'>>({
 
 const filteredProducts = computed(() =>
   products.value?.filter((product) => {
-    const productStr = JSON.stringify(product)
-    const matchesName = productStr ? productStr.includes(filters.name || '') : true
+    const productStr = JSON.stringify(Object.values(product)).toLowerCase()
+    const matchesName = productStr.includes(filters.name || '')
     const matchesBarcode =
       filters.barcode && product.bar_code ? product.bar_code == filters.barcode : true
 
