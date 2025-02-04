@@ -12,6 +12,7 @@ export function useVerifyCodeApi() {
       token: params.code,
       type: 'email'
     })
+
   const q = useAsyncState(query, undefined, { immediate: false })
 
   const data = computed(() => q.state.value?.data)

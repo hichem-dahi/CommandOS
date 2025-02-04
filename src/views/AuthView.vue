@@ -34,7 +34,7 @@
             <v-otp-input
               v-model="form.code"
               variant="solo"
-              @update:focused="pasteOtpFromClipboard"
+              @update:focused="(e) => (e ? pasteOtpFromClipboard : null)"
               :error-messages="isError ? veryifyOtpApi.state.value?.error?.message : null"
             ></v-otp-input>
             <div class="text-red text-caption">
@@ -169,6 +169,7 @@ const pasteOtpFromClipboard = async () => {
     console.error('Clipboard read failed:', error)
   }
 }
+
 watch(
   () => signUpApi.isSuccess.value,
   (isSuccess) => {
@@ -194,10 +195,10 @@ watch(
   () => getProfileApi.isSuccess.value,
   (isSuccess) => {
     const full_name = getProfileApi.data.value?.full_name
-
     if (isSuccess && !full_name) {
       step.value = Steps.FillUserForm
     } else if (isSuccess && full_name) {
+      self.value.user = getProfileApi.data.value || undefined
       router.push({ name: 'organizations' })
     }
   }
