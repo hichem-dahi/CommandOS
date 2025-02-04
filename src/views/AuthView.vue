@@ -78,7 +78,7 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { mdiEmailOutline } from '@mdi/js'
 
@@ -124,6 +124,14 @@ onMounted(() => {
     getProfileApi.execute()
   }
 })
+
+const errorMessage = computed(
+  () =>
+    signUpApi.state.value?.error?.message ||
+    getProfileApi.state.value?.error?.message ||
+    veryifyOtpApi.state.value?.error?.message ||
+    updateProfileApi.state.value?.error?.message
+)
 
 function submitEmail() {
   signUpApi.params.email = form.email.toLowerCase()
@@ -213,4 +221,11 @@ watch(
     }
   }
 )
+
+watch(errorMessage, (errorMessage) => {
+  if (errorMessage) {
+    isError.value = true
+    setTimeout(() => (isError.value = false), 2000)
+  }
+})
 </script>
