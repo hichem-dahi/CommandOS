@@ -36,10 +36,9 @@ onMounted(async () => {
     if (_session) {
       self.value.session = _session
     }
+    getProfileApi.userId.value = self.value.session?.user.id
+    getProfileApi.execute()
   })
-
-  getProfileApi.userId.value = self.value.session?.user.id
-  getProfileApi.execute()
 })
 
 watch(
