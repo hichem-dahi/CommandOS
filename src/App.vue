@@ -47,7 +47,8 @@ watch(
     if (isSuccess && getProfileApi.data.value) {
       self.value.user = getProfileApi.data.value
     }
-    if (!self.value.user?.full_name) router.push('/auth')
+    if (!self.value.user?.full_name) router.push({ name: 'auth' })
+    if (!self.value.current_org) router.push({ name: 'organizations' })
   }
 )
 </script>
