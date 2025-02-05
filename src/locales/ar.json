@@ -92,5 +92,6 @@
   "Submit Your Email": "قدم بريدك الإلكتروني",
   "sale": "بيع",
   "unconfirmed": "غير مؤكد",
-  "wait-to-resend": "انتظر {time} ثانية لإرسال رمز آخر"
+  "wait-to-resend": "انتظر {time} ثانية لإرسال رمز آخر",
+  "start-scanning": "ابدأ المسح"
 }

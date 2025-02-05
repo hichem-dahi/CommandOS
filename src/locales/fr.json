@@ -92,5 +92,6 @@
   "Submit Your Email": "Soumettez votre e-mail",
   "sale": "Vente",
   "unconfirmed": "Non confirmé",
-  "wait-to-resend": "Attendez xx secondes avant d'envoyer un autre code"
+  "wait-to-resend": "Attendez xx secondes avant d'envoyer un autre code",
+  "start-scanning": "Commencer le scan"
 }

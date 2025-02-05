@@ -1,12 +1,16 @@
 <template>
   <v-card>
-    <v-card-title>{{ $t('Scan your barcode') }}</v-card-title>
+    <v-card-actions>
+      <v-btn block variant="tonal" :loading="isScanning" color="blue" @click="activateScanner">
+        {{ $t('start-scanning') }}
+      </v-btn>
+    </v-card-actions>
     <v-card-text>
       <video
-        height="300"
-        width="300"
         ref="videoRef"
         class="barcode-video"
+        height="300"
+        width="300"
         autoplay
         playsinline
       ></video>
@@ -15,19 +19,43 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onBeforeUnmount, watch } from 'vue'
+import { ref, onBeforeUnmount, onMounted } from 'vue'
 import { BarcodeDetector } from 'barcode-detector/pure'
+
+let videoStream: MediaStream | null = null
+let intervalId: NodeJS.Timeout | null = null
 
 const emits = defineEmits<{
   (event: 'detected', value: string): void
 }>()
 
 const videoRef = ref<HTMLVideoElement | null>(null)
-
-let videoStream: MediaStream | null = null
+const isScanning = ref(false)
 
 // Function to activate the barcode scanner
 const activateScanner = async () => {
+  try {
+    if (!videoRef.value) return
+    intervalId = setInterval(async () => await detectBarcodes(videoRef.value!), 200)
+    onBeforeUnmount(() => (intervalId ? clearInterval(intervalId) : null))
+  } catch (err) {
+    console.error('Error detecting barcodes:', err)
+  }
+}
+
+const stopScanner = () => {
+  if (intervalId) {
+    clearInterval(intervalId)
+    intervalId = null
+    isScanning.value = false
+  }
+}
+
+onMounted(async () => {
+  await setUpVideoRef()
+})
+
+async function setUpVideoRef() {
   try {
     // Request access to the back camera on Android devices
     videoStream = await navigator.mediaDevices.getUserMedia({
@@ -55,34 +83,25 @@ const activateScanner = async () => {
         }
       }
     }
+  } catch (err) {
+    console.error('Error detecting barcodes:', err)
+  }
+}
 
-    // Initialize BarcodeDetector if supported
-    if (!('BarcodeDetector' in globalThis)) {
-      console.error('Barcode Detector is not supported by this browser.')
-      return
-    }
-    console.log('Barcode Detector supported!')
-
+const detectBarcodes = async (videoElement: HTMLVideoElement) => {
+  try {
+    isScanning.value = true
     const barcodeDetector = new BarcodeDetector()
-    const videoElement = videoRef.value
-
-    const detectBarcodes = async () => {
-      if (videoElement) {
-        try {
-          const barcodes = await barcodeDetector.detect(videoElement)
-          if (barcodes.length > 0) {
-            barcodes.forEach((barcode: { rawValue: string | null | undefined }) => {
-              console.log('Detected barcode:', barcode.rawValue)
-              if (barcode.rawValue) emits('detected', barcode.rawValue)
-            })
-          }
-        } catch (err) {
-          console.error('Error detecting barcodes:', err)
+    const barcodes = await barcodeDetector.detect(videoElement)
+    if (barcodes.length > 0) {
+      barcodes.forEach((barcode: { rawValue: string | null | undefined }) => {
+        console.log('Detected barcode:', barcode.rawValue)
+        if (barcode.rawValue) {
+          emits('detected', barcode.rawValue)
+          stopScanner()
         }
-      }
+      })
     }
-    const interval = setInterval(detectBarcodes, 200)
-    onBeforeUnmount(() => clearInterval(interval))
   } catch (err) {
     console.error('Error detecting barcodes:', err)
   }
@@ -94,12 +113,6 @@ const closeScanner = () => {
     videoStream = null
   }
 }
-
-watch(videoRef, async (videoRef) => {
-  if (videoRef) {
-    await activateScanner()
-  }
-})
 
 onBeforeUnmount(() => {
   closeScanner()
