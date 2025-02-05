@@ -156,38 +156,44 @@ onUnmounted(() => {
 
 function selectProduct(barcode: string) {
   // Find the product using the barcode
-  const product = products.value.find((p) => p.bar_code == barcode)
+  const product = products.value.find((p) => p.bar_code === barcode)
   if (!product) return // Exit if no product is found
 
   // Check if an orderline already exists for this product
-  const existingOrderline = orderlinesForm.value?.some((o) => o.product_id === product.id)
+  const existingOrderline = orderlinesForm.value?.find((o) => o.product_id === product.id)
 
   if (existingOrderline) {
-    // Increment the quantity if theorderline exists
-    return
+    // Increment quantity if the product already exists in the order
+    existingOrderline.qte++
   } else {
-    // Find an empty orderline (no product_id assigned)
+    // Find an empty orderline or create a new one
     const emptyOrderline = orderlinesForm.value?.find((o) => !o.product_id)
 
     if (emptyOrderline) {
       // Fill the empty orderline with product details
-      emptyOrderline.product_id = product.id
-      emptyOrderline.qte = 1 // Default quantity
+      Object.assign(emptyOrderline, {
+        product_id: product.id,
+        qte: 1, // Default quantity
+        unit_price: product.price,
+        unit_cost_price: product.cost_price,
+        total_price: product.price, // Total price
+        order_id: '', // Provide an order ID if needed
+        org_id: self.value.current_org?.id || ''
+      })
     } else {
-      // No empty orderline, so add a new one
+      // Add a new orderline
       orderlinesForm.value?.push({
         product_id: product.id,
         qte: 1, // Default quantity
-        unit_price: 0,
-        unit_cost_price: 0,
-        total_price: 0, // Total price
+        unit_price: product.price,
+        unit_cost_price: product.cost_price,
+        total_price: product.price, // Total price
         order_id: '', // Provide an order ID if needed
-        org_id: ''
+        org_id: self.value.current_org?.id || ''
       })
     }
   }
 }
-
 function submitSale() {
   $v.value.$touch()
   if (!$v.value.$invalid) {
