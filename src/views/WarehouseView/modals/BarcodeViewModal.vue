@@ -79,29 +79,40 @@ watchEffect(() => {
   }
 })
 
-const svgToImage = (svg: SVGElement) => {
+const svgToImage = (svg: SVGElement, scaleFactor: number = 2) => {
   const canvas = document.createElement('canvas')
   const ctx = canvas.getContext('2d')
   const img = new Image()
 
   return new Promise<string>((resolve) => {
     img.onload = () => {
-      canvas.width = img.width
-      canvas.height = img.height + 32
+      // Scale the canvas dimensions
+      canvas.width = img.width * scaleFactor
+      canvas.height = (img.height + 32) * scaleFactor
 
       if (ctx) {
+        // Scale the drawing operations
+        ctx.scale(scaleFactor, scaleFactor)
+
+        // Fill the background
         ctx.fillStyle = '#fff'
-        ctx.fillRect(0, 0, canvas.width, canvas.height)
+        ctx.fillRect(0, 0, canvas.width / scaleFactor, canvas.height / scaleFactor)
 
+        // Draw the text
         ctx.fillStyle = '#000'
-        ctx.font = 'bold 16px Arial' // Added 'bold' here
+        ctx.font = 'bold 16px Arial' // Font size is not scaled here
         ctx.textAlign = 'center'
-        ctx.fillText(props.product.name || '', canvas.width / 2, 16)
+        ctx.fillText(props.product.name || '', canvas.width / scaleFactor / 2, 16)
 
+        // Draw the image
         ctx.drawImage(img, 0, 20)
       }
-      resolve(canvas.toDataURL('image/png'))
+
+      // Resolve with the data URL of the high-resolution image
+      resolve(canvas.toDataURL('image/png', 1.0)) // 1.0 is the highest quality
     }
+
+    // Convert SVG to data URL and set it as the image source
     img.src = `data:image/svg+xml;base64,${btoa(new XMLSerializer().serializeToString(svg))}`
   })
 }
