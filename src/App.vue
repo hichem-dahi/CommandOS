@@ -43,12 +43,18 @@ onMounted(async () => {
 
 watch(
   () => getProfileApi.isReady.value,
-  (isSuccess) => {
+  async (isSuccess) => {
     if (isSuccess && getProfileApi.data.value) {
       self.value.user = getProfileApi.data.value
     }
-    if (!self.value.user?.full_name) router.push({ name: 'auth' })
-    if (!self.value.current_org) router.push({ name: 'organizations' })
+    if (!self.value.user?.full_name) {
+      router.push({ name: 'auth' })
+      return
+    }
+    if (!self.value.current_org) {
+      router.push({ name: 'organizations' })
+      return
+    }
   }
 )
 </script>
