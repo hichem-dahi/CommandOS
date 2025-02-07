@@ -7,25 +7,6 @@
         <svg ref="barcodeRef"></svg>
       </div>
       <div class="pa-2">
-        <v-checkbox hide-details density="compact" label="dimensions" v-model="isModifyDims" />
-        <div class="dims-input d-flex ga-5 pa-2" v-if="isModifyDims">
-          <v-text-field
-            hide-details
-            density="compact"
-            type="number"
-            suffix="mm"
-            :label="$t('height')"
-            v-model="dims.height"
-          />
-          <v-text-field
-            hide-details
-            density="compact"
-            type="number"
-            suffix="mm"
-            :label="$t('width')"
-            v-model="dims.width"
-          />
-        </div>
         <v-checkbox hide-details density="compact" :label="$t('reverse')" v-model="isReverse" />
       </div>
       <v-btn @click="printBarcode">{{ $t('print') }}</v-btn>
@@ -46,13 +27,7 @@ const props = defineProps<{ product: TablesInsert<'products'> }>()
 
 const barcodeRef = ref<SVGSVGElement | null>(null)
 
-const dims = ref({
-  height: 20,
-  width: 40
-})
-
 const isReverse = ref(false)
-const isModifyDims = ref(false)
 
 const printBarcode = async () => {
   if (barcodeRef.value) {
@@ -79,7 +54,7 @@ watchEffect(() => {
   }
 })
 
-const svgToImage = (svg: SVGElement, scaleFactor: number = 2) => {
+const svgToImage = (svg: SVGElement, scaleFactor: number = 10) => {
   const canvas = document.createElement('canvas')
   const ctx = canvas.getContext('2d')
   const img = new Image()
