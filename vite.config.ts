@@ -28,7 +28,7 @@ export default defineConfig({
         maximumFileSizeToCacheInBytes: 10 * 1024 ** 2,
         globPatterns: ['**/*.{js,css,html,wasm,data}']
       },
-      includeAssets: ['favicon.ico', 'logo.png', 'logo-cropped.png'],
+      includeAssets: ['favicon.ico', 'logo-cropped.png', 'logo-aes-cropped.png'],
       manifest: {
         theme_color: '#ffffff',
         background_color: '#2EC6FE',
