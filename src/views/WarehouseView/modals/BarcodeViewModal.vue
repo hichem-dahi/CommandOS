@@ -2,8 +2,7 @@
   <v-dialog max-width="400" v-model="dialog">
     <v-card class="pa-4">
       <!-- Show only one barcode in the dialog -->
-      <div id="barcode-container" class="barcode-container text-center pa-4">
-        <div class="product-title">{{ product.name }}</div>
+      <div id="barcode-container" class="barcode-container">
         <svg ref="barcodeRef"></svg>
       </div>
       <div class="pa-2">
@@ -16,85 +15,32 @@
 
 <script setup lang="ts">
 import { ref, watchEffect } from 'vue'
-import JsBarcode from 'jsbarcode'
+
+import { constructBarcodeRefSvg } from '@/helpers/constructBarcodeSvg'
 
 import type { TablesInsert } from '@/types/database.types'
 
 const dialog = defineModel<boolean>('dialog')
-const model = defineModel<number | string | null>('barcode')
-
+const model = defineModel<string | null>('barcode')
 const props = defineProps<{ product: TablesInsert<'products'> }>()
 
 const barcodeRef = ref<SVGSVGElement | null>(null)
-
 const isReverse = ref(false)
 
-const printBarcode = async () => {
-  if (barcodeRef.value) {
-    await printBarcodeAsImage(barcodeRef.value)
-  } else {
-    console.error('Barcode element not found!')
-  }
-}
-
 watchEffect(() => {
+  //TODO: to refactor
   if (barcodeRef.value) {
     if (model.value) {
-      JsBarcode(barcodeRef.value, model.value.toString(), {
-        text: `${props.product.price} DA`,
-        width: 2, // Narrower bars for clarity
-        height: 40, // Adjust height for barcode
-        fontSize: 14, // Font size for text below barcode
-        margin: 8, // Spacing around barcode
-        fontOptions: 'bold'
-      })
+      constructBarcodeRefSvg(barcodeRef.value, model.value, props.product)
     } else {
       barcodeRef.value.innerHTML = ''
     }
   }
 })
 
-const svgToImage = (svg: SVGElement, scaleFactor: number = 10) => {
-  const canvas = document.createElement('canvas')
-  const ctx = canvas.getContext('2d')
-  const img = new Image()
-
-  return new Promise<string>((resolve) => {
-    img.onload = () => {
-      // Scale the canvas dimensions
-      canvas.width = img.width * scaleFactor
-      canvas.height = (img.height + 32) * scaleFactor
-
-      if (ctx) {
-        // Scale the drawing operations
-        ctx.scale(scaleFactor, scaleFactor)
-
-        // Fill the background
-        ctx.fillStyle = '#fff'
-        ctx.fillRect(0, 0, canvas.width / scaleFactor, canvas.height / scaleFactor)
-
-        // Draw the text
-        ctx.fillStyle = '#000'
-        ctx.font = 'bold 16px Arial' // Font size is not scaled here
-        ctx.textAlign = 'center'
-        ctx.fillText(props.product.name || '', canvas.width / scaleFactor / 2, 16)
-
-        // Draw the image
-        ctx.drawImage(img, 0, 20)
-      }
-
-      // Resolve with the data URL of the high-resolution image
-      resolve(canvas.toDataURL('image/png', 1.0)) // 1.0 is the highest quality
-    }
-
-    // Convert SVG to data URL and set it as the image source
-    img.src = `data:image/svg+xml;base64,${btoa(new XMLSerializer().serializeToString(svg))}`
-  })
-}
-
-const printBarcodeAsImage = async (svg: SVGElement) => {
+const printBarcode = async () => {
   // Convert the SVG element to an image
-  const el = await svgToImage(svg) // Ensure this returns a base64 string or image URL
+  const el = document.getElementById('barcode-container')
 
   // Create a new window for printing
   const printWindow = window.open('', '', 'width=800,height=600')
@@ -118,47 +64,44 @@ const printBarcodeAsImage = async (svg: SVGElement) => {
             width: 100%;
             height: 100%;
           }
-          img {
+          .barcode-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin: auto;
+            text-align: center;
             width: 100%;
-            height: 100%;
-            object-fit: contain;
-           ${
-             isReverse.value
-               ? `
-            transform: rotate(90deg); /* Rotate the image if isReverse is true */
-            transform-origin: center; /* Set rotation pivot point */
-          `
-               : ''
-           }
+            border: 1px solid #dddddd; /* Optional border for visual debugging */
+            margin: 0;
+            padding: 0;
+          }
+          @media print {
+            svg {
+              width: 100% !important;
+              height: 100% !important; /* Maintain aspect ratio */
+              max-height: 100% !important; /* Maintain aspect ratio */
+              max-width: 100% !important;
+              margin: 0;
+              padding: 0;
+              image-rendering: pixelated;
+            }
           }
         </style>
       </head>
       <body>
-        <img id="printImage" src="${el}" alt="SVG Image"/>
+        ${el?.outerHTML}
       </body>
     </html>
   `)
 
   // Wait for the image to load before printing
-  printWindow.document.close() // Ensure the document is fully written
-  const printImage = printWindow.document.getElementById('printImage') as HTMLImageElement
-
-  printImage.onload = () => {
-    printWindow.print()
-    printWindow.close()
-  }
-
-  // Optional: Close the print window after printing (user experience consideration)
-  printImage.onerror = () => {
-    console.error('Failed to load the image for printing')
-  }
+  printWindow.print()
+  printWindow.close() // Ensure the document is fully written
 }
 </script>
 
 <style scoped>
-.barcode-svg {
-  image-rendering: crisp-edges; /* Ensure sharp rendering */
-}
 .barcode-container {
   display: flex;
   flex-direction: column;
