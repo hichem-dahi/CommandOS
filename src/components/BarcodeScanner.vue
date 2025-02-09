@@ -88,20 +88,19 @@ async function setUpVideoRef() {
   }
 }
 
+const barcodeDetector = new BarcodeDetector()
+
 const detectBarcodes = async (videoElement: HTMLVideoElement) => {
   try {
     isScanning.value = true
-    const barcodeDetector = new BarcodeDetector()
     const barcodes = await barcodeDetector.detect(videoElement)
-    if (barcodes.length > 0) {
-      barcodes.forEach((barcode: { rawValue: string | null | undefined }) => {
-        console.log('Detected barcode:', barcode.rawValue)
-        if (barcode.rawValue) {
-          emits('detected', barcode.rawValue)
-          stopScanner()
-        }
-      })
-    }
+    barcodes.forEach((barcode: { rawValue: string | null | undefined }) => {
+      console.log('Detected barcode:', barcode.rawValue)
+      if (barcode.rawValue) {
+        emits('detected', barcode.rawValue)
+        stopScanner()
+      }
+    })
   } catch (err) {
     console.error('Error detecting barcodes:', err)
   }
