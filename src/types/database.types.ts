@@ -236,6 +236,7 @@ export type Database = {
           org_id: string
           paid_price: number
           payment_method: string | null
+          reduction: number | null
           status: number
           total_price: number
           ttc: number | null
@@ -257,6 +258,7 @@ export type Database = {
           org_id: string
           paid_price: number
           payment_method?: string | null
+          reduction?: number | null
           status: number
           total_price: number
           ttc?: number | null
@@ -278,6 +280,7 @@ export type Database = {
           org_id?: string
           paid_price?: number
           payment_method?: string | null
+          reduction?: number | null
           status?: number
           total_price?: number
           ttc?: number | null

@@ -25,9 +25,11 @@
         </div>
         <div>
           <span class="font-weight-bold">{{ $t('remaining') }}:</span>
-          <span class="text-red">
-            &nbsp;{{ order.total_price - order.paid_price }} {{ $t('DA') }}
-          </span>
+          <span> &nbsp;{{ order.total_price - order.paid_price }} {{ $t('DA') }} </span>
+        </div>
+        <div>
+          <span class="font-weight-bold">{{ $t('reduction') }}:</span>
+          <span> &nbsp;{{ order.reduction }} {{ $t('DA') }} </span>
         </div>
       </div>
     </template>

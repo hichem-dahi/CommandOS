@@ -17,11 +17,11 @@
         <v-card-title>{{ $t('add-sale') }}</v-card-title>
         <v-card-text>
           <CreateOrderlines> </CreateOrderlines>
-          <div class="d-flex justify-end">
+          <div class="d-flex justify-space-between">
             <v-number-input
               density="comfortable"
-              variant="outlined"
-              max-width="100"
+              variant="solo"
+              max-width="120"
               :label="$t('payment')"
               inset
               controlVariant="stacked"
@@ -29,14 +29,26 @@
               :min="0"
               v-model="paymentForm.amount"
             />
+            <v-number-input
+              density="comfortable"
+              variant="solo"
+              max-width="120"
+              :label="$t('reduction')"
+              inset
+              controlVariant="stacked"
+              :max="form.total_price"
+              :min="0"
+              v-model="form.reduction"
+            />
           </div>
         </v-card-text>
 
         <v-card-actions class="justify-space-between">
           <v-card-title> {{ $t('total') }}: {{ form.total_price }} {{ $t('DA') }} </v-card-title>
-          <v-btn variant="outlined" color="blue" @click="submitSale" :loading="isLoading">{{
-            $t('confirm')
-          }}</v-btn>
+
+          <v-btn variant="outlined" color="blue" @click="submitSale" :loading="isLoading">
+            {{ $t('confirm') }}
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-col>
@@ -106,6 +118,7 @@ const filters = reactive<Filters>({
 })
 
 const lastBarcode = ref('')
+
 let buffer = ''
 
 const orders = computed(() => ordersQuery.rows.value as unknown as OrderData[])
@@ -274,6 +287,7 @@ watch(
       }
 
       resetOrderForm()
+      $v.value.$reset()
     }
   }
 )

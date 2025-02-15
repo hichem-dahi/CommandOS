@@ -28,7 +28,7 @@
   "add-payment": "Ajouter un versement",
   "payments": "Versements",
   "activity": "Activité",
-  "U.P": "P.U",
+  "U.P": "P.V",
   "C.P": "P.A",
   "N°": "N°",
   "R.C": "R.C",
@@ -93,5 +93,6 @@
   "sale": "Vente",
   "unconfirmed": "Non confirmé",
   "wait-to-resend": "Attendez xx secondes avant d'envoyer un autre code",
-  "start-scanning": "Commencer le scan"
+  "start-scanning": "Commencer le scan",
+  "reduction": "Réduction"
 }

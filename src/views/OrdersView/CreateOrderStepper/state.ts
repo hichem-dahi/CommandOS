@@ -27,7 +27,8 @@ const defaultOrderForm = () => ({
   paid_price: 0,
   total_price: 0,
   tva: 0,
-  ttc: 0
+  ttc: 0,
+  reduction: 0
 })
 
 const defaultPaymentForm = () => ({
@@ -104,11 +105,12 @@ function resetOrderForm() {
   Object.assign(form, defaultOrderForm())
   deliveryForm.value = defaultDeliveryForm()
   individualForm.value = defaultIndividualForm()
-  Object.assign(paymentForm, defaultOrderlineForm())
+  Object.assign(paymentForm, defaultPaymentForm())
+  orderlinesForm.value = [defaultOrderlineForm()]
 }
 
 watchEffect(() => {
-  form.total_price = sum(orderlinesForm.value?.map((e) => e.total_price))
+  form.total_price = sum(orderlinesForm.value?.map((e) => e.total_price)) - (form.reduction || 0)
 
   if (paymentForm.amount && paymentForm.amount > 0) {
     form.paid_price = form.total_price - (form.total_price - paymentForm.amount)

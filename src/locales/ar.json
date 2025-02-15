@@ -93,5 +93,6 @@
   "sale": "بيع",
   "unconfirmed": "غير مؤكد",
   "wait-to-resend": "انتظر {time} ثانية لإرسال رمز آخر",
-  "start-scanning": "ابدأ المسح"
+  "start-scanning": "ابدأ المسح",
+  "reduction": "تخفيض"
 }
