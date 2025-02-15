@@ -49,7 +49,8 @@
             `
               Total: ${sum(filteredOrders.map((o) => Number(o.total_price)))} ${t('DA')}<br />
               Payé: ${sum(filteredOrders.map((o) => Number(o.paid_price)))} ${t('DA')}<br />
-              Restant: ${sum(filteredOrders.map((o) => Number(o.total_price) - Number(o.paid_price)))} ${t('DA')}
+              Restant: ${sum(filteredOrders.map((o) => Number(o.total_price) - Number(o.paid_price)))} ${t('DA')}<br>
+              <span class='text-green-darken-4'>Bénefice: ${calculateProfit(filteredOrders)} ${t('DA')}</span> 
             `
           "
         ></div>
@@ -64,7 +65,7 @@ import { groupBy, sortBy, sum } from 'lodash'
 import { format } from 'date-fns'
 import { useI18n } from 'vue-i18n'
 
-import { useOrdersQuery } from '@/composables/db/orders/useGetOrdersDb'
+import { useOrdersQuery, type OrderData } from '@/composables/db/orders/useGetOrdersDb'
 
 import type { OrderLineData } from '@/composables/api/orders/useGetOrderApi'
 
@@ -102,7 +103,7 @@ watchEffect(() => {
   params.date_lte = endDate.value
 })
 
-const filteredOrders = computed(() => q.rows.value || [])
+const filteredOrders = computed(() => (q.rows.value || []) as unknown as OrderData[])
 
 const historyItems = computed(() => {
   let groupedSummary = []
@@ -113,8 +114,7 @@ const historyItems = computed(() => {
       summary: productSummary(allOrderlinesByDate.value[date]),
       total: `
         Total: ${sum(groupedOrders.value[date].map((o) => Number(o.total_price)))} ${t('DA')}<br>
-        Payé: ${sum(groupedOrders.value[date].map((o) => Number(o.paid_price)))} ${t('DA')}<br>
-        Restant: ${sum(groupedOrders.value[date].map((o) => Number(o.total_price - o.paid_price)))} ${t('DA')}
+        <span class='text-green-darken-4'> Bénefice: ${calculateProfit(groupedOrders.value[date])} ${t('DA')} </span>
       `
     }
     groupedSummary.push(dateSummaryitem)
@@ -123,11 +123,11 @@ const historyItems = computed(() => {
   return groupedSummary
 })
 
-const groupedOrders = computed(() => {
-  return groupBy(sortBy(filteredOrders.value, (t) => new Date(t.date)).reverse(), (t) =>
+const groupedOrders = computed(() =>
+  groupBy(sortBy(filteredOrders.value, (t) => new Date(t.date)).reverse(), (t) =>
     new Date(t.date).toDateString()
   )
-})
+)
 
 const allOrderlinesByDate = computed(() => {
   const result: Record<string, OrderLineData[]> = {}
@@ -160,18 +160,24 @@ function productSummary(orderlines: OrderLineData[]) {
   return `${productsSummaries.join(', ')}`
 }
 
-function calculateProfit(orderlines: OrderLineData[]) {
+function calculateProfit(orderlines: OrderData[]) {
   let profit = 0
   orderlines.forEach((o) => {
-    if (o?.unit_cost_price) profit += o.total_price - o.qte * o.unit_cost_price
+    if (o.order_lines)
+      profit += o.total_price - sum(o.order_lines.map((l) => l.qte * (l.unit_cost_price || 0)))
   })
+
   return profit
 }
 </script>
 
-<style scoped>
+<style>
 .router-link {
   text-decoration: none;
   color: inherit;
+}
+
+.v-list-item--three-line .v-list-item-subtitle {
+  -webkit-line-clamp: 5 !important;
 }
 </style>
