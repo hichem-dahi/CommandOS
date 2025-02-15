@@ -29,7 +29,7 @@
         </div>
         <div>
           <span class="font-weight-bold">{{ $t('reduction') }}:</span>
-          <span> &nbsp;{{ order.reduction }} {{ $t('DA') }} </span>
+          <span> &nbsp;{{ order.reduction || 0 }} {{ $t('DA') }} </span>
         </div>
       </div>
     </template>

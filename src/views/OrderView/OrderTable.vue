@@ -229,7 +229,8 @@ const isConfirmable = computed(() => !isModified.value && isValidOrderlines.valu
 const totalItems = computed(() => {
   return {
     remaining: (props.order.total_price || 0) - (props.order.paid_price || 0),
-    total: props.order.total_price
+    total: props.order.total_price,
+    reduction: props.order.reduction || 0
   }
 })
 
