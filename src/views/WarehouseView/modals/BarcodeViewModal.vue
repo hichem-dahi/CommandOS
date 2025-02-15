@@ -60,7 +60,7 @@ const printBarcode = async () => {
             padding: 0;
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: end;
             width: 100%;
             height: 100%;
           }
