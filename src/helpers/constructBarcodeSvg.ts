@@ -15,7 +15,7 @@ export function constructBarcodeRefSvg(
     text: `${product.price} DA`,
     width: 2,
     height: 40,
-    fontSize: 16,
+    fontSize: 18,
     margin: 5,
     fontOptions: 'bold',
     displayValue: true
@@ -28,16 +28,18 @@ export function constructBarcodeRefSvg(
   // Create text elements
   const text1 = document.createElementNS('http://www.w3.org/2000/svg', 'text')
   text1.setAttribute('x', '50%')
-  text1.setAttribute('y', '20') // First text slightly higher
+  text1.setAttribute('y', '20')
   text1.setAttribute('text-anchor', 'middle')
   text1.setAttribute('font-size', '16')
+  text1.setAttribute('font-weight', 'bold')
   text1.textContent = product.code
 
   const text2 = document.createElementNS('http://www.w3.org/2000/svg', 'text')
   text2.setAttribute('x', '50%')
   text2.setAttribute('y', '44') // Second text lower
   text2.setAttribute('text-anchor', 'middle')
-  text2.setAttribute('font-size', '18')
+  text2.setAttribute('font-size', '16')
+  text2.setAttribute('font-weight', 'bold')
   text2.textContent = product.name
 
   // Clear SVG and set dimensions first
