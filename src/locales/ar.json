@@ -94,5 +94,8 @@
   "unconfirmed": "غير مؤكد",
   "wait-to-resend": "انتظر {time} ثانية لإرسال رمز آخر",
   "start-scanning": "ابدأ المسح",
-  "reduction": "تخفيض"
+  "reduction": "تخفيض",
+  "nmb-products": "عدد المنتجات",
+  "nmb-qty": "إجمالي الكمية",
+  "total-cost-price": "إجمالي سعر الشراء"
 }

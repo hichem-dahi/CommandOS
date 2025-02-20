@@ -94,5 +94,8 @@
   "unconfirmed": "Non confirmé",
   "wait-to-resend": "Attendez xx secondes avant d'envoyer un autre code",
   "start-scanning": "Commencer le scan",
-  "reduction": "Réduction"
+  "reduction": "Réduction",
+  "nmb-products": "Nombre de produits",
+  "nmb-qty": "Quantité totale",
+  "total-cost-price": "Prix d'achat total"
 }
