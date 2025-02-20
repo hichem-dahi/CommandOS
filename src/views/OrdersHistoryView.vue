@@ -26,13 +26,30 @@
     </v-btn>-->
   </div>
 
-  <v-row class="mt-10">
-    <v-col sm="12" md="7">
+  <div class="total pa-4 text-body-2">
+    <div>
+      <b>{{ $t('total') }}: </b>
+      <span class="text-caption">{{ productSummary(allOrderlines) }}</span> <br />
+    </div>
+    <div
+      class="pa-4"
+      v-html="
+        `
+          <b>Total:</b> ${sum(filteredOrders.map((o) => Number(o.total_price)))} ${t('DA')}<br />
+          <b>Payé:</b> ${sum(filteredOrders.map((o) => Number(o.paid_price)))} ${t('DA')}<br />
+          <b>Restant:</b> ${sum(filteredOrders.map((o) => Number(o.total_price) - Number(o.paid_price)))} ${t('DA')}<br>
+          <b><span class='text-green-darken-4'><b>Bénefice:</b> ${calculateProfit(filteredOrders)} ${t('DA')}</span> 
+        `
+      "
+    ></div>
+  </div>
+  <v-row>
+    <v-col cols="12" md="7">
       <v-list lines="three">
         <template v-for="item in historyItems" :key="item.orderId || item.title">
           <v-list-item elevation="1">
             <v-list-item-title> <div v-html="item.title"></div> </v-list-item-title>
-            <v-list-item-subtitle class="py-2 text-high-emphasis opacity-100">
+            <v-list-item-subtitle class="py-2 text-high-emphasis opacity-100 text-caption">
               {{ item.summary }}
             </v-list-item-subtitle>
             <v-list-item-subtitle class="pt-2 text-caption">
@@ -41,20 +58,6 @@
           </v-list-item>
         </template>
       </v-list>
-      <div class="total pa-4">
-        <div>{{ $t('total') }}: <span v-html="productSummary(allOrderlines)"></span> <br /></div>
-        <div
-          class="pa-4"
-          v-html="
-            `
-              Total: ${sum(filteredOrders.map((o) => Number(o.total_price)))} ${t('DA')}<br />
-              Payé: ${sum(filteredOrders.map((o) => Number(o.paid_price)))} ${t('DA')}<br />
-              Restant: ${sum(filteredOrders.map((o) => Number(o.total_price) - Number(o.paid_price)))} ${t('DA')}<br>
-              <span class='text-green-darken-4'>Bénefice: ${calculateProfit(filteredOrders)} ${t('DA')}</span> 
-            `
-          "
-        ></div>
-      </div>
     </v-col>
   </v-row>
 </template>
@@ -113,8 +116,8 @@ const historyItems = computed(() => {
       title: `${intro}`,
       summary: productSummary(allOrderlinesByDate.value[date]),
       total: `
-        Total: ${sum(groupedOrders.value[date].map((o) => Number(o.total_price)))} ${t('DA')}<br>
-        <span class='text-green-darken-4'> Bénefice: ${calculateProfit(groupedOrders.value[date])} ${t('DA')} </span>
+        <b>Total:</b> ${sum(groupedOrders.value[date].map((o) => Number(o.total_price)))} ${t('DA')}<br>
+        <span class='text-green-darken-4'> <b>Bénefice:</b> ${calculateProfit(groupedOrders.value[date])} ${t('DA')} </span>
       `
     }
     groupedSummary.push(dateSummaryitem)
