@@ -17,7 +17,7 @@
       <FilterBar v-model="filters" />
     </div>
     <div class="details text-medium-emphasis font-weight-bold text-body-2">
-      <div>{{ $t('nmb-products') }}: {{ products.length }}</div>
+      <div>{{ $t('nmb-products-exist') }}: {{ products.length }}</div>
       <div>{{ $t('nmb-qty') }}: {{ quantitiesQuery.rows.value?.[0].total_quantities }}</div>
       <div>
         {{ $t('total-cost-price') }}: {{ totalCostPriceQuery.rows.value?.[0].total_cost_price }}

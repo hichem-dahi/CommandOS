@@ -95,7 +95,7 @@
   "wait-to-resend": "انتظر {time} ثانية لإرسال رمز آخر",
   "start-scanning": "ابدأ المسح",
   "reduction": "تخفيض",
-  "nmb-products": "عدد المنتجات",
+  "nmb-products-exist": "عدد المنتجات الموجودة",
   "nmb-qty": "إجمالي الكمية",
   "total-cost-price": "إجمالي سعر الشراء"
 }
