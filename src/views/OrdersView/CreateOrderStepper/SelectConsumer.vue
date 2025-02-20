@@ -89,7 +89,7 @@ const organizationsItems = computed(() =>
   })
 )
 
-const itemProps = (item: any) => {
+const itemProps = (item: Tables<'individuals'>) => {
   if (isString(item)) return item
   return {
     title: item.name,
