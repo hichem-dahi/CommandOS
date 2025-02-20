@@ -1,6 +1,6 @@
 <template>
   <div class="d-flex align-end ga-2">
-    <v-select
+    <v-autocomplete
       density="compact"
       style="flex: 3; min-width: 0"
       :label="$t('product')"
@@ -9,15 +9,16 @@
       :error="!$v.product_id.$pending && $v.product_id.$error"
       :items="availableProducts"
       item-value="id"
-      item-title="name"
+      :item-props="itemProps"
       v-model="model.product_id"
       hide-no-data
       hide-details
+      :custom-filter="customFilter"
     >
       <template v-slot:selection>
         <span>{{ selectedProduct?.name }}</span>
       </template>
-    </v-select>
+    </v-autocomplete>
     <v-number-input
       class="orderline-input"
       density="compact"
@@ -63,6 +64,7 @@
 
 <script setup lang="ts">
 import { watchEffect, watch, computed, toRef } from 'vue'
+import { isString } from 'lodash'
 import useVuelidate from '@vuelidate/core'
 import { minValue, numeric, required } from '@vuelidate/validators'
 import { mdiDelete } from '@mdi/js'
@@ -108,6 +110,22 @@ const $v = useVuelidate<TablesInsert<'order_lines'>>(
 )
 
 const selectedProduct = computed(() => props.products.find((e) => e.id === model.value.product_id))
+
+const itemProps = (item: ProductData) => {
+  if (isString(item)) return item
+  return {
+    title: item.name,
+    subtitle: item.code
+  }
+}
+
+function customFilter(itemTitle: any, queryText: string, item: any) {
+  const textOne = item.raw.name.toLowerCase()
+  const textTwo = item.raw.code.toLowerCase()
+  const searchText = queryText.toLowerCase()
+
+  return textOne.indexOf(searchText) > -1 || textTwo.indexOf(searchText) > -1
+}
 
 watchEffect(() => {
   if (model.value.qte && model.value.unit_price) {
