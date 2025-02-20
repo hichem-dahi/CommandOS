@@ -1,23 +1,33 @@
 <template>
-  <div class="d-flex align-start flex-wrap ga-8 pa-4">
-    <v-btn class="my-5" variant="tonal" size="small" :append-icon="mdiPlus" @click="toggleDialog">
-      {{ $t('add-product') }}
-    </v-btn>
-    <v-dialog max-width="400px" v-model="dialog">
-      <ProductForm v-model:product="form" v-model:category="categoryForm">
-        <template v-slot:actions>
-          <v-btn block :loading="upsertDataDb.isLoading.value" @click="submitForm">
-            {{ $t('add') }}
-          </v-btn>
-        </template>
-      </ProductForm>
-    </v-dialog>
-    <v-divider v-if="!$vuetify.display.mobile" vertical />
-    <FilterBar v-model="filters" />
+  <div class="d-flex align-end justify-space-between flex-wrap ga-8 pa-4">
+    <div class="d-flex align-center ga-8 flex-wrap">
+      <v-btn class="my-5" variant="tonal" size="small" :append-icon="mdiPlus" @click="toggleDialog">
+        {{ $t('add-product') }}
+      </v-btn>
+      <v-dialog max-width="400px" v-model="dialog">
+        <ProductForm v-model:product="form" v-model:category="categoryForm">
+          <template v-slot:actions>
+            <v-btn block :loading="upsertDataDb.isLoading.value" @click="submitForm">
+              {{ $t('add') }}
+            </v-btn>
+          </template>
+        </ProductForm>
+      </v-dialog>
+      <v-divider v-if="!$vuetify.display.mobile" vertical />
+      <FilterBar v-model="filters" />
+    </div>
+    <div class="details text-medium-emphasis font-weight-bold text-body-2">
+      <div>{{ $t('nmb-products') }}: {{ products.length }}</div>
+      <div>{{ $t('nmb-qty') }}: {{ quantitiesQuery.rows.value?.[0].total_quantities }}</div>
+      <div>
+        {{ $t('total-cost-price') }}: {{ totalCostPriceQuery.rows.value?.[0].total_cost_price }}
+        {{ $t('DA') }}
+      </div>
+    </div>
   </div>
   <v-container>
     <v-row>
-      <v-col v-for="product in filteredProducts" :key="product.id" sm="12" md="3">
+      <v-col v-for="product in filteredProducts" :key="product.id" cols="12" md="3">
         <ProductCard :product="product" />
       </v-col>
     </v-row>
@@ -26,6 +36,7 @@
 
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue'
+import { useLiveQuery } from '@electric-sql/pglite-vue'
 import { useVuelidate } from '@vuelidate/core'
 import { mdiPlus } from '@mdi/js'
 
@@ -76,12 +87,25 @@ const categoryForm = ref<TablesInsert<'products_categories'>>({
 const filteredProducts = computed(() =>
   products.value?.filter((product) => {
     const productStr = JSON.stringify(Object.values(product)).toLowerCase()
-    const matchesName = productStr.includes(filters.name || '')
+    const matchesName = productStr.includes(filters.name.toLowerCase() || '')
     const matchesBarcode =
       filters.barcode && product.bar_code ? product.bar_code == filters.barcode : true
 
     return matchesName && matchesBarcode
   })
+)
+
+const quantitiesQuery = useLiveQuery(
+  'SELECT SUM(qty) AS total_quantities FROM public.products_qty',
+  []
+)
+
+const totalCostPriceQuery = useLiveQuery(
+  `SELECT SUM((COALESCE(p.cost_price, 0) * COALESCE(pq.qty, 0))) AS total_cost_price
+    FROM public.products p
+    JOIN public.products_qty pq ON p.id = pq.id 
+    WHERE pq.qty > 0;`,
+  []
 )
 
 function toggleDialog() {
