@@ -7,6 +7,7 @@
       <div class="w-100 text-center py-12">
         <img class="mx-auto mb-4" src="/logo-aes-cropped.png" height="60" alt="logo" />
       </div>
+      <v-btn @click="setFreeMode">{{ $t('free-mode') }}</v-btn>
       <v-card class="py-8 px-6 text-center mx-auto ma-4" elevation="2" max-width="400" width="100%">
         <div v-if="step === Steps.SendEmail">
           <h3 class="text-h6 mb-4">{{ $t('Submit Your Email') }}</h3>
@@ -82,7 +83,7 @@ import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { mdiEmailOutline } from '@mdi/js'
 
-import self from '@/composables/localStore/useSelf'
+import self, { Subscription } from '@/composables/localStore/useSelf'
 
 import { useSignUpApi } from '@/composables/api/auth/useSignUpApi'
 import { useVerifyCodeApi } from '@/composables/api/auth/useVerifyOtpApi'
@@ -132,6 +133,11 @@ const errorMessage = computed(
     veryifyOtpApi.state.value?.error?.message ||
     updateProfileApi.state.value?.error?.message
 )
+
+function setFreeMode() {
+  self.value.subscription = Subscription.FREE
+  router.push({ name: 'organizations' })
+}
 
 function submitEmail() {
   signUpApi.params.email = form.email.toLowerCase()

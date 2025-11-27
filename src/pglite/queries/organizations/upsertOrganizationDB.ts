@@ -6,7 +6,7 @@ export function upsertOrganizationDB(
   organization: TablesInsert<'organizations'>
 ) {
   const query = `
-    INSERT INTO public.organizations (id, name, phone, rc, nif, nis, art, address, activity, org_id, _synced, _deleted)
+    INSERT INTO public.organizations (id, name, phone, rc, nif, nis, art, address, activity, org_id, user_id, _synced, _deleted)
     VALUES (
       COALESCE($1, gen_random_uuid()), 
       $2, 
@@ -17,9 +17,10 @@ export function upsertOrganizationDB(
       $7, 
       $8, 
       $9, 
-      $10, 
-      COALESCE($11, true),
-      COALESCE($12, false)
+      $10,
+      $11,  
+      COALESCE($12, true),
+      COALESCE($13, false)
     )
     ON CONFLICT (id)
     DO UPDATE SET
@@ -32,6 +33,7 @@ export function upsertOrganizationDB(
       address = EXCLUDED.address,
       activity = EXCLUDED.activity,
       org_id = EXCLUDED.org_id,
+      user_id = EXCLUDED.user_id,
       _synced = COALESCE(EXCLUDED._synced, true),
       _deleted = COALESCE(EXCLUDED._deleted, false)
       RETURNING *;
@@ -48,8 +50,9 @@ export function upsertOrganizationDB(
     organization.address || null, // $8
     organization.activity || null, // $9
     organization.org_id || null, // $10
-    organization._synced ?? true, // $11
-    organization._deleted ?? false // $12
+    organization.user_id || null, // $11
+    organization._synced ?? true, // $12
+    organization._deleted ?? false // $13
   ]
 
   try {

@@ -47,8 +47,10 @@ const drawer = ref(true)
 onMounted(async () => {
   await db?.waitReady
   const org = self.value.current_org
+  const user_id = self.value.user?.id
+
   if (org && db) {
-    await upsertOrganizationDB(db, org)
+    await upsertOrganizationDB(db, { ...org, user_id })
   }
   await registerPushSubscription()
 })

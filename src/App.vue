@@ -1,5 +1,9 @@
 <template>
-  <router-view></router-view>
+  <v-app>
+    <v-main>
+      <router-view></router-view>
+    </v-main>
+  </v-app>
 </template>
 <script setup lang="ts">
 import { onMounted, watch } from 'vue'
@@ -12,7 +16,7 @@ import { supabase } from './supabase/supabase'
 
 import { useGetProfileApi } from './composables/api/auth/useGetProfileApi'
 
-import self from './composables/localStore/useSelf'
+import self, { Subscription } from './composables/localStore/useSelf'
 
 type PGliteWithLive = PGliteWorker & { live: LiveNamespace }
 
@@ -47,7 +51,7 @@ watch(
     if (isSuccess && getProfileApi.data.value) {
       self.value.user = getProfileApi.data.value
     }
-    if (!self.value.user?.full_name) {
+    if (!self.value.user?.full_name && self.value.subscription !== Subscription.FREE) {
       router.push({ name: 'auth' })
       return
     }
