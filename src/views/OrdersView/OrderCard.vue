@@ -1,48 +1,57 @@
 <template>
   <v-card
     v-if="order"
-    color="grey-lighten-5"
-    class="pa-4"
+    class="pa-4 order-card"
     hover
     variant="elevated"
     :to="{ name: 'order', params: { order_id: order.id } }"
   >
     <template v-slot:title> {{ $t(order.type) }} {{ $t('N°') }} {{ order.index }} </template>
 
-    <template v-slot:text>
-      <div class="order-info py-0">
-        <div v-if="consumerName">
-          <span class="font-weight-bold">{{ $t('client') }}:</span>
-          <span>&nbsp;{{ consumerName }}</span>
+    <template v-slot:subtitle>
+      <div class="d-flex align-center ga-3 text-caption">
+        <div v-if="consumerName" class="d-flex align-center ga-1">
+          <v-icon size="16" :icon="mdiAccount" />
+          <span>{{ consumerName }}</span>
         </div>
-        <div>
-          <span class="font-weight-bold">{{ $t('date') }}:</span>
-          <span>&nbsp;{{ format(order.date, 'yyyy-MM-dd, p') }}</span>
-        </div>
-        <div>
-          <span class="font-weight-bold">{{ $t('total') }}:</span>
-          <span>&nbsp;{{ order.total_price }} {{ $t('DA') }}</span>
-        </div>
-        <div>
-          <span class="font-weight-bold">{{ $t('remaining') }}:</span>
-          <span> &nbsp;{{ order.total_price - order.paid_price }} {{ $t('DA') }} </span>
-        </div>
-        <div>
-          <span class="font-weight-bold">{{ $t('reduction') }}:</span>
-          <span> &nbsp;{{ order.reduction || 0 }} {{ $t('DA') }} </span>
+        <div class="d-flex align-center ga-1">
+          <v-icon size="16" :icon="mdiCalendar" />
+          <span>{{ format(order.date, 'yyyy-MM-dd, p') }}</span>
         </div>
       </div>
     </template>
+
+    <template v-slot:text>
+      <div class="py-1">
+        <v-row class="align-end">
+          <v-col cols="12" sm="6" class="py-1">
+            <div class="text-caption">{{ $t('total') }}</div>
+            <div class="text-h6">{{ order.total_price }} {{ $t('DA') }}</div>
+            <div class="text-caption mt-2">{{ $t('reduction') }}</div>
+            <div>{{ order.reduction || 0 }} {{ $t('DA') }}</div>
+          </v-col>
+          <v-col cols="12" sm="6" class="py-1">
+            <div class="text-caption">{{ $t('paid') }}</div>
+            <div>{{ order.paid_price || 0 }} {{ $t('DA') }}</div>
+            <div class="text-caption mt-2">{{ $t('remaining') }}</div>
+            <div>{{ remainingAmount }} {{ $t('DA') }}</div>
+          </v-col>
+        </v-row>
+      </div>
+    </template>
+
     <v-card-actions v-if="docTitle" class="py-0">
       <v-spacer></v-spacer>
-      <v-btn variant="text" size="x-small">
+      <v-btn variant="text" color="primary" size="x-small" :prepend-icon="mdiFileDocument">
         {{ docTitle }}
       </v-btn>
     </v-card-actions>
     <template v-slot:append>
-      <v-chip v-if="isConfirmed" variant="tonal" color="green">{{ $t('confirmed') }}</v-chip>
-      <v-chip v-else-if="isCancelled" variant="tonal" color="red">{{ $t('cancelled') }}</v-chip>
-      <v-chip v-else-if="isPending" variant="tonal">{{ $t('unconfirmed') }}</v-chip>
+      <v-chip v-if="isConfirmed" variant="tonal" color="primary">{{ $t('confirmed') }}</v-chip>
+      <v-chip v-else-if="isCancelled" variant="tonal" color="grey">{{ $t('cancelled') }}</v-chip>
+      <v-chip v-else-if="isPending" variant="tonal" color="secondary">{{
+        $t('unconfirmed')
+      }}</v-chip>
       <v-menu v-if="isPending">
         <template v-slot:activator="{ props }">
           <v-btn
@@ -75,7 +84,7 @@ import { useI18n } from 'vue-i18n'
 import { format } from 'date-fns'
 import { kebabCase } from 'lodash'
 
-import { mdiDotsVertical } from '@mdi/js'
+import { mdiDotsVertical, mdiAccount, mdiCalendar, mdiFileDocument } from '@mdi/js'
 
 import { useSoftDeleteOrdersDb } from '@/composables/db/orders/useSoftDeleteOrdersDb'
 
@@ -106,6 +115,18 @@ const isConfirmed = computed(() => props.order?.status === OrderStatus.Confirmed
 const isCancelled = computed(() => props.order?.status === OrderStatus.Cancelled)
 const isPending = computed(() => props.order?.status === OrderStatus.Pending)
 
+const remainingAmount = computed(
+  () => (props.order.total_price || 0) - (props.order.paid_price || 0)
+)
+
+const paidPercent = computed(() => {
+  const total = Number(props.order.total_price || 0)
+  const paid = Number(props.order.paid_price || 0)
+  if (!total) return 0
+  const ratio = (paid / total) * 100
+  return Math.max(0, Math.min(100, Math.round(ratio)))
+})
+
 function deleteOrder() {
   softDeleteOrdersDb.ids.value = [props.order.id]
   softDeleteOrdersDb.execute()
@@ -124,5 +145,9 @@ watch(
 <style>
 .order-info {
   font-size: 0.8rem;
+}
+/* Subtle left border and hover elevation for blue/grey palette */
+.order-card {
+  border-left: 4px solid rgb(var(--v-theme-primary));
 }
 </style>
