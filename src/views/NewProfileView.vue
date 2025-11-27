@@ -31,7 +31,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { onMounted, reactive, watch, watchEffect } from 'vue'
+import { reactive, watch, watchEffect } from 'vue'
 import useVuelidate from '@vuelidate/core'
 
 import self from '@/composables/localStore/useSelf'
