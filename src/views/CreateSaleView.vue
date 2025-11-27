@@ -1,71 +1,123 @@
 <template>
-  <div class="d-flex align-start flex-wrap ga-8 pa-4">
-    <v-btn
-      v-if="$vuetify.display.mobile"
-      class="my-5"
-      variant="tonal"
-      size="small"
-      :append-icon="mdiBarcodeScan"
-      @click="showScanner = !showScanner"
-    >
-      {{ $t('scan') }}
-    </v-btn>
-  </div>
-  <v-row justify="center">
-    <v-col sm="12" md="6">
-      <v-card class="py-2 px-2">
-        <v-card-title>{{ $t('add-sale') }}</v-card-title>
-        <v-card-text>
-          <CreateOrderlines> </CreateOrderlines>
-          <div class="d-flex justify-space-between">
+  <v-container fluid class="pt-4">
+    <v-row class="align-center mb-2">
+      <v-col cols="12" class="d-flex align-center justify-space-between">
+        <div class="text-h5 font-weight-medium">{{ $t('add-sale') }}</div>
+        <v-btn
+          v-if="$vuetify.display.mobile"
+          variant="tonal"
+          size="small"
+          :append-icon="mdiBarcodeScan"
+          @click="showScanner = !showScanner"
+        >
+          {{ $t('scan') }}
+        </v-btn>
+      </v-col>
+    </v-row>
+
+    <v-row class="g-4">
+      <v-col cols="12" md="8">
+        <v-card class="py-2 px-2 h-100">
+          <v-card-title>{{ $t('add-sale') }}</v-card-title>
+          <v-card-text>
+            <CreateOrderlines />
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <v-col cols="12" md="4">
+        <v-card class="sticky-summary">
+          <v-card-subtitle>
+            {{ $t('total') }}
+          </v-card-subtitle>
+          <v-card-title class="text-h3">
+            <span class="text-primary">{{ form.total_price }}</span> {{ $t('DA') }}
+          </v-card-title>
+          <v-card-text class="d-flex flex-column ga-2">
+            <div class="d-flex flex-wrap ga-2 mb-2">
+              <v-chip size="small" color="primary" variant="tonal">
+                {{ $t('total') }}: {{ form.total_price }} {{ $t('DA') }}
+              </v-chip>
+              <v-chip size="small" color="secondary" variant="tonal">
+                {{ $t('reduction') }}: {{ form.reduction || 0 }} {{ $t('DA') }}
+              </v-chip>
+              <v-chip v-if="toPay > 0" size="small" color="error" variant="tonal">
+                {{ $t('to-pay') }}: {{ toPay }} {{ $t('DA') }}
+              </v-chip>
+              <v-chip v-else-if="changeDue > 0" size="small" color="info" variant="tonal">
+                {{ $t('change') }}: {{ changeDue }} {{ $t('DA') }}
+              </v-chip>
+              <v-chip v-else size="small" color="success" variant="tonal">
+                {{ $t('paid') }}
+              </v-chip>
+            </div>
             <v-number-input
+              class="orderline-input"
               density="comfortable"
-              variant="solo"
-              max-width="120"
+              variant="outlined"
               :label="$t('payment')"
-              inset
-              controlVariant="stacked"
               :max="form.total_price"
               :min="0"
               v-model="paymentForm.amount"
             />
             <v-number-input
+              class="orderline-input"
               density="comfortable"
-              variant="solo"
-              max-width="120"
+              variant="outlined"
               :label="$t('reduction')"
-              inset
-              controlVariant="stacked"
               :max="form.total_price"
               :min="0"
               v-model="form.reduction"
             />
-          </div>
-        </v-card-text>
+          </v-card-text>
+          <v-card-actions class="justify-end">
+            <v-btn variant="flat" color="primary" @click="submitSale" :loading="isLoading">
+              {{ $t('confirm') }}
+            </v-btn>
+            <v-btn variant="tonal" color="secondary" @click="handleReset">
+              {{ $t('reset') }}
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-col>
 
-        <v-card-actions class="justify-space-between">
-          <v-card-title> {{ $t('total') }}: {{ form.total_price }} {{ $t('DA') }} </v-card-title>
+      <v-col v-if="showScanner" cols="12">
+        <v-card>
+          <v-card-text>
+            <BarcodeScanner @detected="selectProduct" />
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
 
-          <v-btn variant="outlined" color="blue" @click="submitSale" :loading="isLoading">
-            {{ $t('confirm') }}
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-col>
+    <v-row class="mt-6">
+      <v-col cols="12">
+        <v-card>
+          <v-card-text>
+            <div class="d-flex align-center justify-space-between flex-wrap ga-4">
+              <FilterBar v-model="filters" />
+              <div class="d-flex align-center ga-2">
+                <v-chip size="small" color="primary" variant="tonal">
+                  {{ ordersCount }}
+                </v-chip>
+                <v-chip size="small" color="secondary" variant="tonal">
+                  {{ $t('total') }}: {{ ordersTotal }} {{ $t('DA') }}
+                </v-chip>
+              </div>
+            </div>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
 
-    <v-col v-if="showScanner" sm="12" md="6">
-      <BarcodeScanner @detected="selectProduct" />
-    </v-col>
-  </v-row>
-
-  <v-container>
-    <div class="d-flex align-start flex-wrap ga-8 pa-4">
-      <v-divider v-if="!$vuetify.display.mobile" vertical />
-      <FilterBar v-model="filters" />
-    </div>
-    <v-row justify="start" v-for="(o, i) in orders" :key="i">
-      <v-col sm="12" md="6">
+    <v-row class="mt-2 g-4" v-if="orders && orders.length">
+      <v-col cols="12" sm="6" md="4" v-for="(o, i) in orders" :key="i">
         <OrderCard v-if="o" :order="o" />
+      </v-col>
+    </v-row>
+    <v-row class="mt-4" v-else>
+      <v-col cols="12">
+        <v-alert type="info" variant="tonal">{{ $t('no-data') }}</v-alert>
       </v-col>
     </v-row>
   </v-container>
@@ -143,6 +195,15 @@ const isLoading = computed(
     upsertPaymentsDb.isLoading.value
 )
 
+const ordersCount = computed(() => orders.value?.length || 0)
+const ordersTotal = computed(() =>
+  (orders.value || []).reduce((sum, o) => sum + Number(o.total_price || 0), 0)
+)
+
+const netTotal = computed(() => Number(form.total_price || 0) - Number(form.reduction || 0))
+const toPay = computed(() => Math.max(0, netTotal.value - Number(paymentForm.amount || 0)))
+const changeDue = computed(() => Math.max(0, Number(paymentForm.amount || 0) - netTotal.value))
+
 function handleKeyDown(event: KeyboardEvent) {
   if (event.key === 'Enter') {
     if (buffer) {
@@ -217,6 +278,11 @@ function submitSale() {
     upsertOrdersDb.form.value = [{ ...form, type: 'sale', org_id, _synced: false }]
     upsertOrdersDb.execute()
   }
+}
+
+function handleReset() {
+  resetOrderForm()
+  $v.value.$reset()
 }
 
 function insertPayment(payment: TablesInsert<'payments'>) {
