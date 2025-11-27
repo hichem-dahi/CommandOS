@@ -106,7 +106,7 @@ const filteredProducts = computed(() =>
 )
 
 const quantitiesQuery = useLiveQuery(
-  'SELECT SUM(qty) AS total_quantities FROM public.products_qty WHERE p.org_id = $1',
+  'SELECT SUM(qty) AS total_quantities FROM public.products_qty pq WHERE pq.org_id = $1',
   [self.value.current_org?.id]
 )
 
