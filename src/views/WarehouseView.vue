@@ -16,12 +16,22 @@
       <v-divider v-if="!$vuetify.display.mobile" vertical />
       <FilterBar v-model="filters" />
     </div>
-    <div class="details text-medium-emphasis font-weight-bold text-body-2">
-      <div>{{ $t('nmb-products-exist') }}: {{ products.length }}</div>
-      <div>{{ $t('nmb-qty') }}: {{ quantitiesQuery.rows.value?.[0].total_quantities }}</div>
+    <div class="details text-medium-emphasis text-body-2">
       <div>
-        {{ $t('total-cost-price') }}: {{ totalCostPriceQuery.rows.value?.[0].total_cost_price }}
-        {{ $t('DA') }}
+        {{ $t('nmb-products-exist') }}:
+        <span class="font-weight-bold">{{ products.length }}</span>
+      </div>
+
+      <div>
+        {{ $t('nmb-qty') }}:
+        <span class="font-weight-bold">{{ quantitiesQuery.rows.value?.[0].total_quantities }}</span>
+      </div>
+
+      <div>
+        {{ $t('total-cost-price') }}:
+        <span class="font-weight-bold">
+          {{ totalCostPriceQuery.rows.value?.[0].total_cost_price }} {{ $t('DA') }}
+        </span>
       </div>
     </div>
   </div>
@@ -96,16 +106,16 @@ const filteredProducts = computed(() =>
 )
 
 const quantitiesQuery = useLiveQuery(
-  'SELECT SUM(qty) AS total_quantities FROM public.products_qty',
-  []
+  'SELECT SUM(qty) AS total_quantities FROM public.products_qty WHERE p.org_id = $1',
+  [self.value.current_org?.id]
 )
 
 const totalCostPriceQuery = useLiveQuery(
   `SELECT SUM((COALESCE(p.cost_price, 0) * COALESCE(pq.qty, 0))) AS total_cost_price
     FROM public.products p
     JOIN public.products_qty pq ON p.id = pq.id 
-    WHERE pq.qty > 0;`,
-  []
+    WHERE pq.qty > 0 AND pq.org_id = $1;`,
+  [self.value.current_org?.id]
 )
 
 function toggleDialog() {
