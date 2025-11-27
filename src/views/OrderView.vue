@@ -1,72 +1,92 @@
 <template>
-  <v-btn
-    class="mt-3"
-    size="small"
-    color="grey"
-    variant="text"
-    :prepend-icon="mdiChevronLeft"
-    @click="$router.go(-1)"
-    :text="$t('back')"
-  />
-  <div class="text-h5 pa-4 my-4">{{ title }}</div>
-  <div class="wrapper" v-if="order">
-    <div class="table border">
-      <OrderTable ref="orderTableRef" :order="order" />
-    </div>
-    <div class="invoice-actions d-flex flex-column align-start ga-1">
-      <v-btn
-        rounded="xl"
-        :prepend-icon="mdiCheck"
-        :loading="upsertStockMovementsDb.isLoading.value"
-        :disabled="!isConfirmable"
-        @click="confirmDialog = true"
-      >
-        {{ $t('confirm') }}
-      </v-btn>
+  <v-container fluid class="pt-4">
+    <v-row class="align-center">
+      <v-col cols="12" class="d-flex align-center">
+        <v-btn
+          size="small"
+          color="grey"
+          variant="text"
+          :prepend-icon="mdiChevronLeft"
+          @click="$router.go(-1)"
+          :text="$t('back')"
+        />
+      </v-col>
+    </v-row>
+    <div class="text-h5 font-weight-medium ml-2 py-4">{{ title }}</div>
 
-      <v-btn
-        variant="text"
-        :prepend-icon="mdiCashSync"
-        :disabled="isCancelled"
-        @click="paymentDialog = true"
-      >
-        {{ $t('payments') }}
-      </v-btn>
+    <v-row v-if="order" class="g-4">
+      <v-col cols="12" md="8">
+        <v-card>
+          <v-card-text class="pa-0">
+            <OrderTable ref="orderTableRef" :order="order" />
+          </v-card-text>
+        </v-card>
+      </v-col>
 
-      <DocumentButtons
-        v-if="order"
-        :order="order"
-        :disabled="!isConfirmed"
-        @go-doc-page="goDocPage"
-      />
+      <v-col cols="12" md="4">
+        <v-card class="sticky-actions">
+          <v-card-text class="d-flex flex-column ga-2">
+            <v-btn
+              :prepend-icon="mdiCheck"
+              :loading="upsertStockMovementsDb.isLoading.value"
+              :disabled="!isConfirmable"
+              @click="confirmDialog = true"
+            >
+              {{ $t('confirm') }}
+            </v-btn>
 
-      <v-btn
-        v-if="order?.status === OrderStatus.Confirmed"
-        variant="text"
-        :prepend-icon="mdiCancel"
-        @click="cancelDialog = true"
-        :text="$t('cancel')"
-      />
-      <PaymentsCard v-if="order.payments?.length" :order="order" :payments="order.payments" />
-    </div>
+            <v-btn
+              variant="text"
+              :prepend-icon="mdiCashSync"
+              :disabled="isCancelled"
+              @click="paymentDialog = true"
+            >
+              {{ $t('payments') }}
+            </v-btn>
+
+            <DocumentButtons
+              v-if="order"
+              :order="order"
+              :disabled="!isConfirmed"
+              @go-doc-page="goDocPage"
+            />
+
+            <v-btn
+              v-if="order?.status === OrderStatus.Confirmed"
+              variant="text"
+              :prepend-icon="mdiCancel"
+              @click="cancelDialog = true"
+              :text="$t('cancel')"
+            />
+
+            <v-divider class="my-2" />
+
+            <PaymentsCard v-if="order.payments?.length" :order="order" :payments="order.payments" />
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
 
     <PaymentModal
+      v-if="order"
       :order="order"
       v-model:dialog="paymentDialog"
       :is-loading="upsertPaymentDb.isLoading.value"
       @confirm="addPayment"
     />
     <ConfirmModal
+      v-if="order"
       v-model="confirmDialog"
       :is-loading="upsertOrdersDb.isLoading.value"
       @confirm="processOrder"
     />
     <CancelModal
+      v-if="order"
       v-model="cancelDialog"
       :is-loading="upsertOrdersDb.isLoading.value"
       @confirm="upsertStockMovements('restore')"
     />
-  </div>
+  </v-container>
 </template>
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
@@ -86,8 +106,6 @@ import { useOrdersQuery, type OrderData } from '@/composables/db/orders/useGetOr
 import self from '@/composables/localStore/useSelf'
 
 import OrderTable from './OrderView/OrderTable.vue'
-import CreateDelivery from './OrdersView/CreateDelivery.vue'
-import PaymentMethodModal from './OrdersView/PaymentMethodModal.vue'
 import PaymentModal from './OrderView/PaymentModal.vue'
 import ConfirmModal from './OrderView/ConfirmModal.vue'
 import CancelModal from './OrdersView/CancelModal.vue'
@@ -115,8 +133,6 @@ const updateProductsQtyDb = useUpdateProductsQtyDb()
 const upsertNotificationsDb = useUpsertNotificationsDb()
 
 const paymentDialog = ref(false)
-const deliveryDialog = ref(false)
-const paymentMethodDialog = ref(false)
 const confirmDialog = ref(false)
 const cancelDialog = ref(false)
 
@@ -294,15 +310,8 @@ watch(
 )
 </script>
 <style>
-.wrapper {
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 3rem;
-}
-
-.table {
-  min-width: 60%;
-  height: min-content;
+.sticky-actions {
+  position: sticky;
+  top: 16px;
 }
 </style>
