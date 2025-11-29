@@ -110,21 +110,16 @@
       </v-col>
     </v-row>
 
-    <v-row class="mt-2 g-4" v-if="orders && orders.length">
-      <v-col cols="12" sm="6" md="4" v-for="(o, i) in orders" :key="i">
-        <OrderCard v-if="o" :order="o" />
-      </v-col>
-    </v-row>
-    <v-row class="mt-4" v-else>
-      <v-col cols="12">
-        <v-alert type="info" variant="tonal">{{ $t('no-data') }}</v-alert>
-      </v-col>
-    </v-row>
+    <div class="orders-wrapper mt-6">
+      <div class="orders-table border">
+        <OrdersTable :orders="orders" />
+      </div>
+    </div>
   </v-container>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, reactive, ref, watch, watchEffect } from 'vue'
 import useVuelidate from '@vuelidate/core'
 import { mdiBarcodeScan } from '@mdi/js'
 
@@ -144,8 +139,8 @@ import self from '@/composables/localStore/useSelf'
 
 import CreateOrderlines from './OrdersView/CreateOrderStepper/CreateOrderlines.vue'
 import BarcodeScanner from '@/components/BarcodeScanner.vue'
-import OrderCard from './OrdersView/OrderCard.vue'
 import FilterBar from './OrdersView/FilterBar.vue'
+import OrdersTable from './OrdersView/OrdersTable.vue'
 
 import {
   cleanForm,
@@ -159,6 +154,10 @@ import { DocumentType, OrderStatus } from '@/models/models'
 import type { Tables, TablesInsert } from '@/types/database.types'
 import type { Filters } from './OrdersView/models/models'
 
+const today = new Date()
+const thirtyDaysAgo = new Date()
+thirtyDaysAgo.setDate(today.getDate() - 30)
+
 const { q: productsQuery } = useProductsQuery()
 const { q: ordersQuery, isReady, params } = useOrdersQuery()
 params.type = 'sale'
@@ -166,14 +165,38 @@ isReady.value = true
 
 const filters = reactive<Filters>({
   docType: null,
-  dateRange: []
+  dateRange: [thirtyDaysAgo, today]
+})
+
+const startDate = computed(() => {
+  const date = new Date(filters.dateRange[0])
+  if (isNaN(date.getTime())) {
+    return null
+  }
+  date.setHours(0, 0, 0, 0)
+  return date.toISOString()
+})
+
+const endDate = computed(() => {
+  const date = new Date(filters.dateRange[filters.dateRange.length - 1])
+  if (isNaN(date.getTime())) {
+    return null
+  }
+  date.setHours(23, 59, 59, 999)
+  return date.toISOString()
+})
+
+watchEffect(() => {
+  params.date_gte = startDate.value
+  params.date_lte = endDate.value
+  params.doc_type = filters.docType
 })
 
 const lastBarcode = ref('')
 
 let buffer = ''
 
-const orders = computed(() => ordersQuery.rows.value as unknown as OrderData[])
+const orders = computed(() => (ordersQuery.rows.value || []) as unknown as OrderData[])
 
 const products = computed(() => (productsQuery.rows.value || []) as unknown as Tables<'products'>[])
 
@@ -388,3 +411,14 @@ watch(
   }
 )
 </script>
+<style>
+.orders-wrapper {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.orders-table {
+  min-width: 60%;
+}
+</style>

@@ -12,13 +12,11 @@
     <v-divider v-if="!$vuetify.display.mobile" vertical />
     <FilterBar v-model="filters" />
   </div>
-  <v-container>
-    <v-row v-for="(o, i) in orders" :key="i">
-      <v-col sm="12" md="6">
-        <OrderCard v-if="o" :order="o" />
-      </v-col>
-    </v-row>
-  </v-container>
+  <div class="orders-wrapper">
+    <div class="orders-table border">
+      <OrdersTable :orders="orders" />
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -27,8 +25,8 @@ import { mdiPlus } from '@mdi/js'
 
 import { useOrdersQuery, type OrderData } from '@/composables/db/orders/useGetOrdersDb'
 
-import OrderCard from '@/views/OrdersView/OrderCard.vue'
 import FilterBar from './OrdersView/FilterBar.vue'
+import OrdersTable from './OrdersView/OrdersTable.vue'
 
 import type { Filters } from './OrdersView/models/models'
 
@@ -45,7 +43,7 @@ const filters = reactive<Filters>({
   dateRange: [thirtyDaysAgo, today]
 })
 
-const orders = computed(() => q.rows.value as unknown as OrderData[])
+const orders = computed(() => (q.rows.value || []) as unknown as OrderData[])
 
 const startDate = computed(() => {
   const date = new Date(filters.dateRange[0])
@@ -71,3 +69,14 @@ watchEffect(() => {
   params.doc_type = filters.docType
 })
 </script>
+<style>
+.orders-wrapper {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.orders-table {
+  min-width: 60%;
+}
+</style>
