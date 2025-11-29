@@ -14,7 +14,22 @@
           @click="fillOrganizationForm = false"
           :text="$t('back')"
         />
-        <ClientForm :title="$t('your-informations')" v-model="organizationForm">
+
+        <v-card :title="$t('your-informations')" class="pa-4">
+          <v-text-field
+            density="compact"
+            :label="$t('name')"
+            v-model="organizationForm.name"
+            :error-messages="getErrorMessages('name')"
+            @blur="$v.name.$touch()"
+          />
+          <v-text-field
+            density="compact"
+            :label="$t('phone')"
+            v-model.trim="organizationForm.phone"
+            :error-messages="getErrorMessages('phone')"
+            @blur="$v.phone.$touch()"
+          />
           <template v-slot:actions>
             <v-btn
               block
@@ -23,7 +38,7 @@
               >{{ $t('confirm') }}
             </v-btn>
           </template>
-        </ClientForm>
+        </v-card>
       </div>
       <div v-else>
         <v-card class="pa-4" :title="$t('pick-organization')">
@@ -64,11 +79,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, ref, toRef, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { injectPGlite, useLiveQuery } from '@electric-sql/pglite-vue'
 import useVuelidate from '@vuelidate/core'
 import { mdiChevronLeft, mdiDelete, mdiPlus } from '@mdi/js'
+import { minLength, numeric, required } from '@vuelidate/validators'
 
 import { useInsertOrganizationApi } from '@/composables/api/organizations/useInsertOrganizationApi'
 import { useGetProfileApi } from '@/composables/api/auth/useGetProfileApi'
@@ -78,15 +94,12 @@ import { useSoftDeleteOrganizationsDB } from '@/composables/db/organizations/use
 
 import self, { Subscription } from '@/composables/localStore/useSelf'
 
-import ClientForm from './ClientsView/ClientForm.vue'
 import DeleteItemModal from './OrderView/DeleteItemModal.vue'
 
 import type { Tables } from '@/types/database.types'
 
 const db = injectPGlite()
 const router = useRouter()
-
-const $v = useVuelidate()
 
 const insertOrganizationApi = useInsertOrganizationApi()
 const softDeleteOrganizationsDb = useSoftDeleteOrganizationsDB()
@@ -96,6 +109,16 @@ const getProfileApi = useGetProfileApi()
 const deleteDialog = ref(false)
 const selectedOrg = ref<string>()
 const fillOrganizationForm = ref(false)
+
+const rules = {
+  name: { required, minLength: minLength(3) },
+  phone: { required, minLength: minLength(10), numeric }
+}
+
+const $v = useVuelidate(
+  rules,
+  toRef(() => organizationForm.value)
+)
 
 const organizationForm = ref({
   name: '',
@@ -146,6 +169,18 @@ async function submitOrganization() {
       fillOrganizationForm.value = false
     }
   }
+}
+
+const getErrorMessages = (field: string) => {
+  const v = $v.value[field]
+
+  return !v.$pending && v.$error
+    ? [
+        v.required?.$invalid ? `${field} is required` : '',
+        v.numeric?.$invalid ? `${field} must be numeric` : '',
+        v.minLength?.$invalid ? `${field} must be at least ${v.minLength?.$params.min} digits` : ''
+      ].filter(Boolean)
+    : []
 }
 
 watch(
