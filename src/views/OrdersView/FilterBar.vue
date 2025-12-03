@@ -1,43 +1,79 @@
 <template>
-  <div class="filters d-flex align-center ga-4">
-    <v-select
-      variant="underlined"
+  <div class="filter-bar d-flex align-center ga-2">
+    <v-text-field
+      variant="outlined"
+      density="compact"
       hide-details
-      :items="docItems"
-      v-model="model.docType"
-      max-width="368"
-      min-width="100"
-      :label="$t('document-type')"
-      clearable
-    />
-    <v-date-input
-      variant="underlined"
-      hide-details
-      prepend-icon=""
-      v-model="model.dateRange"
-      :label="$t('date')"
-      max-width="368"
-      min-width="150"
-      multiple="range"
-    />
+      :append-inner-icon="mdiMagnify"
+      @click="openFilterMenu = true"
+    >
+      <template #default>
+        <div class="d-flex ga-2">
+          <template v-for="chip in chipConfig" :key="chip.modelKey">
+            <v-chip
+              v-if="model[chip.modelKey] !== null && model[chip.modelKey] !== undefined"
+              size="small"
+              closable
+              @click:close="model[chip.modelKey] = null"
+            >
+              {{ $t(kebabCase(chip.enum[model[chip.modelKey]!])) }}
+            </v-chip>
+          </template>
+
+          <v-chip
+            v-if="model.dateRange?.length"
+            size="small"
+            closable
+            @click:close="model.dateRange = []"
+          >
+            {{ formatDateRange(model.dateRange) }}
+          </v-chip>
+          <FilterMenu v-model:menu="openFilterMenu" v-model:filters="model" />
+        </div>
+      </template>
+    </v-text-field>
   </div>
 </template>
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
+import { ref } from 'vue'
 import { kebabCase } from 'lodash'
+import { mdiMagnify } from '@mdi/js'
 
-import { DocumentType } from '@/models/models'
+import FilterMenu from './FilterMenu.vue'
+
+import { DocumentType, OrderStatus } from '@/models/models'
 import type { Filters } from './models/models'
 
-const { t } = useI18n()
+const chipConfig = [
+  {
+    modelKey: 'docType',
+    enum: DocumentType
+  },
+  {
+    modelKey: 'status',
+    enum: OrderStatus
+  }
+] as const
 
 const model = defineModel<Filters>({ required: true })
+const openFilterMenu = ref(false)
 
-const docItems = [
-  { title: t(kebabCase(DocumentType[1])), value: DocumentType.Invoice },
-  { title: t(kebabCase(DocumentType[2])), value: DocumentType.DeliveryNote },
-  { title: t(kebabCase(DocumentType[3])), value: DocumentType.Voucher },
-  { title: t(kebabCase(DocumentType[4])), value: DocumentType.Proforma }
-]
+function formatDateRange(range: string[] | Date[]) {
+  if (!range || range.length < 1) return ''
+
+  const start = range[0]
+  const end = range[range.length - 1]
+
+  const fmt = (d: string | Date) =>
+    new Intl.DateTimeFormat('fr-FR', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    }).format(new Date(d))
+
+  if (start && end) return `${fmt(start)} → ${fmt(end)}`
+  if (start) return `${fmt(start)}`
+  return ''
+}
 </script>

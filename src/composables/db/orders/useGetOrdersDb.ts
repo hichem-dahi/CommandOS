@@ -5,7 +5,7 @@ import self from '@/composables/localStore/useSelf'
 
 import type { Tables } from '@/types/database.types'
 import type { ProductData } from '../products/useGetProductsDb'
-import type { DocumentType } from '@/models/models'
+import type { DocumentType, OrderStatus } from '@/models/models'
 
 export interface OrderData extends Tables<'orders'> {
   individual?: Tables<'individuals'>
@@ -29,7 +29,8 @@ export function useOrdersQuery() {
     doc_type: null as DocumentType | null,
     date_gte: null as string | null,
     date_lte: null as string | null,
-    type: null as 'order' | 'sale' | null
+    type: null as 'order' | 'sale' | null,
+    status: null as OrderStatus | null
   })
 
   const isReady = ref(false)
@@ -64,6 +65,9 @@ export function useOrdersQuery() {
 
     if (params.type) {
       queryConditions += ` AND o.type = '${params.type}'`
+    }
+    if (params.status) {
+      queryConditions += ` AND o.status = '${params.status}'`
     }
 
     return isReady.value
