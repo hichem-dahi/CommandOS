@@ -4,7 +4,7 @@
       <AppBar v-model:drawer="drawer" />
 
       <v-main>
-        <v-navigation-drawer v-model="drawer" expand-on-hover :rail="!$vuetify.display.mobile">
+        <v-navigation-drawer width="200" v-model="drawer" color="#ececef">
           <MenuBar />
         </v-navigation-drawer>
 
