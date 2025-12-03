@@ -1,5 +1,5 @@
 <template>
-  <div class="pa-2">
+  <div class="py-2">
     <template v-for="(_, i) in orderlinesForm" :key="i">
       <OrderlineForm
         class="my-4"
