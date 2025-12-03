@@ -32,26 +32,10 @@
           <span class="text-primary">{{ form.total_price }}</span> {{ $t('DA') }}
         </v-card-title>
         <v-card-text class="d-flex flex-column ga-2">
-          <div class="d-flex flex-wrap ga-2 mb-2">
-            <v-chip size="small" color="primary" variant="tonal">
-              {{ $t('total') }}: {{ form.total_price }} {{ $t('DA') }}
-            </v-chip>
-            <v-chip size="small" color="secondary" variant="tonal">
-              {{ $t('reduction') }}: {{ form.reduction || 0 }} {{ $t('DA') }}
-            </v-chip>
-            <v-chip v-if="toPay > 0" size="small" color="error" variant="tonal">
-              {{ $t('to-pay') }}: {{ toPay }} {{ $t('DA') }}
-            </v-chip>
-            <v-chip v-else-if="changeDue > 0" size="small" color="info" variant="tonal">
-              {{ $t('change') }}: {{ changeDue }} {{ $t('DA') }}
-            </v-chip>
-            <v-chip v-else size="small" color="success" variant="tonal">
-              {{ $t('paid') }}
-            </v-chip>
-          </div>
           <v-number-input
             class="orderline-input"
-            density="comfortable"
+            density="compact"
+            max-width="120"
             variant="outlined"
             :label="$t('payment')"
             :max="form.total_price"
@@ -60,13 +44,29 @@
           />
           <v-number-input
             class="orderline-input"
-            density="comfortable"
+            density="compact"
+            max-width="120"
             variant="outlined"
             :label="$t('reduction')"
             :max="form.total_price"
             :min="0"
             v-model="form.reduction"
           />
+          <div class="d-flex flex-wrap ga-2 mb-2">
+            <v-chip size="small" color="primary" variant="tonal">
+              {{ $t('total') }}: {{ form.total_price }} {{ $t('DA') }}
+            </v-chip>
+            <v-chip size="small" color="secondary" variant="tonal">
+              {{ $t('reduction') }}: {{ form.reduction || 0 }} {{ $t('DA') }}
+            </v-chip>
+            <v-chip v-if="toPay > 0" size="small" color="error" variant="tonal">
+              {{ $t('remaining') }}: {{ toPay }} {{ $t('DA') }}
+            </v-chip>
+
+            <v-chip v-else size="small" color="success" variant="tonal">
+              {{ $t('paid') }}
+            </v-chip>
+          </div>
         </v-card-text>
         <v-card-actions class="justify-end">
           <v-btn variant="flat" color="primary" @click="submitSale" :loading="isLoading">
@@ -223,7 +223,6 @@ const ordersTotal = computed(() =>
 
 const netTotal = computed(() => Number(form.total_price || 0) - Number(form.reduction || 0))
 const toPay = computed(() => Math.max(0, netTotal.value - Number(paymentForm.amount || 0)))
-const changeDue = computed(() => Math.max(0, Number(paymentForm.amount || 0) - netTotal.value))
 
 function handleKeyDown(event: KeyboardEvent) {
   if (event.key === 'Enter') {
@@ -289,6 +288,7 @@ function selectProduct(barcode: string) {
     }
   }
 }
+
 function submitSale() {
   $v.value.$touch()
   if (!$v.value.$invalid) {
