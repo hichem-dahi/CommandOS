@@ -1,15 +1,13 @@
 // src/plugins/vuetify.ts
 import { createVuetify } from 'vuetify'
 
-import { VDateInput } from 'vuetify/labs/VDateInput'
-import { VNumberInput } from 'vuetify/labs/VNumberInput'
-
 import 'vuetify/styles'
 
 import { aliases, mdi } from 'vuetify/iconsets/mdi-svg'
+import { VDateInput, VStepperVertical } from 'vuetify/labs/components'
 
 export default createVuetify({
-  components: { VDateInput, VNumberInput },
+  components: { VDateInput, VStepperVertical },
   icons: {
     defaultSet: 'mdi',
     aliases,
@@ -23,9 +21,9 @@ export default createVuetify({
       light: {
         dark: false,
         colors: {
-          primary: '#4F46E5',
+          primary: '#3e3d54',
           secondary: '#334155',
-          background: '#F8FAFC',
+          background: '#f6f6f5ff',
           surface: '#FFFFFF',
           success: '#16A34A',
           warning: '#F59E0B',
@@ -36,9 +34,9 @@ export default createVuetify({
       dark: {
         dark: true,
         colors: {
-          primary: '#6366F1',
+          primary: '#3e3d54',
           secondary: '#94A3B8',
-          background: '#0B1220',
+          background: '#faf5eaff',
           surface: '#111827',
           success: '#22C55E',
           warning: '#FBBF24',
