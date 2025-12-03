@@ -1,121 +1,118 @@
 <template>
-  <v-container fluid class="pt-4">
-    <v-row class="align-center mb-2">
-      <v-col cols="12" class="d-flex align-center justify-space-between">
-        <div class="text-h5 font-weight-medium">{{ $t('add-sale') }}</div>
-        <v-btn
-          v-if="$vuetify.display.mobile"
-          variant="tonal"
-          size="small"
-          :append-icon="mdiBarcodeScan"
-          @click="showScanner = !showScanner"
-        >
-          {{ $t('scan') }}
-        </v-btn>
-      </v-col>
-    </v-row>
+  <v-row class="align-center mb-2">
+    <v-col cols="12" class="d-flex align-center justify-space-between">
+      <v-btn
+        v-if="$vuetify.display.mobile"
+        variant="tonal"
+        size="small"
+        :append-icon="mdiBarcodeScan"
+        @click="showScanner = !showScanner"
+      >
+        {{ $t('scan') }}
+      </v-btn>
+    </v-col>
+  </v-row>
 
-    <v-row class="g-4">
-      <v-col cols="12" md="8">
-        <v-card class="py-2 px-2 h-100">
-          <v-card-title>{{ $t('add-sale') }}</v-card-title>
-          <v-card-text>
-            <CreateOrderlines />
-          </v-card-text>
-        </v-card>
-      </v-col>
+  <v-row no-gutters>
+    <v-col cols="12" md="8">
+      <v-card variant="text">
+        <v-card-title>{{ $t('add-sale') }}</v-card-title>
+        <v-card-text>
+          <CreateOrderlines />
+        </v-card-text>
+      </v-card>
+    </v-col>
 
-      <v-col cols="12" md="4">
-        <v-card class="sticky-summary">
-          <v-card-subtitle>
-            {{ $t('total') }}
-          </v-card-subtitle>
-          <v-card-title class="text-h3">
-            <span class="text-primary">{{ form.total_price }}</span> {{ $t('DA') }}
-          </v-card-title>
-          <v-card-text class="d-flex flex-column ga-2">
-            <div class="d-flex flex-wrap ga-2 mb-2">
+    <v-col cols="12" md="4">
+      <v-card variant="text" class="sticky-summary">
+        <v-card-subtitle>
+          {{ $t('total') }}
+        </v-card-subtitle>
+        <v-card-title class="text-h3">
+          <span class="text-primary">{{ form.total_price }}</span> {{ $t('DA') }}
+        </v-card-title>
+        <v-card-text class="d-flex flex-column ga-2">
+          <div class="d-flex flex-wrap ga-2 mb-2">
+            <v-chip size="small" color="primary" variant="tonal">
+              {{ $t('total') }}: {{ form.total_price }} {{ $t('DA') }}
+            </v-chip>
+            <v-chip size="small" color="secondary" variant="tonal">
+              {{ $t('reduction') }}: {{ form.reduction || 0 }} {{ $t('DA') }}
+            </v-chip>
+            <v-chip v-if="toPay > 0" size="small" color="error" variant="tonal">
+              {{ $t('to-pay') }}: {{ toPay }} {{ $t('DA') }}
+            </v-chip>
+            <v-chip v-else-if="changeDue > 0" size="small" color="info" variant="tonal">
+              {{ $t('change') }}: {{ changeDue }} {{ $t('DA') }}
+            </v-chip>
+            <v-chip v-else size="small" color="success" variant="tonal">
+              {{ $t('paid') }}
+            </v-chip>
+          </div>
+          <v-number-input
+            class="orderline-input"
+            density="comfortable"
+            variant="outlined"
+            :label="$t('payment')"
+            :max="form.total_price"
+            :min="0"
+            v-model="paymentForm.amount"
+          />
+          <v-number-input
+            class="orderline-input"
+            density="comfortable"
+            variant="outlined"
+            :label="$t('reduction')"
+            :max="form.total_price"
+            :min="0"
+            v-model="form.reduction"
+          />
+        </v-card-text>
+        <v-card-actions class="justify-end">
+          <v-btn variant="flat" color="primary" @click="submitSale" :loading="isLoading">
+            {{ $t('confirm') }}
+          </v-btn>
+          <v-btn variant="tonal" color="secondary" @click="handleReset">
+            {{ $t('reset') }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-col>
+
+    <v-col v-if="showScanner" cols="12">
+      <v-card>
+        <v-card-text>
+          <BarcodeScanner @detected="selectProduct" />
+        </v-card-text>
+      </v-card>
+    </v-col>
+  </v-row>
+  <v-divider class="my-3" />
+  <div class="orders-wrapper">
+    <div class="orders-table">
+      <OrdersTable :orders="orders">
+        <template #title>
+          <div class="d-flex justify-space-between align-center">
+            <div class="text-h5 pa-4">{{ $t('sales-list') }}</div>
+          </div>
+        </template>
+        <template #top>
+          <div class="d-flex align-center justify-space-between flex-wrap ga-4">
+            <FilterBar v-model="filters" />
+
+            <div class="d-flex align-center ga-2">
               <v-chip size="small" color="primary" variant="tonal">
-                {{ $t('total') }}: {{ form.total_price }} {{ $t('DA') }}
+                {{ ordersCount }}
               </v-chip>
               <v-chip size="small" color="secondary" variant="tonal">
-                {{ $t('reduction') }}: {{ form.reduction || 0 }} {{ $t('DA') }}
-              </v-chip>
-              <v-chip v-if="toPay > 0" size="small" color="error" variant="tonal">
-                {{ $t('to-pay') }}: {{ toPay }} {{ $t('DA') }}
-              </v-chip>
-              <v-chip v-else-if="changeDue > 0" size="small" color="info" variant="tonal">
-                {{ $t('change') }}: {{ changeDue }} {{ $t('DA') }}
-              </v-chip>
-              <v-chip v-else size="small" color="success" variant="tonal">
-                {{ $t('paid') }}
+                {{ $t('total') }}: {{ ordersTotal }} {{ $t('DA') }}
               </v-chip>
             </div>
-            <v-number-input
-              class="orderline-input"
-              density="comfortable"
-              variant="outlined"
-              :label="$t('payment')"
-              :max="form.total_price"
-              :min="0"
-              v-model="paymentForm.amount"
-            />
-            <v-number-input
-              class="orderline-input"
-              density="comfortable"
-              variant="outlined"
-              :label="$t('reduction')"
-              :max="form.total_price"
-              :min="0"
-              v-model="form.reduction"
-            />
-          </v-card-text>
-          <v-card-actions class="justify-end">
-            <v-btn variant="flat" color="primary" @click="submitSale" :loading="isLoading">
-              {{ $t('confirm') }}
-            </v-btn>
-            <v-btn variant="tonal" color="secondary" @click="handleReset">
-              {{ $t('reset') }}
-            </v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-col>
-
-      <v-col v-if="showScanner" cols="12">
-        <v-card>
-          <v-card-text>
-            <BarcodeScanner @detected="selectProduct" />
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
-
-    <v-row class="mt-6">
-      <v-col cols="12">
-        <v-card>
-          <v-card-text>
-            <div class="d-flex align-center justify-space-between flex-wrap ga-4">
-              <FilterBar v-model="filters" />
-              <div class="d-flex align-center ga-2">
-                <v-chip size="small" color="primary" variant="tonal">
-                  {{ ordersCount }}
-                </v-chip>
-                <v-chip size="small" color="secondary" variant="tonal">
-                  {{ $t('total') }}: {{ ordersTotal }} {{ $t('DA') }}
-                </v-chip>
-              </div>
-            </div>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
-
-    <div class="orders-wrapper mt-6">
-      <div class="orders-table border">
-        <OrdersTable :orders="orders" />
-      </div>
+          </div>
+        </template>
+      </OrdersTable>
     </div>
-  </v-container>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -165,7 +162,8 @@ isReady.value = true
 
 const filters = reactive<Filters>({
   docType: null,
-  dateRange: [thirtyDaysAgo, today]
+  dateRange: [thirtyDaysAgo, today],
+  status: null
 })
 
 const startDate = computed(() => {
@@ -190,6 +188,7 @@ watchEffect(() => {
   params.date_gte = startDate.value
   params.date_lte = endDate.value
   params.doc_type = filters.docType
+  params.status = filters.status
 })
 
 const lastBarcode = ref('')
@@ -197,7 +196,6 @@ const lastBarcode = ref('')
 let buffer = ''
 
 const orders = computed(() => (ordersQuery.rows.value || []) as unknown as OrderData[])
-
 const products = computed(() => (productsQuery.rows.value || []) as unknown as Tables<'products'>[])
 
 const upsertOrdersDb = useUpsertOrdersDb()
@@ -411,14 +409,3 @@ watch(
   }
 )
 </script>
-<style>
-.orders-wrapper {
-  display: flex;
-  width: 100%;
-  justify-content: space-between;
-}
-
-.orders-table {
-  min-width: 60%;
-}
-</style>

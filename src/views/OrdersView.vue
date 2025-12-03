@@ -1,20 +1,26 @@
 <template>
-  <div class="d-flex align-start flex-wrap ga-8 pa-4">
-    <v-btn
-      class="my-5"
-      variant="tonal"
-      size="small"
-      :append-icon="mdiPlus"
-      :to="{ name: 'create-order' }"
-    >
-      {{ $t('add-order') }}
-    </v-btn>
-    <v-divider v-if="!$vuetify.display.mobile" vertical />
-    <FilterBar v-model="filters" />
-  </div>
-  <div class="orders-wrapper">
-    <div class="orders-table border">
-      <OrdersTable :orders="orders" />
+  <div>
+    <div class="orders-wrapper">
+      <div class="orders-table">
+        <OrdersTable :orders="orders">
+          <template #title>
+            <div class="d-flex flex-wrap justify-space-between align-center">
+              <div class="text-h5 pa-4">{{ $t('orders-list') }}</div>
+              <v-btn
+                variant="tonal"
+                size="small"
+                :append-icon="mdiPlus"
+                :to="{ name: 'create-order' }"
+              >
+                {{ $t('add-order') }}
+              </v-btn>
+            </div>
+          </template>
+          <template #top>
+            <div><FilterBar v-model="filters" /></div>
+          </template>
+        </OrdersTable>
+      </div>
     </div>
   </div>
 </template>
@@ -25,8 +31,8 @@ import { mdiPlus } from '@mdi/js'
 
 import { useOrdersQuery, type OrderData } from '@/composables/db/orders/useGetOrdersDb'
 
-import FilterBar from './OrdersView/FilterBar.vue'
 import OrdersTable from './OrdersView/OrdersTable.vue'
+import FilterBar from './OrdersView/FilterBar.vue'
 
 import type { Filters } from './OrdersView/models/models'
 
@@ -40,7 +46,8 @@ isReady.value = true
 
 const filters = reactive<Filters>({
   docType: null,
-  dateRange: [thirtyDaysAgo, today]
+  dateRange: [thirtyDaysAgo, today],
+  status: null
 })
 
 const orders = computed(() => (q.rows.value || []) as unknown as OrderData[])
@@ -67,16 +74,6 @@ watchEffect(() => {
   params.date_gte = startDate.value
   params.date_lte = endDate.value
   params.doc_type = filters.docType
+  params.status = filters.status
 })
 </script>
-<style>
-.orders-wrapper {
-  display: flex;
-  width: 100%;
-  justify-content: space-between;
-}
-
-.orders-table {
-  min-width: 60%;
-}
-</style>

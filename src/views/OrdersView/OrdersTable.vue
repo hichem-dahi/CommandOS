@@ -1,60 +1,58 @@
 <!-- eslint-disable vue/valid-v-slot -->
 <template>
-  <v-data-table
-    :items="items"
-    :headers="headers"
-    density="comfortable"
-    hover
-    class="bg-white rounded-lg"
-  >
-    <template #top>
-      <v-card
-        color="#F7F7F7"
-        elevation="0"
-        class="px-4 py-3 d-flex align-center justify-space-between"
-      >
-        <div class="d-flex align-center gap-4">
-          <v-avatar size="64" color="grey-lighten-3">
-            <v-icon size="32" color="grey" :icon="mdiCart"></v-icon>
-          </v-avatar>
+  <v-card variant="text" width="100%">
+    <template v-slot:title>
+      <slot name="title"></slot>
+    </template>
+
+    <template v-slot:text>
+      <slot name="top"></slot>
+    </template>
+
+    <v-data-table :items="items" :headers="headers" density="comfortable" hover>
+      <template #item.order="{ item }">
+        <v-tooltip :text="$t('view-order')">
+          <template #activator="{ props }">
+            <v-btn
+              v-if="item"
+              v-bind="props"
+              variant="text"
+              size="small"
+              color="primary"
+              :to="{ name: 'order', params: { order_id: item.id } }"
+              class="text-capitalize"
+            >
+              <v-icon :icon="mdiOpenInNew" size="18" />
+            </v-btn>
+          </template>
+        </v-tooltip>
+      </template>
+
+      <template #item.date="{ item }">
+        <div class="text-no-wrap">
+          {{ format(item.date, 'yyyy-MM-dd') }}
         </div>
-      </v-card>
-
-      <v-divider class="my-2" />
-    </template>
-
-    <template #item.order="{ item }">
-      <v-tooltip text="View order">
-        <template #activator="{ props }">
-          <v-btn
-            v-if="item"
-            v-bind="props"
-            variant="text"
-            size="small"
-            color="primary"
-            :to="{ name: 'order', params: { order_id: item.id } }"
-            class="text-capitalize"
-          >
-            <v-icon :icon="mdiOpenInNew" size="18" />
-          </v-btn>
-        </template>
-      </v-tooltip>
-    </template>
-
-    <template #item.date="{ item }">
-      <div class="text-no-wrap">
-        {{ format(item.date, 'yyyy-MM-dd') }}
-      </div>
-      <div class="text-no-wrap text-grey text-caption">
-        {{ format(item.date, 'p') }}
-      </div>
-    </template>
-    <template #item.details="{ item }">
-      <div class="text-caption">
-        {{ item.details }}
-      </div>
-    </template>
-  </v-data-table>
+        <div class="text-no-wrap text-grey text-caption">
+          {{ format(item.date, 'p') }}
+        </div>
+      </template>
+      <template #item.details="{ item }">
+        <div class="text-caption">
+          {{ item.details }}
+        </div>
+      </template>
+      <template v-slot:item.status="{ item }">
+        <v-chip
+          v-if="statusChipMap[item.status]"
+          size="small"
+          variant="tonal"
+          :color="statusChipMap[item.status].color"
+        >
+          {{ $t(statusChipMap[item.status].label) }}
+        </v-chip>
+      </template>
+    </v-data-table>
+  </v-card>
 </template>
 
 <script setup lang="ts">
@@ -62,17 +60,19 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { format } from 'date-fns'
 import { groupBy, sortBy, sum } from 'lodash'
-import { mdiCart, mdiOpenInNew } from '@mdi/js'
+import { mdiOpenInNew } from '@mdi/js'
 
 import type { OrderData } from '@/composables/db/orders/useGetOrdersDb'
 import type { OrderLineData } from '@/composables/api/orders/useGetOrderApi'
+import { OrderStatus } from '@/models/models'
 
 const today = new Date()
 const thirtyDaysAgo = new Date()
 thirtyDaysAgo.setDate(today.getDate() - 30)
 
-const { t } = useI18n()
 const props = defineProps<{ orders: OrderData[] }>()
+
+const { t } = useI18n()
 
 const items = computed(() =>
   sortBy(
@@ -83,7 +83,8 @@ const items = computed(() =>
         details: productSummary(o.order_lines || []),
         total: o.total_price,
         reduction: o.reduction || 0,
-        remaining: (o.total_price || 0) - (o.paid_price || 0)
+        remaining: (o.total_price || 0) - (o.paid_price || 0),
+        status: o.status as OrderStatus
       }
     }),
     (t) => new Date(t.date)
@@ -106,11 +107,6 @@ const headers = computed(
         key: 'details'
       },
       {
-        title: t('total'),
-        align: 'start',
-        key: 'total'
-      },
-      {
         title: t('reduction'),
         align: 'start',
         key: 'reduction'
@@ -119,9 +115,22 @@ const headers = computed(
         title: t('remaining'),
         align: 'start',
         key: 'remaining'
-      }
-    ] as any
+      },
+      {
+        title: t('total'),
+        align: 'start',
+        key: 'total'
+      },
+      { title: `${t('status')}`, key: 'status' },
+      { title: ``, key: 'order' }
+    ] as const
 )
+
+const statusChipMap: Record<OrderStatus, { color: string; label: string }> = {
+  [OrderStatus.Pending]: { color: 'grey', label: 'pending' },
+  [OrderStatus.Confirmed]: { color: 'green', label: 'confirmed' },
+  [OrderStatus.Cancelled]: { color: 'red', label: 'cancelled' }
+}
 
 function productSummary(orderlines: OrderLineData[]) {
   if (!orderlines?.length) return

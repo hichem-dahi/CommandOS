@@ -14,8 +14,12 @@
       </v-card>
     </template>
     <template v-slot:item.date="{ item }">
-      <div class="text-no-wrap">{{ format(item.date, 'yyyy-MM-dd') }}</div>
-      <div class="text-no-wrap">{{ format(item.date, 'p') }}</div>
+      <div class="text-no-wrap">
+        {{ format(item.date, 'yyyy-MM-dd') }}
+      </div>
+      <div class="text-no-wrap text-grey text-caption">
+        {{ format(item.date, 'p') }}
+      </div>
     </template>
     <template v-slot:item.details="{ item }">
       <span class="text-caption text-no-wrap">
@@ -105,7 +109,7 @@ const historyItems = computed(() => {
   const items = clientOrders.map((o) => {
     const orderLinesInfo = o.order_lines?.map((ol) => {
       const info = { qte: ol.qte, product: ol.product?.name }
-      return `${info.qte}m ${info.product}`
+      return `${info.qte} ${info.product}`
     })
 
     const total = o.total_price || 0
@@ -139,8 +143,7 @@ const headers = computed(
       { title: `${t('total')} (DA)`, key: 'total' },
       { title: `${t('remaining')} (DA)`, key: 'remaining' },
       { title: `${t('status')}`, key: 'status' },
-
       { title: ``, key: 'order' }
-    ] as any
+    ] as const
 )
 </script>
