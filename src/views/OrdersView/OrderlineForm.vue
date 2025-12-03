@@ -129,14 +129,14 @@ function customFilter(itemTitle: any, queryText: string, item: any) {
 
 watchEffect(() => {
   if (model.value.qte && model.value.unit_price) {
-    model.value.total_price = model.value.unit_price * model.value?.qte
+    model.value.total_price = Number(model.value.unit_price * model.value?.qte)
   }
 })
 
 watch(selectedProduct, (newProduct) => {
   if (newProduct) {
-    model.value.unit_price = newProduct.price || 0
-    model.value.unit_cost_price = newProduct.cost_price
+    model.value.unit_price = Number(newProduct.price || 0)
+    model.value.unit_cost_price = Number(newProduct.cost_price)
   }
 })
 </script>
