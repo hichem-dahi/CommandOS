@@ -7,13 +7,12 @@
       :active="route.name === item.route"
       color="#BF360C"
       @click="navigateTo(item.route)"
+      slim
     >
       <template v-slot:prepend>
-        <v-icon :icon="item.icon"></v-icon>
+        <v-icon size="small" :icon="item.icon" />
       </template>
-      <v-list-item-title class="font-weight-bold text-medium-emphasis">{{
-        item.label
-      }}</v-list-item-title>
+      <v-list-item-subtitle class="font-weight-bold">{{ item.label }}</v-list-item-subtitle>
     </v-list-item>
   </v-list>
 </template>
@@ -21,14 +20,15 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
+
 import {
   mdiHistory,
-  mdiWarehouse,
   mdiAccountGroupOutline,
   mdiReceiptTextOutline,
-  mdiCartOutline
+  mdiCartOutline,
+  mdiPackageVariantClosed
 } from '@mdi/js'
-import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -42,9 +42,9 @@ const menuItems = computed(() => [
     color: 'medium-emphasis'
   },
   {
-    label: t('warehouse'),
+    label: t('products'),
     route: 'warehouse',
-    icon: mdiWarehouse,
+    icon: mdiPackageVariantClosed,
     color: 'medium-emphasis'
   },
   {
