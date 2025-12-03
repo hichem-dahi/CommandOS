@@ -46,7 +46,6 @@ const defaultIndividualForm = () => ({
 })
 
 const defaultOrderlineForm = () => ({
-  id: undefined as string | undefined,
   order_id: '',
   org_id: self.value.current_org?.id || '',
   product_id: '',
@@ -70,9 +69,7 @@ const individualForm = ref<RequiredFields<TablesInsert<'individuals'>> | undefin
   defaultIndividualForm()
 )
 
-const orderlinesForm = ref<RequiredFields<TablesInsert<'order_lines'>>[] | undefined>([
-  defaultOrderlineForm()
-])
+const orderlinesForm = ref<RequiredFields<TablesInsert<'order_lines'>>[]>([defaultOrderlineForm()])
 
 const deliveryForm = ref<RequiredFields<TablesInsert<'deliveries'>> | undefined>(
   defaultDeliveryForm()

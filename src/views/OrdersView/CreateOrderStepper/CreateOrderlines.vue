@@ -1,16 +1,16 @@
 <template>
   <div class="py-2">
-    <template v-for="(_, i) in orderlinesForm" :key="i">
-      <OrderlineForm
-        class="my-4"
-        v-if="orderlinesForm?.[i]"
-        v-model="orderlinesForm[i]"
-        :is-new="i == 0"
-        :products="products"
-        :availableProducts="availableProducts"
-        @delete="deleteOrderline"
-      />
-    </template>
+    <OrderlineForm
+      v-for="(line, i) in orderlinesForm"
+      :key="line.id || i"
+      class="my-4"
+      v-model="orderlinesForm[i]"
+      :is-new="i === 0"
+      :products="products"
+      :availableProducts="availableProducts"
+      @delete="deleteOrderline"
+    />
+
     <v-btn
       class="mt-6"
       size="small"
@@ -52,7 +52,7 @@ const availableProducts = computed(() =>
 )
 
 function addEmptyOrderline() {
-  orderlinesForm.value?.push({
+  orderlinesForm.value.push({
     product_id: '',
     qte: 0,
     unit_price: 0,
