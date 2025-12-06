@@ -101,7 +101,7 @@ import { mdiChevronLeft } from '@mdi/js'
 import self from '@/composables/localStore/useSelf'
 
 import { ConsumerType, DocumentType } from '@/models/models'
-import type { OrderData } from '@/composables/api/orders/useGetOrderApi'
+import type { OrderData } from '@/composables/db/orders/useGetOrdersDb'
 
 const route = useRoute()
 const invoice = ref()
@@ -224,7 +224,7 @@ const consumer = computed(() => {
 })
 
 const items = computed(() =>
-  order.value?.order_lines.map((o, i) => {
+  order.value?.order_lines?.map((o, i) => {
     return {
       index: i,
       product_name: o.product?.name,

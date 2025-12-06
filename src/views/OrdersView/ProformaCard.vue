@@ -30,7 +30,7 @@
 import { computed } from 'vue'
 import { format } from 'date-fns'
 
-import type { OrderData } from '@/composables/api/orders/useGetOrdersApi'
+import type { OrderData } from '@/composables/db/orders/useGetOrdersDb'
 
 const proforma = defineModel<OrderData>('proforma')
 

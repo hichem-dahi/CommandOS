@@ -80,7 +80,7 @@ import { useLiveQuery } from '@electric-sql/pglite-vue'
 import self from '@/composables/localStore/useSelf'
 
 import { ConsumerType } from '@/models/models'
-import { type OrderData } from '@/composables/api/orders/useGetOrderApi'
+import type { OrderData } from '@/composables/db/orders/useGetOrdersDb'
 
 const route = useRoute()
 
@@ -187,7 +187,7 @@ const organizationInfo = computed(() => {
 })
 
 const items = computed(() =>
-  proforma.value?.order_lines.map((o, i) => {
+  proforma.value?.order_lines?.map((o, i) => {
     return {
       index: i,
       product_name: o.product?.name,

@@ -92,8 +92,8 @@ import { mdiChevronLeft } from '@mdi/js'
 
 import self from '@/composables/localStore/useSelf'
 
-import type { OrderData, OrderLineData } from '@/composables/api/orders/useGetOrderApi'
 import type { Tables } from '@/types/database.types'
+import type { OrderData, OrderlineData } from '@/composables/db/orders/useGetOrdersDb'
 
 const route = useRoute()
 
@@ -208,7 +208,7 @@ const individualInfo = computed(() => {
 })
 
 const items = computed(() =>
-  order.value?.order_lines.map((o: OrderLineData, i: number) => {
+  order.value?.order_lines?.map((o: OrderlineData, i: number) => {
     return {
       index: i,
       product_name: o.product?.name,

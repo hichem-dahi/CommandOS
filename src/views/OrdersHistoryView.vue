@@ -68,9 +68,11 @@ import { groupBy, sortBy, sum } from 'lodash'
 import { format } from 'date-fns'
 import { useI18n } from 'vue-i18n'
 
-import { useOrdersQuery, type OrderData } from '@/composables/db/orders/useGetOrdersDb'
-
-import type { OrderLineData } from '@/composables/api/orders/useGetOrderApi'
+import {
+  useOrdersQuery,
+  type OrderData,
+  type OrderlineData
+} from '@/composables/db/orders/useGetOrdersDb'
 
 const { t } = useI18n()
 
@@ -133,7 +135,7 @@ const groupedOrders = computed(() =>
 )
 
 const allOrderlinesByDate = computed(() => {
-  const result: Record<string, OrderLineData[]> = {}
+  const result: Record<string, OrderlineData[]> = {}
 
   Object.keys(groupedOrders.value).forEach((date) => {
     const ordersForDate = groupedOrders.value[date]
@@ -147,7 +149,7 @@ const allOrderlines = computed(() => {
   return filteredOrders.value.flatMap((o) => o?.order_lines || []).filter((e) => e)
 })
 
-function productSummary(orderlines: OrderLineData[]) {
+function productSummary(orderlines: OrderlineData[]) {
   if (!orderlines?.length) return
   let productsSummaries: string[] = []
   const orderlinesGrouped = groupBy(orderlines, (o) => o?.product_id)

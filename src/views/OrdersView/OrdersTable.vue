@@ -9,7 +9,7 @@
       <slot name="top"></slot>
     </template>
 
-    <v-data-table :items="items" :headers="headers" density="comfortable" hover>
+    <v-data-table :items="items" :headers="headers" density="comfortable" hover striped="odd">
       <template #item.order="{ item }">
         <v-tooltip :text="$t('view-order')">
           <template #activator="{ props }">
@@ -62,8 +62,7 @@ import { format } from 'date-fns'
 import { groupBy, sortBy, sum } from 'lodash'
 import { mdiOpenInNew } from '@mdi/js'
 
-import type { OrderData } from '@/composables/db/orders/useGetOrdersDb'
-import type { OrderLineData } from '@/composables/api/orders/useGetOrderApi'
+import type { OrderData, OrderlineData } from '@/composables/db/orders/useGetOrdersDb'
 import { OrderStatus } from '@/models/models'
 
 const today = new Date()
@@ -132,7 +131,7 @@ const statusChipMap: Record<OrderStatus, { color: string; label: string }> = {
   [OrderStatus.Cancelled]: { color: 'red', label: 'cancelled' }
 }
 
-function productSummary(orderlines: OrderLineData[]) {
+function productSummary(orderlines: OrderlineData[]) {
   if (!orderlines?.length) return
   let productsSummaries: string[] = []
   const orderlinesGrouped = groupBy(orderlines, (o) => o?.product_id)
