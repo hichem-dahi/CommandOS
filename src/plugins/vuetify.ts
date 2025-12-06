@@ -4,10 +4,10 @@ import { createVuetify } from 'vuetify'
 import 'vuetify/styles'
 
 import { aliases, mdi } from 'vuetify/iconsets/mdi-svg'
-import { VDateInput, VStepperVertical } from 'vuetify/labs/components'
+import { VDateInput } from 'vuetify/labs/components'
 
 export default createVuetify({
-  components: { VDateInput, VStepperVertical },
+  components: { VDateInput },
   icons: {
     defaultSet: 'mdi',
     aliases,
