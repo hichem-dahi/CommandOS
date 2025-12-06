@@ -1,26 +1,24 @@
 <template>
-  <div>
-    <div class="orders-wrapper">
-      <div class="orders-table">
-        <OrdersTable :orders="orders">
-          <template #title>
-            <div class="d-flex flex-wrap justify-space-between align-center">
-              <div class="text-h5 pa-4">{{ $t('orders-list') }}</div>
-              <v-btn
-                variant="tonal"
-                size="small"
-                :append-icon="mdiPlus"
-                :to="{ name: 'create-order' }"
-              >
-                {{ $t('add-order') }}
-              </v-btn>
-            </div>
-          </template>
-          <template #top>
-            <div><FilterBar v-model="filters" /></div>
-          </template>
-        </OrdersTable>
-      </div>
+  <div class="orders-wrapper">
+    <div class="orders-table">
+      <OrdersTable :orders="orders">
+        <template #title>
+          <div class="d-flex flex-wrap justify-space-between align-center">
+            <div class="text-h5 pa-4">{{ $t('orders-list') }}</div>
+            <v-btn
+              variant="tonal"
+              size="small"
+              :append-icon="mdiPlus"
+              :to="{ name: 'create-order' }"
+            >
+              {{ $t('add-order') }}
+            </v-btn>
+          </div>
+        </template>
+        <template #top>
+          <div><FilterBar v-model="filters" /></div>
+        </template>
+      </OrdersTable>
     </div>
   </div>
 </template>
