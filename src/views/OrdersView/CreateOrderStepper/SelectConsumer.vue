@@ -42,7 +42,7 @@ import { minLength, numeric, required } from '@vuelidate/validators'
 import { ConsumerType } from '@/models/models'
 import type { Tables, TablesInsert } from '@/types/database.types'
 
-import { form, consumerType, individualForm } from './state'
+import { form, consumerType, individualForm, defaultIndividualForm } from './state'
 
 const props = defineProps<{
   readonly individuals: ReadonlyArray<Tables<'individuals'>>
@@ -110,7 +110,7 @@ function handleCustomerChange(item: any) {
   if (existingIndividual) {
     individualForm.value = { ...existingIndividual }
   } else if (isString(item)) {
-    individualForm.value.name = item
+    individualForm.value = { ...defaultIndividualForm(), name: item }
   }
 }
 </script>

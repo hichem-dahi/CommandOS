@@ -19,6 +19,46 @@
         <v-card-title>{{ $t('add-sale') }}</v-card-title>
 
         <v-card-text>
+          <div class="d-flex justify-end">
+            <v-btn
+              v-if="!form.individual_id"
+              @click="dialog = !dialog"
+              color="secondary"
+              size="small"
+            >
+              {{ $t('add-client') }}
+            </v-btn>
+
+            <v-dialog v-model="dialog" max-width="500">
+              <v-card :title="$t('add-client')">
+                <v-card-text>
+                  <SelectConsumer
+                    v-if="individualForm"
+                    v-model="individualForm"
+                    :individuals="individuals"
+                    :clients="organizations"
+                  >
+                    <template #actions="{ v }">
+                      <v-btn variant="text" @click="dialog = false">
+                        {{ $t('close') }}
+                      </v-btn>
+
+                      <v-btn color="primary" @click="upsertIndividual(v, individualForm)">
+                        {{ $t('save') }}
+                      </v-btn>
+                    </template>
+                  </SelectConsumer>
+                </v-card-text>
+              </v-card>
+            </v-dialog>
+            <v-chip
+              v-if="form.individual_id && individualForm?.name"
+              closable
+              @click:close="resetIndividual"
+            >
+              {{ $t('client') }}: {{ individualForm?.name }}
+            </v-chip>
+          </div>
           <CreateOrderlines />
         </v-card-text>
 
@@ -130,9 +170,10 @@
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, reactive, ref, watch, watchEffect } from 'vue'
-import useVuelidate from '@vuelidate/core'
+import useVuelidate, { type Validation } from '@vuelidate/core'
 import { cloneDeep } from 'lodash'
 import { useLocalStorage } from '@vueuse/core'
+import { useLiveQuery } from '@electric-sql/pglite-vue'
 import { mdiBarcodeScan } from '@mdi/js'
 
 import { useUpsertOrderlinesDb } from '@/composables/db/orderlines/useUpsertOrderlinesDb'
@@ -141,9 +182,8 @@ import { useUpsertPaymentsDb } from '@/composables/db/payments/useUpsertPayments
 import { useUpsertNotificationsDb } from '@/composables/db/notifications/useUpsertNotificationsDb'
 import { useUpdateProductsQtyDb } from '@/composables/db/products/useUpdateProductsQtyDb'
 import { useUpsertStockMovementsDb } from '@/composables/db/stockMovements/useUpsertStockMovementsDb'
-
+import { useUpsertIndividualsDb } from '@/composables/db/individuals/useUpsertIndividualsDb'
 import { processStockMovementsForOrder } from '@/composables/useStockManage'
-
 import { useOrdersQuery, type OrderData } from '@/composables/db/orders/useGetOrdersDb'
 import { useProductsQuery } from '@/composables/db/products/useGetProductsDb'
 
@@ -153,10 +193,13 @@ import CreateOrderlines from './OrdersView/CreateOrderStepper/CreateOrderlines.v
 import BarcodeScanner from '@/components/BarcodeScanner.vue'
 import FilterBar from './OrdersView/FilterBar.vue'
 import OrdersTable from './OrdersView/OrdersTable.vue'
+import SelectConsumer from './OrdersView/CreateOrderStepper/SelectConsumer.vue'
 
 import {
   cleanForm,
+  defaultIndividualForm,
   form,
+  individualForm,
   orderlinesForm,
   paymentForm,
   resetOrderForm,
@@ -214,16 +257,31 @@ let buffer = ref('')
 const orders = computed(() => (ordersQuery.rows.value || []) as unknown as OrderData[])
 const products = computed(() => (productsQuery.rows.value || []) as unknown as Tables<'products'>[])
 
+const organizationsQuery = useLiveQuery<Tables<'organizations'>>(
+  'SELECT * FROM public.organizations WHERE _deleted = false AND org_id = $1;',
+  [self.value.current_org?.id]
+)
+
+const individualsQuery = useLiveQuery<Tables<'individuals'>>(
+  'SELECT * FROM public.individuals WHERE _deleted = false AND org_id = $1;',
+  [self.value.current_org?.id]
+)
+
+const individuals = computed(() => individualsQuery.rows.value || [])
+const organizations = computed(() => organizationsQuery.rows.value || [])
+
 const upsertOrdersDb = useUpsertOrdersDb()
 const upsertOrderlinesDb = useUpsertOrderlinesDb()
 const upsertPaymentsDb = useUpsertPaymentsDb()
 const upsertStockMovementsDb = useUpsertStockMovementsDb()
 const updateProductsQtyDb = useUpdateProductsQtyDb()
 const upsertNotificationsDb = useUpsertNotificationsDb()
+const upsertIndividualsDb = useUpsertIndividualsDb()
 
 const savedSales = useLocalStorage('savedSales', [] as any[])
 
 const showScanner = ref(false)
+const dialog = ref(false)
 
 const $v = useVuelidate()
 
@@ -326,6 +384,15 @@ function restoreSale(i: number) {
   }
 }
 
+function upsertIndividual(v: Validation, form?: TablesInsert<'individuals'>) {
+  v.$touch()
+  if (!v.$invalid && form) {
+    const org_id = self.value.current_org?.id || ''
+    upsertIndividualsDb.form.value = [{ ...form, org_id, _synced: false }]
+    upsertIndividualsDb.execute()
+  }
+}
+
 function submitSale() {
   $v.value.$touch()
   if (!$v.value.$invalid) {
@@ -341,6 +408,11 @@ function submitSale() {
 function handleReset() {
   resetOrderForm()
   $v.value.$reset()
+}
+
+function resetIndividual() {
+  individualForm.value = defaultIndividualForm()
+  form.individual_id = null
 }
 
 function insertPayment(payment: TablesInsert<'payments'>) {
@@ -381,6 +453,16 @@ watch(
     if (isSuccess) {
       const ids = upsertStockMovementsDb.data.value.map((s) => s.id)
       updateProductQuantities(ids)
+    }
+  }
+)
+
+watch(
+  () => upsertIndividualsDb.isSuccess.value,
+  (isSuccess) => {
+    if (isSuccess && upsertIndividualsDb.data.value?.[0].id) {
+      form.individual_id = upsertIndividualsDb.data.value?.[0].id
+      dialog.value = false
     }
   }
 )

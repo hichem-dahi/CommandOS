@@ -115,6 +115,8 @@ watchEffect(() => {
 
   if (individualForm.value?.id) {
     form.individual_id = individualForm.value.id
+  } else {
+    form.individual_id = null
   }
 })
 
