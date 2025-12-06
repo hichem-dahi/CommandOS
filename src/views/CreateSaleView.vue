@@ -82,7 +82,7 @@
     <v-col v-if="showScanner" cols="12">
       <v-card>
         <v-card-text>
-          <BarcodeScanner @detected="selectProduct" />
+          <BarcodeScanner @detected="(v) => selectProduct(v, orderlinesForm)" />
         </v-card-text>
       </v-card>
     </v-col>
@@ -118,6 +118,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, reactive, ref, watch, watchEffect } from 'vue'
 import useVuelidate from '@vuelidate/core'
+import { cloneDeep } from 'lodash'
 import { mdiBarcodeScan } from '@mdi/js'
 
 import { useUpsertOrderlinesDb } from '@/composables/db/orderlines/useUpsertOrderlinesDb'
@@ -144,7 +145,8 @@ import {
   form,
   orderlinesForm,
   paymentForm,
-  resetOrderForm
+  resetOrderForm,
+  type RequiredFields
 } from './OrdersView/CreateOrderStepper/state'
 
 import { DocumentType, OrderStatus } from '@/models/models'
@@ -193,7 +195,7 @@ watchEffect(() => {
 
 const lastBarcode = ref('')
 
-let buffer = ''
+let buffer = ref('')
 
 const orders = computed(() => (ordersQuery.rows.value || []) as unknown as OrderData[])
 const products = computed(() => (productsQuery.rows.value || []) as unknown as Tables<'products'>[])
@@ -226,17 +228,17 @@ const toPay = computed(() => Math.max(0, netTotal.value - Number(paymentForm.amo
 
 function handleKeyDown(event: KeyboardEvent) {
   if (event.key === 'Enter') {
-    if (buffer) {
-      lastBarcode.value = buffer
-      selectProduct(lastBarcode.value)
+    if (buffer.value) {
+      lastBarcode.value = buffer.value
+      orderlinesForm.value = selectProduct(lastBarcode.value, orderlinesForm.value)
       console.log('Scanned barcode:', buffer)
     }
-    buffer = ''
+    buffer.value = ''
     return
   }
 
   if (event.key.length === 1) {
-    buffer += event.key
+    buffer.value += event.key
   }
 }
 
@@ -248,45 +250,44 @@ onUnmounted(() => {
   document.removeEventListener('keydown', handleKeyDown)
 })
 
-function selectProduct(barcode: string) {
+function selectProduct(
+  barcode: string,
+  orderlines: RequiredFields<TablesInsert<'order_lines'>>[]
+): RequiredFields<TablesInsert<'order_lines'>>[] {
+  const orderlinesTmp = cloneDeep(orderlines)
+
   // Find the product using the barcode
   const product = products.value.find((p) => p.bar_code === barcode)
-  if (!product) return // Exit if no product is found
+  if (!product) return orderlinesTmp
 
   // Check if an orderline already exists for this product
-  const existingOrderline = orderlinesForm.value?.find((o) => o.product_id === product.id)
+  const existingOrderline = orderlinesTmp.find((o) => o.product_id === product.id)
 
   if (existingOrderline) {
     // Increment quantity if the product already exists in the order
     existingOrderline.qte++
   } else {
     // Find an empty orderline or create a new one
-    const emptyOrderline = orderlinesForm.value?.find((o) => !o.product_id)
+    const emptyOrderline = orderlinesTmp.find((o) => !o.product_id)
+
+    const baseOrderline = {
+      product_id: product.id,
+      qte: 1,
+      unit_price: product.price,
+      unit_cost_price: product.cost_price,
+      total_price: product.price,
+      order_id: '',
+      org_id: self.value.current_org?.id || ''
+    }
 
     if (emptyOrderline) {
-      // Fill the empty orderline with product details
-      Object.assign(emptyOrderline, {
-        product_id: product.id,
-        qte: 1, // Default quantity
-        unit_price: product.price,
-        unit_cost_price: product.cost_price,
-        total_price: product.price, // Total price
-        order_id: '', // Provide an order ID if needed
-        org_id: self.value.current_org?.id || ''
-      })
+      Object.assign(emptyOrderline, baseOrderline)
     } else {
-      // Add a new orderline
-      orderlinesForm.value?.push({
-        product_id: product.id,
-        qte: 1, // Default quantity
-        unit_price: product.price,
-        unit_cost_price: product.cost_price,
-        total_price: product.price, // Total price
-        order_id: '', // Provide an order ID if needed
-        org_id: self.value.current_org?.id || ''
-      })
+      orderlinesTmp.push(baseOrderline)
     }
   }
+
+  return orderlinesTmp
 }
 
 function submitSale() {
