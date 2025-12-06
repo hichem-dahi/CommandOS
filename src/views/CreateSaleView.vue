@@ -15,11 +15,23 @@
 
   <v-row no-gutters>
     <v-col cols="12" md="8">
-      <v-card variant="text">
+      <v-card class="d-flex flex-column h-100" variant="text">
         <v-card-title>{{ $t('add-sale') }}</v-card-title>
+
         <v-card-text>
           <CreateOrderlines />
         </v-card-text>
+
+        <v-card-actions class="justify-space-between">
+          <div class="d-flex ga-2">
+            <v-chip v-for="(_, i) in savedSales" :key="i" @click="restoreSale(i)">
+              {{ $t('sale') }} #{{ i }}
+            </v-chip>
+          </div>
+          <v-btn variant="flat" color="info" @click="saveSale">
+            {{ $t('save') }}
+          </v-btn>
+        </v-card-actions>
       </v-card>
     </v-col>
 
@@ -72,6 +84,7 @@
           <v-btn variant="flat" color="primary" @click="submitSale" :loading="isLoading">
             {{ $t('confirm') }}
           </v-btn>
+
           <v-btn variant="tonal" color="secondary" @click="handleReset">
             {{ $t('reset') }}
           </v-btn>
@@ -119,6 +132,7 @@
 import { computed, onMounted, onUnmounted, reactive, ref, watch, watchEffect } from 'vue'
 import useVuelidate from '@vuelidate/core'
 import { cloneDeep } from 'lodash'
+import { useLocalStorage } from '@vueuse/core'
 import { mdiBarcodeScan } from '@mdi/js'
 
 import { useUpsertOrderlinesDb } from '@/composables/db/orderlines/useUpsertOrderlinesDb'
@@ -207,6 +221,8 @@ const upsertStockMovementsDb = useUpsertStockMovementsDb()
 const updateProductsQtyDb = useUpdateProductsQtyDb()
 const upsertNotificationsDb = useUpsertNotificationsDb()
 
+const savedSales = useLocalStorage('savedSales', [] as any[])
+
 const showScanner = ref(false)
 
 const $v = useVuelidate()
@@ -288,6 +304,26 @@ function selectProduct(
   }
 
   return orderlinesTmp
+}
+
+function saveSale() {
+  const org_id = self.value.current_org?.id || ''
+  const order = { ...form, order_lines: orderlinesForm.value, type: 'sale', org_id, _synced: false }
+  savedSales.value.push(order)
+  resetOrderForm()
+}
+
+function restoreSale(i: number) {
+  const savedOrder = savedSales.value[i]
+  if (savedOrder) {
+    Object.assign(form, savedOrder)
+
+    if (savedOrder.order_lines) {
+      orderlinesForm.value = cloneDeep(savedOrder.order_lines)
+    }
+
+    savedSales.value.splice(i, 1)
+  }
 }
 
 function submitSale() {
