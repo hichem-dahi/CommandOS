@@ -21,11 +21,11 @@
         </div>
         <v-divider class="mx-4" inset vertical />
         <div class="col-2">
-          <v-dialog v-if="isPending" v-model="newlineDialog" max-width="400">
+          <v-dialog v-if="isModifiable" v-model="newlineDialog" max-width="400">
             <template v-slot:activator="{ props }">
               <v-btn
-                variant="text"
-                size="x-small"
+                variant="tonal"
+                size="small"
                 :append-icon="mdiPlus"
                 color="primary"
                 :disabled="!availableProducts.length"
@@ -61,9 +61,8 @@
         </div>
       </v-card>
     </template>
-    <template v-if="isPending" v-slot:item.qte="{ item }">
+    <template v-if="isModifiable" v-slot:item.qte="{ item }">
       <v-number-input
-        v-if="isNumber(proxyOrderlines?.[item.index]?.qte)"
         class="number-input"
         type="number"
         width="150"
@@ -78,7 +77,7 @@
         v-model="proxyOrderlines[item.index].qte"
       />
     </template>
-    <template v-if="isPending" v-slot:item.actions="{ item }">
+    <template v-if="isModifiable" v-slot:item.actions="{ item }">
       <v-btn
         color="medium-emphasis"
         variant="text"
@@ -100,12 +99,12 @@
         </div>
       </div>
     </div>
-    <v-card-actions v-if="isPending" class="justify-end mt-6">
+    <v-card-actions v-if="isModifiable" class="justify-end mt-6">
       <v-btn :disabled="!isModified" variant="text" size="small" @click="cancelEdit">
         {{ $t('cancel') }}
       </v-btn>
       <v-btn
-        :disabled="!isModfiable"
+        :disabled="!isSaveble"
         :loading="isLoading"
         variant="elevated"
         color="blue"
@@ -135,6 +134,9 @@ import { useUpsertOrderlinesDb } from '@/composables/db/orderlines/useUpsertOrde
 import { useUpsertOrdersDb } from '@/composables/db/orders/useUpsertOrdersDb'
 import { useSoftDeleteOrderlinesDb } from '@/composables/db/orderlines/useSoftDeleteOrderlinesDb'
 import { useProductsQuery, type ProductData } from '@/composables/db/products/useGetProductsDb'
+import { processStockMovementsForOrder } from '@/composables/useStockManage'
+import { useUpsertStockMovementsDb } from '@/composables/db/stockMovements/useUpsertStockMovementsDb'
+import { useUpdateProductsQtyDb } from '@/composables/db/products/useUpdateProductsQtyDb'
 
 import self from '@/composables/localStore/useSelf'
 
@@ -142,7 +144,7 @@ import OrderlineForm from '@/views/OrdersView/OrderlineForm.vue'
 import DeleteItemModal from './DeleteItemModal.vue'
 
 import { ConsumerType, OrderStatus } from '@/models/models'
-import type { TablesInsert } from '@/types/database.types'
+import type { Tables, TablesInsert } from '@/types/database.types'
 import type { OrderData, OrderlineData } from '@/composables/db/orders/useGetOrdersDb'
 
 const { t } = useI18n()
@@ -156,6 +158,8 @@ const { q: productsQuery } = useProductsQuery()
 const softDeleteOrderlinesDb = useSoftDeleteOrderlinesDb()
 const upsertOrderlinesDb = useUpsertOrderlinesDb()
 const upsertOrderDb = useUpsertOrdersDb()
+const upsertStockMovementsDb = useUpsertStockMovementsDb()
+const updateProductsQtyDb = useUpdateProductsQtyDb()
 
 const newlineDialog = ref(false)
 const deleteDialog = ref(false)
@@ -187,7 +191,7 @@ const headers = computed(
       { title: t('C.P'), key: 'unit_cost_price' },
       { title: t('total'), key: 'total_price' },
       { title: '', key: 'actions' }
-    ] as any
+    ] as const
 )
 
 const isLoading = computed(
@@ -208,7 +212,7 @@ const isModified = computed(() => {
   )
 })
 
-const isModfiable = computed(() => isModified.value && isValidOrderlines.value)
+const isSaveble = computed(() => isModified.value && isValidOrderlines.value)
 
 const isValidOrderlines = computed(() =>
   proxyOrderlines.value?.every((o) => o.product !== null && o.qte <= (o.product.qty || 0))
@@ -222,7 +226,7 @@ const consumerType = computed(() =>
 
 const isConfirmed = computed(() => props.order.status === OrderStatus.Confirmed)
 const isCancelled = computed(() => props.order.status === OrderStatus.Cancelled)
-const isPending = computed(() => props.order.status === OrderStatus.Pending)
+const isModifiable = computed(() => props.order.status !== OrderStatus.Cancelled)
 
 const isConfirmable = computed(() => !isModified.value && isValidOrderlines.value)
 
@@ -291,8 +295,68 @@ function cancelEdit() {
 }
 
 function confirmEdit() {
+  if (isConfirmed.value) {
+    const orderlines = diffOrderlines(props.order.order_lines || [], proxyOrderlines.value)
+    upsertStockMovements(orderlines)
+  }
   softDeleteOrderlinesDb.ids.value = (props.order.order_lines || []).map((ol) => ol.id)
   softDeleteOrderlinesDb.execute()
+}
+
+function diffOrderlines(
+  OldOrderlines: OrderlineData[] | Tables<'order_lines'>[],
+  newOrderlines: OrderlineData[] | Tables<'order_lines'>[]
+) {
+  let diffOrderlines: Tables<'order_lines'>[] = []
+  newOrderlines.forEach((o1) => {
+    const existingProduct = OldOrderlines.find((o2) => o2.product_id === o1.product_id)
+    if (existingProduct) {
+      if (o1.qte != existingProduct.qte) {
+        diffOrderlines.push({
+          ...existingProduct,
+          qte: o1.qte - existingProduct.qte
+        })
+      }
+    } else {
+      diffOrderlines.push({ ...o1 })
+    }
+  })
+
+  return diffOrderlines
+}
+
+function upsertStockMovements(orderlines: Tables<'order_lines'>[]) {
+  if (orderlines.length > 0) {
+    console.log(orderlines)
+
+    const deductOrderlines = orderlines.filter((o) => o.qte > 0)
+    const restoreOrderlines = orderlines.filter((o) => o.qte < 0)
+    console.log(restoreOrderlines)
+
+    const deductStockMovements = processStockMovementsForOrder(
+      { id: props.order.id, order_lines: deductOrderlines },
+      'deduct'
+    )
+    const restoreStockMovements = processStockMovementsForOrder(
+      {
+        id: props.order.id,
+        order_lines: restoreOrderlines.map((o) => ({ ...o, qte: Math.abs(o.qte) }))
+      },
+      'restore'
+    )
+    upsertStockMovementsDb.form.value = [...deductStockMovements, ...restoreStockMovements].map(
+      (s) => ({
+        ...s,
+        _synced: false // Add the synced property
+      })
+    )
+    upsertStockMovementsDb.execute()
+  }
+}
+
+function updateProductQuantities(ids: string[]) {
+  updateProductsQtyDb.stockMovementsIds.value = ids
+  updateProductsQtyDb.execute()
 }
 
 watch(
@@ -319,12 +383,23 @@ watch(
           {
             ...props.order,
             total_price,
+            paid_price: total_price < props.order.paid_price ? total_price : props.order.paid_price,
             tva: total_price * 0.19,
             ttc: total_price * 1.19,
             _synced: false
           }
         ]
       upsertOrderDb.execute()
+    }
+  }
+)
+
+watch(
+  () => upsertStockMovementsDb.isSuccess.value,
+  (isSuccess) => {
+    if (isSuccess) {
+      const updates = upsertStockMovementsDb.data.value.map((s) => s.id)
+      updateProductQuantities(updates)
     }
   }
 )
