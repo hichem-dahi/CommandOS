@@ -6,7 +6,7 @@ import self from '@/composables/localStore/useSelf'
 import { ConsumerType, DocumentType, OrderStatus } from '@/models/models'
 import type { TablesInsert } from '@/types/database.types'
 
-type RequiredFields<T> = {
+export type RequiredFields<T> = {
   [K in keyof T as K extends '_deleted' | '_synced' | 'updated_at' | 'id' ? K : never]?: T[K] // Keep these optional
 } & {
   [K in keyof T as K extends '_deleted' | '_synced' | 'updated_at' | 'id' ? never : K]-?: T[K] // Make all other fields required
@@ -51,7 +51,7 @@ const defaultOrderlineForm = () => ({
   product_id: '',
   qte: 0,
   total_price: 0,
-  unit_cost_price: null as number | null,
+  unit_cost_price: null,
   unit_price: 0
 })
 
