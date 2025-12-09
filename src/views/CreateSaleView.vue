@@ -17,18 +17,6 @@
     <!-- Left panel -->
     <v-col cols="12" md="7">
       <v-card class="px-4 d-flex flex-column h-100" variant="text">
-        <template #append>
-          <v-btn-toggle color="primary" density="compact" v-model="form.type" divided mandatory>
-            <v-btn value="sale">
-              <span class="hidden-sm-and-down">{{ $t('sale') }}</span>
-              <v-icon :icon="mdiCart" end />
-            </v-btn>
-            <v-btn value="order" :disabled="!consumerPicked">
-              <span class="hidden-sm-and-down">{{ $t('order') }} </span>
-              <v-icon :icon="mdiReceiptTextOutline" end />
-            </v-btn>
-          </v-btn-toggle>
-        </template>
         <!-- HEADER -->
         <template #title>
           <div class="text-h5 mb-4">
@@ -36,54 +24,53 @@
           </div>
         </template>
         <template #text>
-          <div class="d-flex justify-space-between">
-            <v-btn
-              v-if="!form.individual_id"
-              variant="tonal"
-              size="small"
-              @click="individualDialog = true"
-            >
-              {{ $t('add-client') }}
-            </v-btn>
-
-            <v-chip
-              v-if="form.individual_id"
-              closable
-              @click:close="resetIndividual"
-              size="small"
-              color="primary"
-              variant="flat"
-            >
-              {{ $t('client') }}: {{ individualForm?.name }}
-            </v-chip>
-          </div>
-
-          <!-- CLIENT DIALOG -->
-          <v-dialog v-model="individualDialog" max-width="500">
-            <CreateOrderStepper @success="individualDialog = false" />
-          </v-dialog>
-
           <CreateOrderlines />
         </template>
-        <!-- FOOTER ACTIONS -->
-        <v-card-actions class="mt-auto justify-space-between pt-6">
-          <div class="d-flex ga-2 flex-wrap">
-            <v-chip
-              v-for="(_, i) in savedSales"
-              :key="i"
-              @click="restoreSale(i)"
-              size="small"
-              color="secondary"
-              variant="tonal"
-            >
-              {{ $t('sale') }} #{{ i }}
-            </v-chip>
-          </div>
+        <template #actions>
+          <div class="d-flex align-center justify-space-between w-100">
+            <div>
+              <v-btn
+                v-if="!consumerPicked"
+                variant="tonal"
+                size="small"
+                @click="clientDialog = true"
+              >
+                {{ $t('add-client') }}
+              </v-btn>
 
-          <v-btn variant="tonal" color="info" @click="saveSale" rounded>
-            {{ $t('save') }}
-          </v-btn>
-        </v-card-actions>
+              <v-chip
+                v-if="!!consumerPicked"
+                closable
+                @click:close="resetClient"
+                size="small"
+                color="primary"
+                variant="flat"
+              >
+                {{ $t('client') }}: {{ clientForm?.name ?? individualForm?.name }}
+              </v-chip>
+
+              <!-- CLIENT DIALOG -->
+              <v-dialog v-model="clientDialog" max-width="500">
+                <CreateOrderStepper @success="clientDialog = false" />
+              </v-dialog>
+            </div>
+
+            <v-radio-group max-width="250" hide-details v-model="form.type" inline>
+              <v-radio :label="$t('sale')" value="sale" />
+
+              <v-tooltip :disabled="!!consumerPicked" text="Select a consumer first">
+                <template #activator="{ props }">
+                  <v-radio
+                    v-bind="props"
+                    :label="$t('order')"
+                    value="order"
+                    :disabled="!consumerPicked"
+                  />
+                </template>
+              </v-tooltip>
+            </v-radio-group>
+          </div>
+        </template>
       </v-card>
     </v-col>
     <v-divider class="mx-auto" vertical />
@@ -91,7 +78,7 @@
     <v-col cols="12" md="4">
       <v-card variant="text" class="pa-4">
         <v-card-subtitle class="text-body-1 mb-1">
-          {{ $t('summary') }}
+          {{ $t('total') }}
         </v-card-subtitle>
 
         <v-card-title class="text-h4 mb-4">
@@ -118,30 +105,25 @@
             :max="form.total_price"
             v-model="form.reduction"
           />
-
+          <v-chip v-if="toPay > 0" variant="text" size="small" color="warning">
+            {{ $t('remaining') }}: {{ toPay }} {{ $t('DA') }}
+          </v-chip>
           <v-divider class="my-4"></v-divider>
-
-          <!-- SUMMARY CHIPS -->
-          <div class="d-flex flex-wrap ga-2">
-            <v-chip v-if="toPay > 0" size="small" variant="flat" color="error">
-              {{ $t('remaining') }}: {{ toPay }} {{ $t('DA') }}
-            </v-chip>
-          </div>
         </v-card-text>
 
-        <v-card-actions class="justify-end ga-2">
+        <v-card-actions class="flex-column justify-end ga-2">
           <v-btn
             color="primary"
             variant="flat"
             rounded
-            class="px-4"
+            block
             @click="submitSale"
             :loading="isLoading"
           >
             {{ $t('confirm') }}
           </v-btn>
 
-          <v-btn color="secondary" variant="tonal" rounded class="px-3" @click="handleReset">
+          <v-btn color="secondary" variant="tonal" rounded block @click="handleReset">
             {{ $t('reset') }}
           </v-btn>
         </v-card-actions>
@@ -156,40 +138,60 @@
       </v-card>
     </v-col>
   </v-row>
-  <v-divider class="my-3" />
-  <div class="orders-wrapper">
-    <div class="orders-table">
-      <OrdersTable :orders="orders">
-        <template #title>
-          <div class="d-flex justify-space-between align-center">
-            <div class="text-h5 pa-4">{{ $t('sales-list') }}</div>
-          </div>
-        </template>
-        <template #top>
-          <div class="d-flex align-center justify-space-between flex-wrap ga-4">
-            <FilterBar v-model="filters" />
 
-            <div class="d-flex align-center ga-2">
-              <v-chip size="small" color="primary" variant="tonal">
-                {{ ordersCount }}
-              </v-chip>
-              <v-chip size="small" color="secondary" variant="tonal">
-                {{ $t('total') }}: {{ ordersTotal }} {{ $t('DA') }}
-              </v-chip>
-            </div>
-          </div>
-        </template>
-      </OrdersTable>
-    </div>
-  </div>
+  <v-row>
+    <v-col>
+      <!-- FOOTER ACTIONS -->
+      <div class="d-flex justify-space-between">
+        <div class="d-flex ga-2 flex-wrap">
+          <v-chip
+            v-for="(_, i) in savedSales"
+            :key="i"
+            @click="restoreSale(i)"
+            size="small"
+            color="secondary"
+            variant="tonal"
+          >
+            {{ $t('sale') }} #{{ i }}
+          </v-chip>
+        </div>
+
+        <v-btn variant="text" color="info" @click="saveSale" rounded density="compact" size="small">
+          {{ $t('save-for-later') }}</v-btn
+        >
+      </div>
+    </v-col>
+  </v-row>
+  <v-divider class="mt-8 mb-16" />
+  <OrdersTable :orders="orders">
+    <template #title>
+      <div class="d-flex justify-space-between align-center">
+        <div class="text-h5 pa-4">{{ $t('sales-list') }}</div>
+      </div>
+    </template>
+    <template #top>
+      <div class="d-flex align-center justify-space-between flex-wrap ga-4">
+        <FilterBar class="flex-grow-1" v-model="filters" />
+
+        <div class="d-flex align-center ga-2">
+          <v-chip size="small" color="primary" variant="tonal">
+            {{ ordersCount }}
+          </v-chip>
+          <v-chip size="small" color="secondary" variant="tonal">
+            {{ $t('total') }}: {{ ordersTotal }} {{ $t('DA') }}
+          </v-chip>
+        </div>
+      </div>
+    </template>
+  </OrdersTable>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, reactive, ref, watch, watchEffect } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch, watchEffect } from 'vue'
 import useVuelidate from '@vuelidate/core'
 import { cloneDeep, sum } from 'lodash'
 import { useLocalStorage } from '@vueuse/core'
-import { mdiBarcodeScan, mdiCart, mdiReceiptTextOutline } from '@mdi/js'
+import { mdiBarcodeScan } from '@mdi/js'
 
 import { useUpsertOrderlinesDb } from '@/composables/db/orderlines/useUpsertOrderlinesDb'
 import { useUpsertOrdersDb } from '@/composables/db/orders/useUpsertOrdersDb'
@@ -200,6 +202,7 @@ import { useUpsertStockMovementsDb } from '@/composables/db/stockMovements/useUp
 import { processStockMovementsForOrder } from '@/composables/useStockManage'
 import { useOrdersQuery, type OrderData } from '@/composables/db/orders/useGetOrdersDb'
 import { useProductsQuery } from '@/composables/db/products/useGetProductsDb'
+import { useOrdersFilters } from './OrdersView/composables/useOrdersFilters'
 
 import self from '@/composables/localStore/useSelf'
 
@@ -211,8 +214,8 @@ import OrdersTable from './OrdersView/OrdersTable.vue'
 
 import {
   cleanForm,
+  clientForm,
   consumerPicked,
-  consumerType,
   defaultIndividualForm,
   form,
   individualForm,
@@ -223,40 +226,22 @@ import {
 } from './OrdersView/CreateOrderStepper/state'
 
 import { OrderStatus } from '@/models/models'
-import type { Tables, TablesInsert } from '@/types/database.types'
-import type { Filters } from './OrdersView/models/models'
+import type { TablesInsert } from '@/types/database.types'
 
-const today = new Date()
-const thirtyDaysAgo = new Date()
-thirtyDaysAgo.setDate(today.getDate() - 30)
+const $v = useVuelidate()
+const savedSales = useLocalStorage('savedSales', [] as any[])
+
+const upsertOrdersDb = useUpsertOrdersDb()
+const upsertOrderlinesDb = useUpsertOrderlinesDb()
+const upsertPaymentsDb = useUpsertPaymentsDb()
+const upsertStockMovementsDb = useUpsertStockMovementsDb()
+const updateProductsQtyDb = useUpdateProductsQtyDb()
+const upsertNotificationsDb = useUpsertNotificationsDb()
 
 const { q: productsQuery } = useProductsQuery()
 const { q: ordersQuery, isReady, params } = useOrdersQuery()
 isReady.value = true
-
-const filters = reactive<Filters>({
-  docType: null,
-  dateRange: [thirtyDaysAgo, today],
-  status: null
-})
-
-const startDate = computed(() => {
-  const date = new Date(filters.dateRange[0])
-  if (isNaN(date.getTime())) {
-    return null
-  }
-  date.setHours(0, 0, 0, 0)
-  return date.toISOString()
-})
-
-const endDate = computed(() => {
-  const date = new Date(filters.dateRange[filters.dateRange.length - 1])
-  if (isNaN(date.getTime())) {
-    return null
-  }
-  date.setHours(23, 59, 59, 999)
-  return date.toISOString()
-})
+const { filters, startDate, endDate } = useOrdersFilters()
 
 watchEffect(() => {
   params.date_gte = startDate.value
@@ -267,61 +252,22 @@ watchEffect(() => {
 
 const lastBarcode = ref('')
 const showScanner = ref(false)
-const individualDialog = ref(false)
+const clientDialog = ref(false)
 const buffer = ref('')
 
-const orders = computed(() => (ordersQuery.rows.value || []) as unknown as OrderData[])
-const products = computed(() => (productsQuery.rows.value || []) as unknown as Tables<'products'>[])
-
-const upsertOrdersDb = useUpsertOrdersDb()
-const upsertOrderlinesDb = useUpsertOrderlinesDb()
-const upsertPaymentsDb = useUpsertPaymentsDb()
-const upsertStockMovementsDb = useUpsertStockMovementsDb()
-const updateProductsQtyDb = useUpdateProductsQtyDb()
-const upsertNotificationsDb = useUpsertNotificationsDb()
-
-const savedSales = useLocalStorage('savedSales', [] as any[])
-
-const $v = useVuelidate()
-
+const orders = computed(() => (ordersQuery.rows.value || []) as OrderData[])
+const products = computed(() => productsQuery.rows.value || [])
 const isLoading = computed(
   () =>
     upsertOrderlinesDb.isLoading.value ||
     upsertOrdersDb.isLoading.value ||
     upsertPaymentsDb.isLoading.value
 )
-
 const ordersCount = computed(() => orders.value?.length || 0)
 const ordersTotal = computed(() =>
   (orders.value || []).reduce((sum, o) => sum + Number(o.total_price || 0), 0)
 )
-
-const netTotal = computed(() => Number(form.total_price || 0) - Number(form.reduction || 0))
-const toPay = computed(() => Math.max(0, netTotal.value - Number(paymentForm.amount || 0)))
-
-function handleKeyDown(event: KeyboardEvent) {
-  if (event.key === 'Enter') {
-    if (buffer.value) {
-      lastBarcode.value = buffer.value
-      orderlinesForm.value = selectProduct(lastBarcode.value, orderlinesForm.value)
-      console.log('Scanned barcode:', buffer)
-    }
-    buffer.value = ''
-    return
-  }
-
-  if (event.key.length === 1) {
-    buffer.value += event.key
-  }
-}
-
-onMounted(() => {
-  document.addEventListener('keydown', handleKeyDown)
-})
-
-onUnmounted(() => {
-  document.removeEventListener('keydown', handleKeyDown)
-})
+const toPay = computed(() => Math.max(0, form.total_price - Number(paymentForm.amount || 0)))
 
 function selectProduct(
   barcode: string,
@@ -365,7 +311,14 @@ function selectProduct(
 
 function saveSale() {
   const org_id = self.value.current_org?.id || ''
-  const order = { ...form, order_lines: orderlinesForm.value, type: 'sale', org_id, _synced: false }
+  const order = {
+    ...form,
+    individual: individualForm.value,
+    client: clientForm.value,
+    order_lines: orderlinesForm.value,
+    org_id,
+    _synced: false
+  }
   savedSales.value.push(order)
   resetOrderForm()
 }
@@ -374,7 +327,12 @@ function restoreSale(i: number) {
   const savedOrder = savedSales.value[i]
   if (savedOrder) {
     Object.assign(form, savedOrder)
-
+    if (savedOrder.individual) {
+      individualForm.value = { ...savedOrder.individual }
+    }
+    if (savedOrder.client) {
+      clientForm.value = { ...savedOrder.client }
+    }
     if (savedOrder.order_lines) {
       orderlinesForm.value = cloneDeep(savedOrder.order_lines)
     }
@@ -403,10 +361,10 @@ function handleReset() {
   $v.value.$reset()
 }
 
-function resetIndividual() {
+function resetClient() {
   individualForm.value = defaultIndividualForm()
   form.individual_id = null
-  form.client_id
+  form.client_id = null
 }
 
 function insertPayment(payment: TablesInsert<'payments'>) {
@@ -440,6 +398,30 @@ function updateProductQuantities(ids: string[]) {
   updateProductsQtyDb.stockMovementsIds.value = ids
   updateProductsQtyDb.execute()
 }
+
+function handleKeyDown(event: KeyboardEvent) {
+  if (event.key === 'Enter') {
+    if (buffer.value) {
+      lastBarcode.value = buffer.value
+      orderlinesForm.value = selectProduct(lastBarcode.value, orderlinesForm.value)
+      console.log('Scanned barcode:', buffer)
+    }
+    buffer.value = ''
+    return
+  }
+
+  if (event.key.length === 1) {
+    buffer.value += event.key
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('keydown', handleKeyDown)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleKeyDown)
+})
 
 watch(
   () => form.total_price,

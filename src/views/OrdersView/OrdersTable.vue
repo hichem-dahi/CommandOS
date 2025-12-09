@@ -65,11 +65,9 @@ import { mdiOpenInNew } from '@mdi/js'
 import type { OrderData, OrderlineData } from '@/composables/db/orders/useGetOrdersDb'
 import { OrderStatus } from '@/models/models'
 
-const today = new Date()
-const thirtyDaysAgo = new Date()
-thirtyDaysAgo.setDate(today.getDate() - 30)
-
-const props = defineProps<{ orders: OrderData[] }>()
+const props = defineProps<{
+  readonly orders: readonly OrderData[]
+}>()
 
 const { t } = useI18n()
 

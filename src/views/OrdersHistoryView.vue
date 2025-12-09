@@ -3,11 +3,12 @@
     <v-date-input
       variant="underlined"
       hide-details
-      v-model="dateRange"
+      v-model="filters.dateRange"
       :label="$t('date')"
       max-width="368"
       min-width="150"
       multiple="range"
+      :max="new Date()"
     />
     <!--<v-btn
       size="small"
@@ -46,7 +47,7 @@
   <v-row>
     <v-col cols="12" md="7">
       <v-list lines="three">
-        <template v-for="item in historyItems" :key="item.orderId || item.title">
+        <template v-for="(item, i) in historyItems" :key="i">
           <v-list-item elevation="1">
             <v-list-item-title> <div v-html="item.title"></div> </v-list-item-title>
             <v-list-item-subtitle class="py-2 text-high-emphasis opacity-100 text-caption">
@@ -63,7 +64,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watchEffect } from 'vue'
+import { computed, watchEffect } from 'vue'
 import { groupBy, sortBy, sum } from 'lodash'
 import { format } from 'date-fns'
 import { useI18n } from 'vue-i18n'
@@ -73,35 +74,14 @@ import {
   type OrderData,
   type OrderlineData
 } from '@/composables/db/orders/useGetOrdersDb'
+import { useOrdersFilters } from './OrdersView/composables/useOrdersFilters'
 
 const { t } = useI18n()
-
-const today = new Date()
-const thirtyDaysAgo = new Date()
-thirtyDaysAgo.setDate(today.getDate() - 30) // Subtract 30 days
-
-const dateRange = ref<Date[]>([thirtyDaysAgo, today]) // Set the range to 30 days before today to today
 
 const { q, params, isReady } = useOrdersQuery()
 isReady.value = true
 
-const startDate = computed(() => {
-  const date = new Date(dateRange.value[0])
-  if (isNaN(date.getTime())) {
-    return null // Return null if the date is invalid
-  }
-  date.setHours(0, 0, 0, 0) // Set to midnight
-  return date.toISOString()
-})
-
-const endDate = computed(() => {
-  const date = new Date(dateRange.value[dateRange.value.length - 1])
-  if (isNaN(date.getTime())) {
-    return null // Return null if the date is invalid
-  }
-  date.setHours(23, 59, 59, 999) // Set to the last millisecond of the day
-  return date.toISOString()
-})
+const { filters, startDate, endDate } = useOrdersFilters()
 
 watchEffect(() => {
   params.date_gte = startDate.value
