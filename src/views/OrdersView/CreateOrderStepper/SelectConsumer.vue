@@ -39,10 +39,10 @@ import { isString } from 'lodash'
 import useVuelidate from '@vuelidate/core'
 import { minLength, numeric, required } from '@vuelidate/validators'
 
+import { form, consumerType, individualForm, defaultIndividualForm } from './state'
+
 import { ConsumerType } from '@/models/models'
 import type { Tables, TablesInsert } from '@/types/database.types'
-
-import { form, consumerType, individualForm, defaultIndividualForm } from './state'
 
 const props = defineProps<{
   readonly individuals: ReadonlyArray<Tables<'individuals'>>
