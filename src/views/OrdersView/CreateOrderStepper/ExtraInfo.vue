@@ -10,16 +10,6 @@
     <v-radio :label="$t('delivery-note')" :value="DocumentType.DeliveryNote" />
   </v-radio-group>
   <div v-if="form.document_type && form.document_type != DocumentType.Proforma">
-    <v-number-input
-      :label="$t('payment')"
-      inset
-      controlVariant="stacked"
-      :error="!$v.paid_price.$pending && $v.paid_price.$error"
-      :suffix="`/${form.total_price} ${$t('DA')}`"
-      :max="form.total_price"
-      :min="0"
-      v-model="paymentForm.amount"
-    />
     <v-text-field
       v-if="form.org_id"
       :label="$t('payment-method')"
@@ -42,7 +32,7 @@ import CreateDelivery from '../CreateDelivery.vue'
 
 import { ConsumerType, DocumentType } from '@/models/models'
 
-import { consumerType, deliveryForm, form, paymentForm } from './state'
+import { consumerType, deliveryForm, form } from './state'
 
 const rules = {
   payment_method: {
