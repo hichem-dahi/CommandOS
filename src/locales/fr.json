@@ -102,5 +102,6 @@
   "total-cost-price": "Prix d'achat total",
   "products": "Produits",
   "orders-list": "Liste des commandes",
-  "sales-list": "Liste des ventes"
+  "sales-list": "Liste des ventes",
+  "reset": "Réinitialiser"
 }
