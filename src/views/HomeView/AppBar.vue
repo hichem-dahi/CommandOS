@@ -1,8 +1,8 @@
 <template>
-  <v-app-bar theme="light" color="blue-grey-lighten-5">
+  <v-app-bar>
     <template v-slot:prepend>
       <v-app-bar-nav-icon variant="text" @click.stop="drawer = !drawer" />
-      <img src="/logo-aes-cropped.png" :width="$vuetify.display.mobile ? 120 : 120" alt="logo" />
+      <img src="/logo-cropped.png" alt="logo" width="75" />
     </template>
 
     <template v-slot:append>
