@@ -18,14 +18,13 @@
     <v-col cols="12" md="7">
       <v-card class="px-4 d-flex flex-column h-100" variant="text">
         <template #append>
-          <v-btn-toggle color="primary" density="compact" v-model="form.type" divided>
+          <v-btn-toggle color="primary" density="compact" v-model="form.type" divided mandatory>
             <v-btn value="sale">
               <span class="hidden-sm-and-down">{{ $t('sale') }}</span>
               <v-icon :icon="mdiCart" end />
             </v-btn>
-
-            <v-btn value="order">
-              <span class="hidden-sm-and-down">{{ $t('order') }}</span>
+            <v-btn value="order" :disabled="!consumerPicked">
+              <span class="hidden-sm-and-down">{{ $t('order') }} </span>
               <v-icon :icon="mdiReceiptTextOutline" end />
             </v-btn>
           </v-btn-toggle>
@@ -212,6 +211,8 @@ import OrdersTable from './OrdersView/OrdersTable.vue'
 
 import {
   cleanForm,
+  consumerPicked,
+  consumerType,
   defaultIndividualForm,
   form,
   individualForm,
@@ -221,7 +222,7 @@ import {
   type RequiredFields
 } from './OrdersView/CreateOrderStepper/state'
 
-import { DocumentType, OrderStatus } from '@/models/models'
+import { OrderStatus } from '@/models/models'
 import type { Tables, TablesInsert } from '@/types/database.types'
 import type { Filters } from './OrdersView/models/models'
 
@@ -405,6 +406,7 @@ function handleReset() {
 function resetIndividual() {
   individualForm.value = defaultIndividualForm()
   form.individual_id = null
+  form.client_id
 }
 
 function insertPayment(payment: TablesInsert<'payments'>) {

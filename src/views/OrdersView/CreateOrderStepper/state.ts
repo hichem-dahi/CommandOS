@@ -1,4 +1,4 @@
-import { reactive, ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { round } from 'lodash'
 
 import self from '@/composables/localStore/useSelf'
@@ -79,6 +79,8 @@ const paymentForm = reactive<RequiredFields<TablesInsert<'payments'>>>(defaultPa
 
 const consumerType = ref<ConsumerType>()
 
+const consumerPicked = computed(() => form.individual_id || form.client_id)
+
 function cleanForm() {
   if (form.document_type === DocumentType.Proforma) {
     form.paid_price = 0
@@ -113,6 +115,7 @@ export {
   individualForm,
   paymentForm,
   consumerType,
+  consumerPicked,
   cleanForm,
   resetOrderForm,
   defaultIndividualForm
