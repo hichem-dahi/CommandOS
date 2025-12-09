@@ -66,7 +66,7 @@ export function useOrdersQuery() {
     if (params.type) {
       queryConditions += ` AND o.type = '${params.type}'`
     }
-    if (params.status) {
+    if (params.status !== null && params.status !== undefined) {
       queryConditions += ` AND o.status = '${params.status}'`
     }
 
