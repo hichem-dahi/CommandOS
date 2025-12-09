@@ -48,12 +48,6 @@ const menuItems = computed(() => [
     color: 'medium-emphasis'
   },
   {
-    label: t('orders'),
-    route: 'orders',
-    icon: mdiReceiptTextOutline,
-    color: 'medium-emphasis'
-  },
-  {
     label: t('sales'),
     route: 'create-sale',
     icon: mdiCartOutline,
