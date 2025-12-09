@@ -1,5 +1,5 @@
-import { reactive, ref, watchEffect } from 'vue'
-import { round, sum } from 'lodash'
+import { reactive, ref } from 'vue'
+import { round } from 'lodash'
 
 import self from '@/composables/localStore/useSelf'
 
@@ -18,12 +18,12 @@ const defaultOrderForm = () => ({
   individual_id: null,
   org_id: self.value.current_org?.id || '',
   date: new Date().toISOString(),
-  document_type: 0,
+  document_type: DocumentType.Voucher,
   index: 0,
   doc_index: null,
   status: OrderStatus.Pending,
-  payment_method: null,
-  type: 'order' as 'order' | 'sale',
+  payment_method: 'cash',
+  type: 'sale' as 'order' | 'sale',
   paid_price: 0,
   total_price: 0,
   tva: 0,
@@ -105,20 +105,6 @@ function resetOrderForm() {
   Object.assign(paymentForm, defaultPaymentForm())
   orderlinesForm.value = [defaultOrderlineForm()]
 }
-
-watchEffect(() => {
-  form.total_price = sum(orderlinesForm.value?.map((e) => e.total_price)) - (form.reduction || 0)
-
-  if (paymentForm.amount && paymentForm.amount > 0) {
-    form.paid_price = form.total_price - (form.total_price - paymentForm.amount)
-  }
-
-  if (individualForm.value?.id) {
-    form.individual_id = individualForm.value.id
-  } else {
-    form.individual_id = null
-  }
-})
 
 export {
   form,

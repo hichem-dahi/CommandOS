@@ -14,118 +14,135 @@
   </v-row>
 
   <v-row no-gutters>
-    <v-col cols="12" md="8">
-      <v-card class="d-flex flex-column h-100" variant="text">
-        <v-card-title>{{ $t('add-sale') }}</v-card-title>
+    <!-- Left panel -->
+    <v-col cols="12" md="7">
+      <v-card class="px-4 d-flex flex-column h-100" variant="text">
+        <template #append>
+          <v-btn-toggle color="primary" density="compact" v-model="form.type" divided>
+            <v-btn value="sale">
+              <span class="hidden-sm-and-down">{{ $t('sale') }}</span>
+              <v-icon :icon="mdiCart" end />
+            </v-btn>
 
-        <v-card-text>
-          <div class="d-flex justify-end">
+            <v-btn value="order">
+              <span class="hidden-sm-and-down">{{ $t('order') }}</span>
+              <v-icon :icon="mdiReceiptTextOutline" end />
+            </v-btn>
+          </v-btn-toggle>
+        </template>
+        <!-- HEADER -->
+        <template #title>
+          <div class="text-h5 mb-4">
+            {{ $t('add-sale') }}
+          </div>
+        </template>
+        <template #text>
+          <div class="d-flex justify-space-between">
             <v-btn
               v-if="!form.individual_id"
-              @click="dialog = !dialog"
-              color="secondary"
+              variant="tonal"
               size="small"
+              @click="individualDialog = true"
             >
               {{ $t('add-client') }}
             </v-btn>
 
-            <v-dialog v-model="dialog" max-width="500">
-              <v-card :title="$t('add-client')">
-                <v-card-text>
-                  <SelectConsumer
-                    v-if="individualForm"
-                    v-model="individualForm"
-                    :individuals="individuals"
-                    :clients="organizations"
-                  >
-                    <template #actions="{ v }">
-                      <v-btn variant="text" @click="dialog = false">
-                        {{ $t('close') }}
-                      </v-btn>
-
-                      <v-btn color="primary" @click="upsertIndividual(v, individualForm)">
-                        {{ $t('save') }}
-                      </v-btn>
-                    </template>
-                  </SelectConsumer>
-                </v-card-text>
-              </v-card>
-            </v-dialog>
             <v-chip
-              v-if="form.individual_id && individualForm?.name"
+              v-if="form.individual_id"
               closable
               @click:close="resetIndividual"
+              size="small"
+              color="primary"
+              variant="flat"
             >
               {{ $t('client') }}: {{ individualForm?.name }}
             </v-chip>
           </div>
-          <CreateOrderlines />
-        </v-card-text>
 
-        <v-card-actions class="justify-space-between">
-          <div class="d-flex ga-2">
-            <v-chip v-for="(_, i) in savedSales" :key="i" @click="restoreSale(i)">
+          <!-- CLIENT DIALOG -->
+          <v-dialog v-model="individualDialog" max-width="500">
+            <CreateOrderStepper @success="individualDialog = false" />
+          </v-dialog>
+
+          <CreateOrderlines />
+        </template>
+        <!-- FOOTER ACTIONS -->
+        <v-card-actions class="mt-auto justify-space-between pt-6">
+          <div class="d-flex ga-2 flex-wrap">
+            <v-chip
+              v-for="(_, i) in savedSales"
+              :key="i"
+              @click="restoreSale(i)"
+              size="small"
+              color="secondary"
+              variant="tonal"
+            >
               {{ $t('sale') }} #{{ i }}
             </v-chip>
           </div>
-          <v-btn variant="flat" color="info" @click="saveSale">
+
+          <v-btn variant="tonal" color="info" @click="saveSale" rounded>
             {{ $t('save') }}
           </v-btn>
         </v-card-actions>
       </v-card>
     </v-col>
-
+    <v-divider class="mx-auto" vertical />
+    <!-- RIGHT SUMMARY -->
     <v-col cols="12" md="4">
-      <v-card variant="text" class="sticky-summary">
-        <v-card-subtitle>
-          {{ $t('total') }}
+      <v-card variant="text" class="pa-4">
+        <v-card-subtitle class="text-body-1 mb-1">
+          {{ $t('summary') }}
         </v-card-subtitle>
-        <v-card-title class="text-h3">
+
+        <v-card-title class="text-h4 mb-4">
           <span class="text-primary">{{ form.total_price }}</span> {{ $t('DA') }}
         </v-card-title>
-        <v-card-text class="d-flex flex-column ga-2">
+
+        <v-card-text class="d-flex flex-column">
           <v-number-input
             class="orderline-input"
             density="compact"
-            max-width="120"
-            variant="outlined"
+            max-width="160"
+            variant="underlined"
             :label="$t('payment')"
             :max="form.total_price"
-            :min="0"
             v-model="paymentForm.amount"
           />
+
           <v-number-input
             class="orderline-input"
             density="compact"
-            max-width="120"
-            variant="outlined"
+            max-width="160"
+            variant="underlined"
             :label="$t('reduction')"
             :max="form.total_price"
-            :min="0"
             v-model="form.reduction"
           />
-          <div class="d-flex flex-wrap ga-2 mb-2">
-            <v-chip size="small" color="primary" variant="tonal">
-              {{ $t('total') }}: {{ form.total_price }} {{ $t('DA') }}
-            </v-chip>
-            <v-chip size="small" color="secondary" variant="tonal">
-              {{ $t('reduction') }}: {{ form.reduction || 0 }} {{ $t('DA') }}
-            </v-chip>
-            <v-chip v-if="toPay > 0" size="small" color="error" variant="tonal">
-              {{ $t('remaining') }}: {{ toPay }} {{ $t('DA') }}
-            </v-chip>
 
-            <v-chip v-else size="small" color="success" variant="tonal">
-              {{ $t('paid') }}
+          <v-divider class="my-4"></v-divider>
+
+          <!-- SUMMARY CHIPS -->
+          <div class="d-flex flex-wrap ga-2">
+            <v-chip v-if="toPay > 0" size="small" variant="flat" color="error">
+              {{ $t('remaining') }}: {{ toPay }} {{ $t('DA') }}
             </v-chip>
           </div>
         </v-card-text>
-        <v-card-actions class="justify-end">
-          <v-btn variant="flat" color="primary" @click="submitSale" :loading="isLoading">
+
+        <v-card-actions class="justify-end ga-2">
+          <v-btn
+            color="primary"
+            variant="flat"
+            rounded
+            class="px-4"
+            @click="submitSale"
+            :loading="isLoading"
+          >
             {{ $t('confirm') }}
           </v-btn>
 
-          <v-btn variant="tonal" color="secondary" @click="handleReset">
+          <v-btn color="secondary" variant="tonal" rounded class="px-3" @click="handleReset">
             {{ $t('reset') }}
           </v-btn>
         </v-card-actions>
@@ -170,11 +187,10 @@
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, reactive, ref, watch, watchEffect } from 'vue'
-import useVuelidate, { type Validation } from '@vuelidate/core'
-import { cloneDeep } from 'lodash'
+import useVuelidate from '@vuelidate/core'
+import { cloneDeep, sum } from 'lodash'
 import { useLocalStorage } from '@vueuse/core'
-import { useLiveQuery } from '@electric-sql/pglite-vue'
-import { mdiBarcodeScan } from '@mdi/js'
+import { mdiBarcodeScan, mdiCart, mdiReceiptTextOutline } from '@mdi/js'
 
 import { useUpsertOrderlinesDb } from '@/composables/db/orderlines/useUpsertOrderlinesDb'
 import { useUpsertOrdersDb } from '@/composables/db/orders/useUpsertOrdersDb'
@@ -182,7 +198,6 @@ import { useUpsertPaymentsDb } from '@/composables/db/payments/useUpsertPayments
 import { useUpsertNotificationsDb } from '@/composables/db/notifications/useUpsertNotificationsDb'
 import { useUpdateProductsQtyDb } from '@/composables/db/products/useUpdateProductsQtyDb'
 import { useUpsertStockMovementsDb } from '@/composables/db/stockMovements/useUpsertStockMovementsDb'
-import { useUpsertIndividualsDb } from '@/composables/db/individuals/useUpsertIndividualsDb'
 import { processStockMovementsForOrder } from '@/composables/useStockManage'
 import { useOrdersQuery, type OrderData } from '@/composables/db/orders/useGetOrdersDb'
 import { useProductsQuery } from '@/composables/db/products/useGetProductsDb'
@@ -190,10 +205,10 @@ import { useProductsQuery } from '@/composables/db/products/useGetProductsDb'
 import self from '@/composables/localStore/useSelf'
 
 import CreateOrderlines from './OrdersView/CreateOrderStepper/CreateOrderlines.vue'
+import CreateOrderStepper from './OrdersView/CreateOrderStepper.vue'
 import BarcodeScanner from '@/components/BarcodeScanner.vue'
 import FilterBar from './OrdersView/FilterBar.vue'
 import OrdersTable from './OrdersView/OrdersTable.vue'
-import SelectConsumer from './OrdersView/CreateOrderStepper/SelectConsumer.vue'
 
 import {
   cleanForm,
@@ -216,7 +231,6 @@ thirtyDaysAgo.setDate(today.getDate() - 30)
 
 const { q: productsQuery } = useProductsQuery()
 const { q: ordersQuery, isReady, params } = useOrdersQuery()
-params.type = 'sale'
 isReady.value = true
 
 const filters = reactive<Filters>({
@@ -251,24 +265,12 @@ watchEffect(() => {
 })
 
 const lastBarcode = ref('')
-
-let buffer = ref('')
+const showScanner = ref(false)
+const individualDialog = ref(false)
+const buffer = ref('')
 
 const orders = computed(() => (ordersQuery.rows.value || []) as unknown as OrderData[])
 const products = computed(() => (productsQuery.rows.value || []) as unknown as Tables<'products'>[])
-
-const organizationsQuery = useLiveQuery<Tables<'organizations'>>(
-  'SELECT * FROM public.organizations WHERE _deleted = false AND org_id = $1;',
-  [self.value.current_org?.id]
-)
-
-const individualsQuery = useLiveQuery<Tables<'individuals'>>(
-  'SELECT * FROM public.individuals WHERE _deleted = false AND org_id = $1;',
-  [self.value.current_org?.id]
-)
-
-const individuals = computed(() => individualsQuery.rows.value || [])
-const organizations = computed(() => organizationsQuery.rows.value || [])
 
 const upsertOrdersDb = useUpsertOrdersDb()
 const upsertOrderlinesDb = useUpsertOrderlinesDb()
@@ -276,12 +278,8 @@ const upsertPaymentsDb = useUpsertPaymentsDb()
 const upsertStockMovementsDb = useUpsertStockMovementsDb()
 const updateProductsQtyDb = useUpdateProductsQtyDb()
 const upsertNotificationsDb = useUpsertNotificationsDb()
-const upsertIndividualsDb = useUpsertIndividualsDb()
 
 const savedSales = useLocalStorage('savedSales', [] as any[])
-
-const showScanner = ref(false)
-const dialog = ref(false)
 
 const $v = useVuelidate()
 
@@ -384,23 +382,17 @@ function restoreSale(i: number) {
   }
 }
 
-function upsertIndividual(v: Validation, form?: TablesInsert<'individuals'>) {
-  v.$touch()
-  if (!v.$invalid && form) {
-    const org_id = self.value.current_org?.id || ''
-    upsertIndividualsDb.form.value = [{ ...form, org_id, _synced: false }]
-    upsertIndividualsDb.execute()
-  }
-}
-
 function submitSale() {
   $v.value.$touch()
   if (!$v.value.$invalid) {
     cleanForm()
-    form.status = OrderStatus.Confirmed
-    form.document_type = DocumentType.Voucher
-    const org_id = self.value.current_org?.id || ''
-    upsertOrdersDb.form.value = [{ ...form, type: 'sale', org_id, _synced: false }]
+    if (form.type === 'sale') {
+      form.status = OrderStatus.Confirmed
+    } else if (form.type === 'order') {
+      form.status = OrderStatus.Pending
+    }
+
+    upsertOrdersDb.form.value = [{ ...form, _synced: false }]
     upsertOrdersDb.execute()
   }
 }
@@ -448,31 +440,19 @@ function updateProductQuantities(ids: string[]) {
 }
 
 watch(
-  () => upsertStockMovementsDb.isSuccess.value,
-  (isSuccess) => {
-    if (isSuccess) {
-      const ids = upsertStockMovementsDb.data.value.map((s) => s.id)
-      updateProductQuantities(ids)
-    }
-  }
-)
-
-watch(
-  () => upsertIndividualsDb.isSuccess.value,
-  (isSuccess) => {
-    if (isSuccess && upsertIndividualsDb.data.value?.[0].id) {
-      form.individual_id = upsertIndividualsDb.data.value?.[0].id
-      dialog.value = false
-    }
-  }
-)
-
-watch(
   () => form.total_price,
   (total_price) => {
     paymentForm.amount = total_price
   }
 )
+
+watchEffect(() => {
+  form.total_price = sum(orderlinesForm.value?.map((e) => e.total_price)) - (form.reduction || 0)
+
+  if (paymentForm.amount && paymentForm.amount > 0) {
+    form.paid_price = paymentForm.amount
+  }
+})
 
 watch(
   () => upsertOrdersDb.isSuccess.value,
@@ -480,6 +460,7 @@ watch(
     const order = upsertOrdersDb.data.value?.[0]
     const org_id = order?.org_id
     const order_id = order?.id
+
     if (isSuccess && order_id && org_id) {
       upsertOrderlinesDb.form.value = orderlinesForm.value?.map((o) => ({
         ...o,
@@ -524,6 +505,16 @@ watch(
           .join(', ') + ` — ${order.total_price} DA`
 
       insertNotification('Vente réalisée', body)
+    }
+  }
+)
+
+watch(
+  () => upsertStockMovementsDb.isSuccess.value,
+  (isSuccess) => {
+    if (isSuccess) {
+      const ids = upsertStockMovementsDb.data.value.map((s) => s.id)
+      updateProductQuantities(ids)
     }
   }
 )
