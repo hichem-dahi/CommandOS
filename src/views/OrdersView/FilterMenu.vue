@@ -14,6 +14,7 @@
         :prepend-inner-icon="mdiCalendar"
         v-model="filters.dateRange"
         :label="$t('date')"
+        :max="new Date()"
       />
       <v-select
         density="compact"
