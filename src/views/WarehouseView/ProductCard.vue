@@ -54,7 +54,7 @@
     <v-dialog max-width="500px" v-model="editDialog">
       <ProductForm v-model:product="proxyForm" v-model:category="categoryForm">
         <template v-slot:actions>
-          <v-btn block :loading="upsertDataDb.isLoading.value" @click="submitForm()">
+          <v-btn block :loading="upsertProductsDb.isLoading.value" @click="submitForm()">
             {{ $t('confirm') }}
           </v-btn>
         </template>
@@ -77,7 +77,7 @@ import DeleteItemModal from '@/views/OrderView/DeleteItemModal.vue'
 import ProductForm from './ProductForm.vue'
 
 import type { ProductData } from '@/composables/db/products/useGetProductsDb'
-import type { TablesInsert } from '@/types/database.types'
+import type { Tables, TablesInsert } from '@/types/database.types'
 
 const $v = useVuelidate()
 
@@ -89,7 +89,9 @@ const categoryForm = ref<TablesInsert<'products_categories'> | undefined>({
   org_id: self.value.current_org?.id || ''
 })
 
-const upsertDataDb = useUpsertDataDb()
+const upsertProductsCategoriesDb =
+  useUpsertDataDb<Tables<'products_categories'>>('products_categories')
+const upsertProductsDb = useUpsertDataDb<Tables<'products'>>('products')
 
 const softDeleteProductDB = useSoftDeleteProductsDB()
 
@@ -108,29 +110,25 @@ async function deleteProduct() {
 async function submitForm() {
   $v.value.$touch()
   if (!$v.value.$invalid) {
-    let productsCategories
-
     if (categoryForm.value?.name && !categoryForm.value?.id)
-      productsCategories = await upsertProductsCategoriesDb({
+      await upsertProductsCategories({
         ...categoryForm.value
       })
 
     //TODO: using upsertDataDb for multiple tables is problematic
-    const category_id = productsCategories?.[0].id || categoryForm.value?.id
+    const category_id = upsertProductsCategoriesDb.data.value?.[0].id || categoryForm.value?.id
     const { qty, category, ...form } = proxyForm.value
 
-    await upsertProductsDb({ ...form, category_id })
+    await upsertProducts({ ...form, category_id })
     editDialog.value = false
   }
 }
 
-async function upsertProductsCategoriesDb(categoryData: TablesInsert<'products_categories'>) {
-  await upsertDataDb.execute([{ ...categoryData, _synced: false }], 'products_categories')
-  return (upsertDataDb.data.value || []) as TablesInsert<'products_categories'>[]
+async function upsertProductsCategories(categoryData: TablesInsert<'products_categories'>) {
+  await upsertProductsCategoriesDb.execute([{ ...categoryData, _synced: false }])
 }
 
-async function upsertProductsDb(productData: TablesInsert<'products'>) {
-  await upsertDataDb.execute([{ ...productData, _synced: false }], 'products')
-  return (upsertDataDb.data.value || []) as TablesInsert<'products'>[]
+async function upsertProducts(productData: TablesInsert<'products'>) {
+  await upsertProductsDb.execute([{ ...productData, _synced: false }])
 }
 </script>

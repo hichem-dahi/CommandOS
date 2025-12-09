@@ -7,7 +7,7 @@
       <v-dialog max-width="400px" v-model="dialog">
         <ProductForm v-model:product="form" v-model:category="categoryForm">
           <template v-slot:actions>
-            <v-btn block :loading="upsertDataDb.isLoading.value" @click="submitForm">
+            <v-btn block :loading="upsertProductsDb.isLoading.value" @click="submitForm">
               {{ $t('add') }}
             </v-btn>
           </template>
@@ -59,7 +59,7 @@ import ProductForm from '@/views/WarehouseView/ProductForm.vue'
 import ProductCard from '@/views/WarehouseView/ProductCard.vue'
 import FilterBar from './WarehouseView/FilterBar.vue'
 
-import type { TablesInsert } from '@/types/database.types'
+import type { Tables, TablesInsert } from '@/types/database.types'
 
 const $v = useVuelidate()
 
@@ -67,7 +67,9 @@ const { q: productsQuery } = useProductsQuery()
 
 const products = computed(() => (productsQuery.rows.value || []) as unknown as ProductData[])
 
-const upsertDataDb = useUpsertDataDb()
+const upsertProductsCategoriesDb =
+  useUpsertDataDb<Tables<'products_categories'>>('products_categories')
+const upsertProductsDb = useUpsertDataDb<Tables<'products'>>('products')
 
 const dialog = ref(false)
 
@@ -91,7 +93,7 @@ const form = ref(defaultProductForm())
 
 const categoryForm = ref<TablesInsert<'products_categories'>>({
   name: '',
-  org_id: self.value.current_org?.id || ''
+  org_id: ''
 })
 
 const filteredProducts = computed(() =>
@@ -113,7 +115,7 @@ const quantitiesQuery = useLiveQuery(
 const totalCostPriceQuery = useLiveQuery(
   `SELECT SUM((COALESCE(p.cost_price, 0) * COALESCE(pq.qty, 0))) AS total_cost_price
     FROM public.products p
-    JOIN public.products_qty pq ON p.id = pq.id 
+    JOIN public.products_qty pq ON p.id = pq.id
     WHERE pq.qty > 0 AND pq.org_id = $1;`,
   [self.value.current_org?.id]
 )
@@ -125,26 +127,23 @@ function toggleDialog() {
 async function submitForm() {
   $v.value.$touch()
   if (!$v.value.$invalid) {
-    const org_id = self.value.current_org?.id || ''
-
-    await upsertProductsCategoriesDb({
+    await upsertProductsCategories({
       ...categoryForm.value,
-      org_id,
       _synced: false
     })
 
-    const category_id = upsertDataDb.data.value?.[0].id || categoryForm.value.id
-    await upsertProductsDb({ ...form.value, org_id, category_id })
+    const category_id = upsertProductsCategoriesDb.data.value?.[0].id || categoryForm.value.id
+    await upsertProducts({ ...form.value, category_id })
     form.value = defaultProductForm()
     dialog.value = false
   }
 }
 
-async function upsertProductsCategoriesDb(categoryData: TablesInsert<'products_categories'>) {
-  await upsertDataDb.execute([{ ...categoryData, _synced: false }], 'products_categories')
+async function upsertProductsCategories(categoryData: TablesInsert<'products_categories'>) {
+  await upsertProductsCategoriesDb.execute([{ ...categoryData, _synced: false }])
 }
 
-async function upsertProductsDb(productData: TablesInsert<'products'>) {
-  await upsertDataDb.execute([{ ...productData, _synced: false }], 'products')
+async function upsertProducts(productData: TablesInsert<'products'>) {
+  await upsertProductsDb.execute([{ ...productData, _synced: false }])
 }
 </script>
