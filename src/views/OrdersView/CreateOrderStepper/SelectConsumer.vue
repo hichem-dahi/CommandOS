@@ -34,12 +34,19 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, toRef } from 'vue'
+import { computed, reactive, toRef, watch } from 'vue'
 import { isString } from 'lodash'
 import useVuelidate from '@vuelidate/core'
 import { minLength, numeric, required } from '@vuelidate/validators'
 
-import { form, consumerType, individualForm, defaultIndividualForm } from './state'
+import {
+  form,
+  consumerType,
+  individualForm,
+  defaultIndividualForm,
+  clientForm,
+  defaultClientForm
+} from './state'
 
 import { ConsumerType } from '@/models/models'
 import type { Tables, TablesInsert } from '@/types/database.types'
@@ -113,4 +120,13 @@ function handleCustomerChange(item: any) {
     individualForm.value = { ...defaultIndividualForm(), name: item }
   }
 }
+
+watch(
+  () => form.client_id,
+  (client_id) => {
+    if (client_id && consumerType.value === ConsumerType.Organization) {
+      clientForm.value = props.clients.find((client) => client.id === client_id)
+    } else clientForm.value = defaultClientForm()
+  }
+)
 </script>

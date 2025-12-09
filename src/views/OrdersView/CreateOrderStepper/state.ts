@@ -44,6 +44,18 @@ const defaultIndividualForm = () => ({
   phone: '',
   org_id: self.value.current_org?.id || ''
 })
+const defaultClientForm = () => ({
+  name: '',
+  phone: '',
+  rc: '',
+  nif: null as number | null,
+  nis: null as number | null,
+  art: null as number | null,
+  address: '',
+  activity: '',
+  user_id: null,
+  org_id: self.value.current_org?.id || ''
+})
 
 const defaultOrderlineForm = () => ({
   order_id: '',
@@ -68,6 +80,9 @@ const form = reactive<RequiredFields<TablesInsert<'orders'>>>(defaultOrderForm()
 const individualForm = ref<RequiredFields<TablesInsert<'individuals'>> | undefined>(
   defaultIndividualForm()
 )
+const clientForm = ref<RequiredFields<TablesInsert<'organizations'>> | undefined>(
+  defaultClientForm()
+)
 
 const orderlinesForm = ref<RequiredFields<TablesInsert<'order_lines'>>[]>([defaultOrderlineForm()])
 
@@ -91,6 +106,7 @@ function cleanForm() {
   }
 
   if (consumerType.value === ConsumerType.Organization) {
+    form.individual_id = null
     individualForm.value = undefined
     const taxMultiplier = 0.19
     form.tva = round(form.total_price * taxMultiplier, 0)
@@ -113,10 +129,12 @@ export {
   orderlinesForm,
   deliveryForm,
   individualForm,
+  clientForm,
   paymentForm,
   consumerType,
   consumerPicked,
   cleanForm,
   resetOrderForm,
-  defaultIndividualForm
+  defaultIndividualForm,
+  defaultClientForm
 }

@@ -115,9 +115,8 @@ function nextStep(v: Validation) {
 }
 
 function upsertIndividual(individualForm?: TablesInsert<'individuals'>) {
-  if (!individualForm) return
   const existingClient = individuals.value.find((i) => i.name === individualForm?.name)
-  if (!existingClient) {
+  if (!existingClient && individualForm) {
     upsertIndividualsDb.form.value = [{ ...individualForm, _synced: false }]
   } else if (existingClient) {
     form.individual_id = existingClient.id
