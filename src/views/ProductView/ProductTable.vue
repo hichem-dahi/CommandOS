@@ -3,14 +3,10 @@
   <v-card variant="text">
     <v-data-table v-if="product" :items="items" :headers="headers" density="comfortable" hover>
       <template #top>
-        <v-card
-          color="#F7F7F7"
-          elevation="0"
-          class="px-4 py-3 d-flex align-end justify-space-between"
-        >
+        <v-card elevation="0" class="px-4 py-3 d-flex align-end justify-space-between">
           <div class="d-flex align-center gap-4">
             <v-avatar size="64" color="grey-lighten-3">
-              <v-icon size="32" color="grey" :icon="mdiPackageVariant"></v-icon>
+              <v-icon size="32" color="grey" :icon="mdiPackageVariantClosed"></v-icon>
             </v-avatar>
 
             <div>
@@ -48,7 +44,7 @@
                 v-bind="props"
                 color="primary"
                 size="small"
-                prepend-icon="mdi-pencil"
+                :prepend-icon="mdiPackageVariant"
                 @click="modifyStockDialog = true"
               >
                 {{ $t('modify-stock') }}
@@ -98,7 +94,7 @@ import { useI18n } from 'vue-i18n'
 import { format } from 'date-fns'
 import { sortBy } from 'lodash'
 import { useLiveQuery } from '@electric-sql/pglite-vue'
-import { mdiOpenInNew, mdiPackageVariant } from '@mdi/js'
+import { mdiOpenInNew, mdiPackageVariant, mdiPackageVariantClosed } from '@mdi/js'
 
 import ModifyStock from './ModifyStock.vue'
 

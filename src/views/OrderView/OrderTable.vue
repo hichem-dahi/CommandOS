@@ -68,7 +68,7 @@
         width="150"
         hide-details
         inset
-        variant="outlined"
+        variant="underlined"
         density="compact"
         :min="0"
         :suffix="`/${item.product?.qty}`"

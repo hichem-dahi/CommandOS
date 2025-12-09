@@ -1,10 +1,10 @@
 <template>
   <v-responsive>
-    <v-app style="background: linear-gradient(135deg, #f9ffff, #fafafc)">
+    <v-app>
       <AppBar v-model:drawer="drawer" />
 
       <v-main>
-        <v-navigation-drawer width="200" v-model="drawer" color="#ececef">
+        <v-navigation-drawer width="200" v-model="drawer">
           <MenuBar />
         </v-navigation-drawer>
 
