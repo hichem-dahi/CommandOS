@@ -133,6 +133,30 @@ function buildUpsertQuery<T extends TablesName>(
   `
 }
 
+export async function deleteDataDB(db: PGliteWithLive, ids: string[], tableName: TablesName) {
+  if (!ids?.length) {
+    return { data: null, error: new Error('No data provided for delete') }
+  }
+
+  try {
+    const query = buildDeleteQuery(tableName, ids)
+    const result = await db.query<Tables<TablesName>>(query)
+    return { data: result, error: null }
+  } catch (error) {
+    console.error(`Error upserting ${tableName}:`, error)
+    return { data: null, error: error as Error }
+  }
+}
+
+function buildDeleteQuery<T extends TablesName>(tableName: T, ids: string[]): string {
+  return `
+    UPDATE public.${tableName}
+    SET _deleted = TRUE, 
+        _synced = FALSE
+    WHERE id = ANY(${ids}::uuid[])
+  `
+}
+
 export async function syncTables(db: PGliteWithLive, selectedTables: TablesName[] = [...TABLES]) {
   const results: Partial<Record<TablesName, QueryResponse<Tables<TablesName>>>> = {}
 
