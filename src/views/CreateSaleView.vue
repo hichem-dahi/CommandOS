@@ -46,7 +46,7 @@
                 color="primary"
                 variant="flat"
               >
-                {{ $t('client') }}: {{ clientForm?.name ?? individualForm?.name }}
+                {{ $t('client') }}: {{ clientForm?.name || individualForm?.name }}
               </v-chip>
 
               <!-- CLIENT DIALOG -->
@@ -213,7 +213,6 @@ import FilterBar from './OrdersView/FilterBar.vue'
 import OrdersTable from './OrdersView/OrdersTable.vue'
 
 import {
-  cleanForm,
   clientForm,
   consumerPicked,
   defaultIndividualForm,
@@ -344,7 +343,6 @@ function restoreSale(i: number) {
 function submitSale() {
   $v.value.$touch()
   if (!$v.value.$invalid) {
-    cleanForm()
     if (form.type === 'sale') {
       form.status = OrderStatus.Confirmed
     } else if (form.type === 'order') {

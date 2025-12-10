@@ -1,5 +1,4 @@
 import { computed, reactive, ref } from 'vue'
-import { round } from 'lodash'
 
 import self from '@/composables/localStore/useSelf'
 
@@ -45,6 +44,7 @@ const defaultIndividualForm = () => ({
   org_id: self.value.current_org?.id || ''
 })
 const defaultClientForm = () => ({
+  id: '',
   name: '',
   phone: '',
   rc: '',
@@ -77,44 +77,18 @@ const defaultDeliveryForm = () => ({
 
 const form = reactive<RequiredFields<TablesInsert<'orders'>>>(defaultOrderForm())
 
-const individualForm = ref<RequiredFields<TablesInsert<'individuals'>> | undefined>(
-  defaultIndividualForm()
-)
-const clientForm = ref<RequiredFields<TablesInsert<'organizations'>> | undefined>(
-  defaultClientForm()
-)
+const individualForm = ref<RequiredFields<TablesInsert<'individuals'>>>(defaultIndividualForm())
+const clientForm = ref<RequiredFields<TablesInsert<'organizations'>>>(defaultClientForm())
 
 const orderlinesForm = ref<RequiredFields<TablesInsert<'order_lines'>>[]>([defaultOrderlineForm()])
 
-const deliveryForm = ref<RequiredFields<TablesInsert<'deliveries'>> | undefined>(
-  defaultDeliveryForm()
-)
+const deliveryForm = ref<RequiredFields<TablesInsert<'deliveries'>>>(defaultDeliveryForm())
 
 const paymentForm = reactive<RequiredFields<TablesInsert<'payments'>>>(defaultPaymentForm())
 
 const consumerType = ref<ConsumerType>()
 
 const consumerPicked = computed(() => form.individual_id || form.client_id)
-
-function cleanForm() {
-  if (form.document_type === DocumentType.Proforma) {
-    form.paid_price = 0
-  }
-
-  if (form.document_type !== DocumentType.DeliveryNote) {
-    deliveryForm.value = undefined
-  }
-
-  if (consumerType.value === ConsumerType.Organization) {
-    form.individual_id = null
-    individualForm.value = undefined
-    const taxMultiplier = 0.19
-    form.tva = round(form.total_price * taxMultiplier, 0)
-    form.ttc = round(form.total_price * (1 + taxMultiplier), 0)
-  } else if (consumerType.value === ConsumerType.Individual) {
-    form.client_id = null
-  }
-}
 
 function resetOrderForm() {
   Object.assign(form, defaultOrderForm())
@@ -133,7 +107,6 @@ export {
   paymentForm,
   consumerType,
   consumerPicked,
-  cleanForm,
   resetOrderForm,
   defaultIndividualForm,
   defaultClientForm

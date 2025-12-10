@@ -16,12 +16,7 @@
         <form>
           <!-- Step 1: SelectConsumer - Only displayed if no consumer in route query -->
           <v-stepper-window-item :value="Steps.SelectConsumer">
-            <SelectConsumer
-              v-if="individualForm"
-              v-model="individualForm"
-              :individuals="individuals"
-              :clients="organizations"
-            >
+            <SelectConsumer :individuals="individuals" :clients="organizations">
               <template v-slot:actions="{ v }">
                 <v-card-actions>
                   <v-spacer></v-spacer>
@@ -63,10 +58,17 @@ import { useUpsertIndividualsDb } from '@/composables/db/individuals/useUpsertIn
 import SelectConsumer from './CreateOrderStepper/SelectConsumer.vue'
 import ExtraInfo from './CreateOrderStepper/ExtraInfo.vue'
 
-import { cleanForm, deliveryForm, form, individualForm } from './CreateOrderStepper/state'
+import {
+  form,
+  deliveryForm,
+  individualForm,
+  clientForm,
+  consumerType
+} from './CreateOrderStepper/state'
 
 import type { Validation } from '@vuelidate/core'
 import type { Tables, TablesInsert } from '@/types/database.types'
+import { ConsumerType, DocumentType } from '@/models/models'
 
 enum Steps {
   SelectConsumer = 1,
@@ -105,29 +107,39 @@ function nextStep(v: Validation) {
   v.$touch()
   if (!v.$invalid) {
     if (step.value === Steps.ExtraInfo) {
-      cleanForm()
       upsertDelivery(deliveryForm.value)
-      upsertIndividual(individualForm.value)
+      selectClient(individualForm.value)
       return
     }
     step.value++
   }
 }
 
-function upsertIndividual(individualForm?: TablesInsert<'individuals'>) {
-  const existingClient = individuals.value.find((i) => i.name === individualForm?.name)
-  if (!existingClient && individualForm) {
-    upsertIndividualsDb.form.value = [{ ...individualForm, _synced: false }]
-  } else if (existingClient) {
-    form.individual_id = existingClient.id
+function selectClient(individualForm?: TablesInsert<'individuals'>) {
+  if (consumerType.value === ConsumerType.Organization && clientForm.value.id) {
+    form.client_id = clientForm.value.id
+  } else if (consumerType.value === ConsumerType.Individual && individualForm) {
+    const existingClient = individuals.value.find((i) => i.name === individualForm?.name)
+    if (!existingClient && individualForm) {
+      upsertIndividualsDb.form.value = [{ ...individualForm, _synced: false }]
+    } else if (existingClient) {
+      form.individual_id = existingClient.id
+    }
   }
   upsertIndividualsDb.execute()
 }
-
 function upsertDelivery(form?: TablesInsert<'deliveries'>) {
   if (form) upsertDeliveriesDb.form.value = [{ ...form, _synced: false }]
   upsertDeliveriesDb.execute()
 }
+
+watch(consumerType, (newVal) => {
+  if (newVal === ConsumerType.Organization) {
+    form.document_type = DocumentType.Invoice
+  } else if (newVal === ConsumerType.Individual) {
+    form.document_type = DocumentType.Voucher
+  }
+})
 
 watch(
   () => upsertDeliveriesDb.isSuccess.value,

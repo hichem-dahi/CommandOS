@@ -23,47 +23,34 @@
     <v-select
       v-else-if="consumerType == ConsumerType.Organization"
       :label="$t('client')"
-      :items="organizationsItems"
+      :items="clients"
       :error="!v1$.$pending && v1$.$error"
       item-title="name"
-      item-value="id"
-      v-model="form.client_id"
+      return-object
+      v-model="clientForm"
     />
   </div>
   <slot name="actions" :v="v$"></slot>
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, toRef, watch } from 'vue'
+import { computed, toRef } from 'vue'
 import { isString } from 'lodash'
 import useVuelidate from '@vuelidate/core'
 import { minLength, numeric, required } from '@vuelidate/validators'
 
-import {
-  form,
-  consumerType,
-  individualForm,
-  defaultIndividualForm,
-  clientForm,
-  defaultClientForm
-} from './state'
+import { consumerType, individualForm, defaultIndividualForm, clientForm } from './state'
 
 import { ConsumerType } from '@/models/models'
-import type { Tables, TablesInsert } from '@/types/database.types'
+import type { Tables } from '@/types/database.types'
 
 const props = defineProps<{
   readonly individuals: ReadonlyArray<Tables<'individuals'>>
   readonly clients: ReadonlyArray<Tables<'organizations'>>
 }>()
 
-const model = defineModel<TablesInsert<'individuals'>>({ required: true })
-
-const formClient = reactive({
-  client_id: toRef(() => form.client_id)
-})
-
 const rules1 = {
-  client_id: {
+  name: {
     required
   }
 }
@@ -79,21 +66,18 @@ const rules2 = {
 }
 
 // Initialize the Vuelidate validation instance
-const v1$ = useVuelidate(rules1, formClient)
+const v1$ = useVuelidate(
+  rules1,
+  toRef(() => clientForm.value)
+)
 
 const v2$ = useVuelidate(
   rules2,
-  toRef(() => model.value)
+  toRef(() => individualForm.value)
 )
 
 const v$ = computed(() =>
   consumerType.value === ConsumerType.Organization ? v1$.value : v2$.value
-)
-
-const organizationsItems = computed(() =>
-  props.clients.map((c) => {
-    return { id: c.id, name: c.name }
-  })
 )
 
 const itemProps = (item: Tables<'individuals'>) => {
@@ -120,13 +104,4 @@ function handleCustomerChange(item: any) {
     individualForm.value = { ...defaultIndividualForm(), name: item }
   }
 }
-
-watch(
-  () => form.client_id,
-  (client_id) => {
-    if (client_id && consumerType.value === ConsumerType.Organization) {
-      clientForm.value = props.clients.find((client) => client.id === client_id)
-    } else clientForm.value = defaultClientForm()
-  }
-)
 </script>

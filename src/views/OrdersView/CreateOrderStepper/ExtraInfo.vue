@@ -26,7 +26,7 @@
 
 <script setup lang="ts">
 import useVuelidate from '@vuelidate/core'
-import { numeric, requiredIf } from '@vuelidate/validators'
+import { required, requiredIf } from '@vuelidate/validators'
 
 import CreateDelivery from '../CreateDelivery.vue'
 
@@ -35,10 +35,10 @@ import { ConsumerType, DocumentType } from '@/models/models'
 import { consumerType, deliveryForm, form } from './state'
 
 const rules = {
+  document_type: { required },
   payment_method: {
-    required: requiredIf(() => !!form.org_id && form.document_type != DocumentType.Proforma) // required only if company exists
-  },
-  paid_price: { numeric }
+    required: requiredIf(() => !!form.client_id && form.document_type != DocumentType.Proforma) // required only if company exists
+  }
 }
 
 const $v = useVuelidate(rules, form)
