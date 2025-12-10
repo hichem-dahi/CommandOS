@@ -3,7 +3,7 @@ import { computed, reactive, ref } from 'vue'
 import self from '@/composables/localStore/useSelf'
 
 import { ConsumerType, DocumentType, OrderStatus } from '@/models/models'
-import type { TablesInsert } from '@/types/database.types'
+import type { Tables, TablesInsert } from '@/types/database.types'
 
 export type RequiredFields<T> = {
   [K in keyof T as K extends '_deleted' | '_synced' | 'updated_at' | 'id' ? K : never]?: T[K] // Keep these optional
@@ -54,7 +54,10 @@ const defaultClientForm = () => ({
   address: '',
   activity: '',
   user_id: null,
-  org_id: self.value.current_org?.id || ''
+  org_id: self.value.current_org?.id || '',
+  _deleted: false,
+  _synced: false,
+  updated_at: new Date().toISOString()
 })
 
 const defaultOrderlineForm = () => ({
@@ -78,16 +81,12 @@ const defaultDeliveryForm = () => ({
 const form = reactive<RequiredFields<TablesInsert<'orders'>>>(defaultOrderForm())
 
 const individualForm = ref<RequiredFields<TablesInsert<'individuals'>>>(defaultIndividualForm())
-const clientForm = ref<RequiredFields<TablesInsert<'organizations'>>>(defaultClientForm())
-
+const clientForm = ref<Tables<'organizations'>>(defaultClientForm())
 const orderlinesForm = ref<RequiredFields<TablesInsert<'order_lines'>>[]>([defaultOrderlineForm()])
-
 const deliveryForm = ref<RequiredFields<TablesInsert<'deliveries'>>>(defaultDeliveryForm())
-
 const paymentForm = reactive<RequiredFields<TablesInsert<'payments'>>>(defaultPaymentForm())
 
 const consumerType = ref<ConsumerType>()
-
 const consumerPicked = computed(() => form.individual_id || form.client_id)
 
 function resetOrderForm() {

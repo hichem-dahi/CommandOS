@@ -63,7 +63,9 @@ import {
   deliveryForm,
   individualForm,
   clientForm,
-  consumerType
+  consumerType,
+  defaultIndividualForm,
+  defaultClientForm
 } from './CreateOrderStepper/state'
 
 import type { Validation } from '@vuelidate/core'
@@ -115,19 +117,22 @@ function nextStep(v: Validation) {
   }
 }
 
-function selectClient(individualForm?: TablesInsert<'individuals'>) {
+function selectClient(individual?: TablesInsert<'individuals'>) {
   if (consumerType.value === ConsumerType.Organization && clientForm.value.id) {
     form.client_id = clientForm.value.id
-  } else if (consumerType.value === ConsumerType.Individual && individualForm) {
-    const existingClient = individuals.value.find((i) => i.name === individualForm?.name)
-    if (!existingClient && individualForm) {
-      upsertIndividualsDb.form.value = [{ ...individualForm, _synced: false }]
+  } else if (consumerType.value === ConsumerType.Individual && individual) {
+    const existingClient = individuals.value.find((i) => i.name === individual.name)
+    if (!existingClient && individual) {
+      upsertIndividualsDb.form.value = [{ ...individual, _synced: false }]
     } else if (existingClient) {
       form.individual_id = existingClient.id
     }
   }
   upsertIndividualsDb.execute()
+  individualForm.value = defaultIndividualForm()
+  clientForm.value = defaultClientForm()
 }
+
 function upsertDelivery(form?: TablesInsert<'deliveries'>) {
   if (form) upsertDeliveriesDb.form.value = [{ ...form, _synced: false }]
   upsertDeliveriesDb.execute()
