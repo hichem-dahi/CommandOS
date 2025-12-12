@@ -103,5 +103,9 @@
   "products": "Produits",
   "orders-list": "Liste des commandes",
   "sales-list": "Liste des ventes",
-  "reset": "Réinitialiser"
+  "reset": "Réinitialiser",
+  "save-for-later": "Enregistrer pour plus tard",
+  "options": "Options",
+  "view-sale": "Voir la vente",
+  "type": "Type"
 }
