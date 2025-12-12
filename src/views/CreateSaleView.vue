@@ -1,77 +1,74 @@
 <template>
-  <v-row class="align-center mb-2">
-    <v-col cols="12" class="d-flex align-center justify-space-between">
-      <v-btn
-        v-if="$vuetify.display.mobile"
-        variant="tonal"
-        size="small"
-        :append-icon="mdiBarcodeScan"
-        @click="showScanner = !showScanner"
-      >
-        {{ $t('scan') }}
-      </v-btn>
+  <div class="text-h4 py-8 px-4">
+    {{ $t('add-sale') }}
+  </div>
+  <v-row>
+    <v-col>
+      <v-sheet class="d-flex align-end pa-4 ga-6 flex-wrap" rounded="lg" color="#F6F6F5">
+        <!-- Title -->
+        <div class="text-h6 font-weight-medium text-capitalize">{{ $t('options') }}:</div>
+
+        <!-- Consumer Selector -->
+        <div class="d-flex align-center ga-3">
+          <v-btn
+            v-if="!consumerPicked"
+            variant="tonal"
+            size="small"
+            color="primary"
+            @click="clientDialog = true"
+          >
+            {{ $t('add-client') }}
+          </v-btn>
+
+          <v-chip
+            v-else
+            closable
+            size="small"
+            color="primary"
+            variant="flat"
+            @click:close="resetClient"
+          >
+            {{ $t('client') }}:
+            {{ form.individual_id ? individualForm.name : clientForm.name }}
+          </v-chip>
+
+          <!-- Dialog -->
+          <v-dialog v-model="clientDialog" max-width="500">
+            <CreateOrderStepper @success="clientDialog = false" />
+          </v-dialog>
+        </div>
+
+        <!-- Divider between sections -->
+        <v-divider vertical class="mx-2" />
+
+        <!-- Transaction Type Radios -->
+        <v-radio-group
+          density="compact"
+          v-model="form.type"
+          hide-details
+          inline
+          class="d-flex align-center"
+        >
+          <v-radio :label="$t('sale')" value="sale" />
+
+          <v-tooltip :disabled="!!consumerPicked" text="Select a consumer first">
+            <template #activator="{ props }">
+              <v-radio
+                v-bind="props"
+                :label="$t('order')"
+                value="order"
+                :disabled="!consumerPicked"
+              />
+            </template>
+          </v-tooltip>
+        </v-radio-group>
+      </v-sheet>
     </v-col>
   </v-row>
-
+  <v-divider />
   <v-row no-gutters>
-    <!-- Left panel -->
-    <v-col cols="12" md="7">
-      <v-card class="px-4 d-flex flex-column h-100" variant="text">
-        <!-- HEADER -->
-        <template #title>
-          <div class="text-h5 mb-4">
-            {{ $t('add-sale') }}
-          </div>
-        </template>
-        <template #text>
-          <CreateOrderlines />
-        </template>
-        <template #actions>
-          <div class="d-flex align-center justify-space-between w-100">
-            <div>
-              <v-btn
-                v-if="!consumerPicked"
-                variant="tonal"
-                size="small"
-                @click="clientDialog = true"
-              >
-                {{ $t('add-client') }}
-              </v-btn>
-
-              <v-chip
-                v-if="!!consumerPicked"
-                closable
-                @click:close="resetClient"
-                size="small"
-                color="primary"
-                variant="flat"
-              >
-                {{ $t('client') }}: {{ clientForm?.name || individualForm?.name }}
-              </v-chip>
-
-              <!-- CLIENT DIALOG -->
-              <v-dialog v-model="clientDialog" max-width="500">
-                <CreateOrderStepper @success="clientDialog = false" />
-              </v-dialog>
-            </div>
-
-            <v-radio-group max-width="250" hide-details v-model="form.type" inline>
-              <v-radio :label="$t('sale')" value="sale" />
-
-              <v-tooltip :disabled="!!consumerPicked" text="Select a consumer first">
-                <template #activator="{ props }">
-                  <v-radio
-                    v-bind="props"
-                    :label="$t('order')"
-                    value="order"
-                    :disabled="!consumerPicked"
-                  />
-                </template>
-              </v-tooltip>
-            </v-radio-group>
-          </div>
-        </template>
-      </v-card>
+    <v-col cols="12" md="7" align-self="center">
+      <CreateOrderlines />
     </v-col>
     <v-divider class="mx-auto" vertical />
     <!-- RIGHT SUMMARY -->
@@ -155,8 +152,15 @@
             {{ $t('sale') }} #{{ i }}
           </v-chip>
         </div>
-
-        <v-btn variant="text" color="info" @click="saveSale" rounded density="compact" size="small">
+        <v-btn
+          variant="text"
+          :prepend-icon="mdiClockOutline"
+          color="info"
+          @click="saveSale"
+          rounded
+          density="compact"
+          size="small"
+        >
           {{ $t('save-for-later') }}</v-btn
         >
       </div>
@@ -191,17 +195,14 @@ import { computed, onMounted, onUnmounted, ref, watch, watchEffect } from 'vue'
 import useVuelidate from '@vuelidate/core'
 import { cloneDeep, sum } from 'lodash'
 import { useLocalStorage } from '@vueuse/core'
-import { mdiBarcodeScan } from '@mdi/js'
+import { mdiClockOutline } from '@mdi/js'
 
-import { useUpsertOrderlinesDb } from '@/composables/db/orderlines/useUpsertOrderlinesDb'
-import { useUpsertOrdersDb } from '@/composables/db/orders/useUpsertOrdersDb'
-import { useUpsertPaymentsDb } from '@/composables/db/payments/useUpsertPaymentsDb'
-import { useUpsertNotificationsDb } from '@/composables/db/notifications/useUpsertNotificationsDb'
+import { useUpsertDataDb } from '@/composables/db/useUpsertDataDb'
 import { useUpdateProductsQtyDb } from '@/composables/db/products/useUpdateProductsQtyDb'
-import { useUpsertStockMovementsDb } from '@/composables/db/stockMovements/useUpsertStockMovementsDb'
-import { processStockMovementsForOrder } from '@/composables/useStockManage'
-import { useOrdersQuery, type OrderData } from '@/composables/db/orders/useGetOrdersDb'
 import { useProductsQuery } from '@/composables/db/products/useGetProductsDb'
+import { useOrdersQuery, type OrderData } from '@/composables/db/orders/useGetOrdersDb'
+
+import { processStockMovementsForOrder } from '@/composables/useStockManage'
 import { useOrdersFilters } from './OrdersView/composables/useOrdersFilters'
 
 import self from '@/composables/localStore/useSelf'
@@ -215,7 +216,6 @@ import OrdersTable from './OrdersView/OrdersTable.vue'
 import {
   clientForm,
   consumerPicked,
-  defaultIndividualForm,
   form,
   individualForm,
   orderlinesForm,
@@ -225,17 +225,17 @@ import {
 } from './OrdersView/CreateOrderStepper/state'
 
 import { OrderStatus } from '@/models/models'
-import type { TablesInsert } from '@/types/database.types'
+import type { Tables, TablesInsert } from '@/types/database.types'
 
 const $v = useVuelidate()
 const savedSales = useLocalStorage('savedSales', [] as any[])
 
-const upsertOrdersDb = useUpsertOrdersDb()
-const upsertOrderlinesDb = useUpsertOrderlinesDb()
-const upsertPaymentsDb = useUpsertPaymentsDb()
-const upsertStockMovementsDb = useUpsertStockMovementsDb()
+const upsertOrdersDb = useUpsertDataDb<Tables<'orders'>>('orders')
+const upsertOrderlinesDb = useUpsertDataDb<Tables<'order_lines'>>('order_lines')
+const upsertPaymentsDb = useUpsertDataDb<Tables<'payments'>>('payments')
+const upsertStockMovementsDb = useUpsertDataDb<Tables<'stock_movements'>>('stock_movements')
 const updateProductsQtyDb = useUpdateProductsQtyDb()
-const upsertNotificationsDb = useUpsertNotificationsDb()
+const upsertNotificationsDb = useUpsertDataDb<Tables<'notifications'>>('notifications')
 
 const { q: productsQuery } = useProductsQuery()
 const { q: ordersQuery, isReady, params } = useOrdersQuery()
@@ -309,13 +309,11 @@ function selectProduct(
 }
 
 function saveSale() {
-  const org_id = self.value.current_org?.id || ''
   const order = {
     ...form,
     individual: individualForm.value,
     client: clientForm.value,
     order_lines: orderlinesForm.value,
-    org_id,
     _synced: false
   }
   savedSales.value.push(order)
@@ -323,18 +321,18 @@ function saveSale() {
 }
 
 function restoreSale(i: number) {
-  const savedOrder = savedSales.value[i]
-  if (savedOrder) {
-    Object.assign(form, savedOrder)
-    if (savedOrder.individual) {
-      individualForm.value = { ...savedOrder.individual }
+  const { individual, client, order_lines, ...sale } = savedSales.value[i]
+  if (sale) {
+    if (individual) {
+      individualForm.value = { ...individual }
     }
-    if (savedOrder.client) {
-      clientForm.value = { ...savedOrder.client }
+    if (client) {
+      clientForm.value = { ...client }
     }
-    if (savedOrder.order_lines) {
-      orderlinesForm.value = cloneDeep(savedOrder.order_lines)
+    if (order_lines) {
+      orderlinesForm.value = cloneDeep(order_lines)
     }
+    Object.assign(form, sale)
 
     savedSales.value.splice(i, 1)
   }
@@ -349,8 +347,7 @@ function submitSale() {
       form.status = OrderStatus.Pending
     }
 
-    upsertOrdersDb.form.value = [{ ...form, _synced: false }]
-    upsertOrdersDb.execute()
+    upsertOrdersDb.execute([{ ...form, _synced: false }])
   }
 }
 
@@ -360,36 +357,29 @@ function handleReset() {
 }
 
 function resetClient() {
-  individualForm.value = defaultIndividualForm()
   form.individual_id = null
   form.client_id = null
 }
 
 function insertPayment(payment: TablesInsert<'payments'>) {
-  const org_id = self.value.current_org?.id || ''
-
-  upsertPaymentsDb.form.value = [
+  upsertPaymentsDb.execute([
     {
       ...payment,
-      org_id,
       _synced: false
     }
-  ]
-  upsertPaymentsDb.execute()
+  ])
 }
 
 function insertNotification(title: string, body: string) {
-  const org_id = self.value.current_org?.id || ''
-  upsertNotificationsDb.form.value = [
+  upsertNotificationsDb.execute([
     {
       title,
       body,
-      org_id,
+      org_id: '',
       url: `/order/${upsertOrdersDb.data.value?.[0].id}`,
       _synced: false
     }
-  ]
-  upsertNotificationsDb.execute()
+  ])
 }
 
 function updateProductQuantities(ids: string[]) {
@@ -421,45 +411,26 @@ onUnmounted(() => {
   document.removeEventListener('keydown', handleKeyDown)
 })
 
-watch(
-  () => form.total_price,
-  (total_price) => {
-    paymentForm.amount = total_price
-  }
-)
+upsertOrdersDb.onSuccess((data) => {
+  const order = data[0]
+  const order_id = order?.id
 
-watchEffect(() => {
-  form.total_price = sum(orderlinesForm.value?.map((e) => e.total_price)) - (form.reduction || 0)
-
-  if (paymentForm.amount && paymentForm.amount > 0) {
-    form.paid_price = paymentForm.amount
-  }
-})
-
-watch(
-  () => upsertOrdersDb.isSuccess.value,
-  (isSuccess) => {
-    const order = upsertOrdersDb.data.value?.[0]
-    const org_id = order?.org_id
-    const order_id = order?.id
-
-    if (isSuccess && order_id && org_id) {
-      upsertOrderlinesDb.form.value = orderlinesForm.value?.map((o) => ({
+  if (order_id) {
+    upsertOrderlinesDb.execute(
+      orderlinesForm.value?.map((o) => ({
         ...o,
         order_id,
-        org_id,
         _synced: false
       }))
-      upsertOrderlinesDb.execute()
-      if (paymentForm.amount > 0) {
-        insertPayment({ ...paymentForm, order_id })
-      }
-
-      resetOrderForm()
-      $v.value.$reset()
+    )
+    if (paymentForm.amount > 0) {
+      insertPayment({ ...paymentForm, order_id })
     }
+
+    resetOrderForm()
+    $v.value.$reset()
   }
-)
+})
 
 watch(
   [() => upsertOrderlinesDb.isSuccess.value, () => upsertOrdersDb.isSuccess.value],
@@ -473,11 +444,12 @@ watch(
         id: order.id
       }
       const stockMovements = processStockMovementsForOrder(data, 'deduct')
-      upsertStockMovementsDb.form.value = stockMovements.map((s) => ({
-        ...s,
-        _synced: false // Add the synced property
-      }))
-      upsertStockMovementsDb.execute()
+      upsertStockMovementsDb.execute(
+        stockMovements.map((s) => ({
+          ...s,
+          _synced: false // Add the synced property
+        }))
+      )
       const body =
         order_lines
           .map((line) => {
@@ -500,4 +472,19 @@ watch(
     }
   }
 )
+
+watch(
+  () => form.total_price,
+  (total_price) => {
+    paymentForm.amount = total_price
+  }
+)
+
+watchEffect(() => {
+  form.total_price = sum(orderlinesForm.value?.map((e) => e.total_price)) - (form.reduction || 0)
+
+  if (paymentForm.amount && paymentForm.amount > 0) {
+    form.paid_price = paymentForm.amount
+  }
+})
 </script>
