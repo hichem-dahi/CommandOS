@@ -63,9 +63,7 @@ import {
   deliveryForm,
   individualForm,
   clientForm,
-  consumerType,
-  defaultIndividualForm,
-  defaultClientForm
+  consumerType
 } from './CreateOrderStepper/state'
 
 import type { Validation } from '@vuelidate/core'
@@ -105,37 +103,49 @@ const isLoading = computed(
   () => upsertDeliveriesDb.isLoading.value || upsertIndividualsDb.isLoading.value
 )
 
-function nextStep(v: Validation) {
+async function nextStep(v: Validation) {
   v.$touch()
   if (!v.$invalid) {
     if (step.value === Steps.ExtraInfo) {
-      upsertDelivery(deliveryForm.value)
-      selectClient(individualForm.value)
+      if (form.document_type === DocumentType.DeliveryNote) {
+        const state = await upsertDelivery(deliveryForm.value)
+        const deliveryId = state?.rows[0].id
+        if (deliveryId) form.delivery_id = deliveryId
+      }
+      if (consumerType.value === ConsumerType.Organization) {
+        if (clientForm.value.id) form.client_id = clientForm.value.id
+      } else if (consumerType.value === ConsumerType.Individual) {
+        const individualId = await getIndividual(individualForm.value)
+        if (individualId) form.individual_id = individualId
+      }
+
+      emits('success')
       return
     }
     step.value++
   }
 }
 
-function selectClient(individual?: TablesInsert<'individuals'>) {
-  if (consumerType.value === ConsumerType.Organization && clientForm.value.id) {
-    form.client_id = clientForm.value.id
-  } else if (consumerType.value === ConsumerType.Individual && individual) {
-    const existingClient = individuals.value.find((i) => i.name === individual.name)
-    if (!existingClient && individual) {
-      upsertIndividualsDb.form.value = [{ ...individual, _synced: false }]
-    } else if (existingClient) {
-      form.individual_id = existingClient.id
-    }
+async function getIndividual(individual: TablesInsert<'individuals'>): Promise<string | undefined> {
+  const existingClient = individuals.value.find(
+    (i) => i.name === individual.name || i.id === individual.id
+  )
+  if (existingClient) {
+    return existingClient.id
+  } else {
+    const state = await upsertIndividual(individual)
+    return state?.rows[0].id
   }
-  upsertIndividualsDb.execute()
-  individualForm.value = defaultIndividualForm()
-  clientForm.value = defaultClientForm()
+}
+
+function upsertIndividual(form?: TablesInsert<'individuals'>) {
+  if (form) upsertIndividualsDb.form.value = [{ ...form, _synced: false }]
+  return upsertIndividualsDb.execute()
 }
 
 function upsertDelivery(form?: TablesInsert<'deliveries'>) {
   if (form) upsertDeliveriesDb.form.value = [{ ...form, _synced: false }]
-  upsertDeliveriesDb.execute()
+  return upsertDeliveriesDb.execute()
 }
 
 watch(consumerType, (newVal) => {
@@ -145,28 +155,4 @@ watch(consumerType, (newVal) => {
     form.document_type = DocumentType.Voucher
   }
 })
-
-watch(
-  () => upsertDeliveriesDb.isSuccess.value,
-  (isSuccess) => {
-    if (isSuccess) {
-      const deliveryId = upsertDeliveriesDb.data.value?.[0].id
-      if (deliveryId) form.delivery_id = deliveryId
-    }
-  }
-)
-
-upsertIndividualsDb.onSuccess((data) => {
-  const individualId = data?.[0].id
-  if (individualId) form.individual_id = individualId
-})
-
-watch(
-  [() => upsertDeliveriesDb.isReady.value, () => upsertIndividualsDb.isReady.value],
-  ([isReadyDelivery, isReadyIndividual]) => {
-    if (isReadyDelivery && isReadyIndividual) {
-      emits('success')
-    }
-  }
-)
 </script>
