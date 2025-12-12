@@ -11,7 +11,7 @@
 
     <v-data-table :items="items" :headers="headers" density="comfortable" hover striped="odd">
       <template #item.order="{ item }">
-        <v-tooltip :text="$t('view-order')">
+        <v-tooltip :text="$t('view-sale')">
           <template #activator="{ props }">
             <v-btn
               v-if="item"
