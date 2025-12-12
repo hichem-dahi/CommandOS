@@ -18,7 +18,7 @@ const defaultOrderForm = () => ({
   org_id: self.value.current_org?.id || '',
   date: new Date().toISOString(),
   document_type: DocumentType.Voucher,
-  index: 0,
+  index: null,
   doc_index: null,
   status: OrderStatus.Pending,
   payment_method: 'cash',
