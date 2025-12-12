@@ -78,6 +78,7 @@ const items = computed(() =>
         id: o.id,
         date: o.date,
         details: productSummary(o.order_lines || []),
+        type: t(o.type),
         client: o.individual?.name || o.client?.name,
         total: o.total_price,
         reduction: o.reduction || 0,
@@ -103,6 +104,12 @@ const headers = computed(
         align: 'start',
         sortable: false,
         key: 'details'
+      },
+      {
+        title: t('type'),
+        align: 'start',
+        sortable: false,
+        key: 'type'
       },
       {
         title: t('client'),
