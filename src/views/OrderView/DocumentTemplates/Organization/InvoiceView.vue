@@ -166,7 +166,9 @@ const orderQuery = useLiveQuery<OrderData>(
 
 const order = computed(() => orderQuery.rows.value?.[0] as unknown as OrderData | undefined)
 
-const title = computed(() => (order.value?.delivery ? 'bon de livraison' : 'facture'))
+const title = computed(() =>
+  order.value?.document_type === DocumentType.DeliveryNote ? 'bon de livraison' : 'facture'
+)
 
 const consumerType = computed(() =>
   order.value?.client_id ? ConsumerType.Organization : ConsumerType.Individual

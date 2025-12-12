@@ -9,7 +9,7 @@
     :text="$t('back')"
   />
   <div class="voucher-wrapper" v-if="order">
-    <div class="voucher" v-for="i in 3" :key="i">
+    <div class="voucher">
       <div class="d-flex justify-space-between align-center">
         <div class="col-1 w-25">
           <div v-for="(value, key) in selfInfo" :key="key">
@@ -77,7 +77,6 @@
         </tfoot>
       </table>
       <div class="total-words">{{ totalWords }}</div>
-      <v-divider :class="{ 'mb-10': i !== 3 }" />
     </div>
     <div class="actions no-print">
       <v-btn class="mr-5" @click="print()">{{ $t('print') }}</v-btn>
@@ -161,7 +160,9 @@ const orderQuery = useLiveQuery<OrderData>(
 
 const order = computed(() => orderQuery.rows.value?.[0] as unknown as OrderData | undefined)
 
-const title = computed(() => (order.value?.delivery ? 'Bon de livraison' : 'Bon'))
+const title = computed(() =>
+  order.value?.document_type === DocumentType.DeliveryNote ? 'Bon de livraison' : 'Bon'
+)
 
 const totalWords = computed(() => {
   let number = totalItems.value.total || 0
