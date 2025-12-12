@@ -22,7 +22,7 @@
     <v-number-input
       class="orderline-input"
       density="compact"
-      style="flex: 2; min-width: 0"
+      style="flex: 1; min-width: 0"
       :label="$t('quantity')"
       variant="outlined"
       inset
@@ -37,7 +37,7 @@
     <v-number-input
       class="orderline-input"
       density="compact"
-      style="flex: 2; min-width: 0"
+      style="flex: 1; min-width: 0"
       :label="$t('U.P')"
       variant="outlined"
       inset
