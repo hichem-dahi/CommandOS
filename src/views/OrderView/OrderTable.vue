@@ -143,7 +143,7 @@ import self from '@/composables/localStore/useSelf'
 import OrderlineForm from '@/views/OrdersView/OrderlineForm.vue'
 import DeleteItemModal from './DeleteItemModal.vue'
 
-import { ConsumerType, OrderStatus } from '@/models/models'
+import { OrderStatus } from '@/models/models'
 import type { Tables, TablesInsert } from '@/types/database.types'
 import type { OrderData, OrderlineData } from '@/composables/db/orders/useGetOrdersDb'
 
@@ -219,10 +219,6 @@ const isValidOrderlines = computed(() =>
 )
 
 const consumerName = computed(() => props.order.client?.name || props.order.individual?.name)
-
-const consumerType = computed(() =>
-  props.order?.client_id ? ConsumerType.Organization : ConsumerType.Individual
-)
 
 const isConfirmed = computed(() => props.order.status === OrderStatus.Confirmed)
 const isCancelled = computed(() => props.order.status === OrderStatus.Cancelled)
@@ -326,12 +322,9 @@ function diffOrderlines(
 }
 
 function upsertStockMovements(orderlines: Tables<'order_lines'>[]) {
-  if (orderlines.length > 0) {
-    console.log(orderlines)
-
+  if (orderlines.length > 0 && isConfirmed.value) {
     const deductOrderlines = orderlines.filter((o) => o.qte > 0)
     const restoreOrderlines = orderlines.filter((o) => o.qte < 0)
-    console.log(restoreOrderlines)
 
     const deductStockMovements = processStockMovementsForOrder(
       { id: props.order.id, order_lines: deductOrderlines },
@@ -344,6 +337,7 @@ function upsertStockMovements(orderlines: Tables<'order_lines'>[]) {
       },
       'restore'
     )
+
     upsertStockMovementsDb.form.value = [...deductStockMovements, ...restoreStockMovements].map(
       (s) => ({
         ...s,
