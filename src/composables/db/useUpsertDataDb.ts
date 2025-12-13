@@ -25,7 +25,7 @@ export function useUpsertDataDb<T>(tableName: TablesName) {
 
   const data = computed(() => q.state.value?.data?.rows as T[])
   const error = computed(() => q.error.value)
-  const isSuccess = computed(() => q.isReady.value && !error.value && q.state.value?.error)
+  const isSuccess = computed(() => q.isReady.value && !error.value)
 
   function onSuccess(callback: (dataReturned: typeof data.value) => void) {
     watch(
