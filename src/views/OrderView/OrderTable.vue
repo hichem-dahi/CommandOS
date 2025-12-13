@@ -21,41 +21,14 @@
         </div>
         <v-divider class="mx-4" inset vertical />
         <div class="col-2">
-          <v-dialog v-if="isModifiable" v-model="newlineDialog" max-width="400">
-            <template v-slot:activator="{ props }">
-              <v-btn
-                variant="tonal"
-                size="small"
-                :append-icon="mdiPlus"
-                color="primary"
-                :disabled="!availableProducts.length"
-                v-bind="props"
-              >
-                {{ $t('add-product') }}
-              </v-btn>
-            </template>
-            <v-card class="pa-4 pb-0">
-              <v-card-title>{{ $t('add-product') }}</v-card-title>
-              <v-card-text class="px-2">
-                <OrderlineForm
-                  v-model="newOrderline"
-                  :is-new="true"
-                  :availableProducts="availableProducts"
-                  :products="products"
-                />
-              </v-card-text>
-              <v-card-actions>
-                <v-spacer></v-spacer>
-                <v-btn variant="text" size="small" color="blue" @click="addOrderline(newOrderline)">
-                  {{ $t('add') }}
-                </v-btn>
-              </v-card-actions>
-            </v-card>
-          </v-dialog>
           <div>
             <v-chip v-if="isConfirmed" variant="tonal" color="green">{{ $t('confirmed') }}</v-chip>
+
             <v-chip v-else-if="isCancelled" variant="tonal" color="red">
               {{ $t('cancelled') }}
+            </v-chip>
+            <v-chip v-else variant="tonal" color="primary">
+              {{ $t('pending') }}
             </v-chip>
           </div>
         </div>
@@ -63,6 +36,7 @@
     </template>
     <template v-if="isModifiable" v-slot:item.qte="{ item }">
       <v-number-input
+        v-if="item.product?.qty"
         class="number-input"
         type="number"
         width="150"
@@ -72,22 +46,55 @@
         density="compact"
         :min="0"
         :suffix="`/${item.product?.qty}`"
-        :error="proxyOrderlines[item.index].qte! > item.product?.qty!"
+        :error="proxyOrderlines[item.index].qte! > item.product?.qty"
         counter="50"
         v-model="proxyOrderlines[item.index].qte"
       />
     </template>
     <template v-if="isModifiable" v-slot:item.actions="{ item }">
       <v-btn
-        color="medium-emphasis"
+        v-if="!item.isEmpty"
         variant="text"
         size="small"
         :icon="mdiDelete"
         @click="deleteItem(item)"
       />
       <DeleteItemModal v-model="deleteDialog" @close="closeDelete" @confirm="deleteItemConfirm" />
+      <v-dialog v-if="item.isEmpty" v-model="newlineDialog" max-width="400">
+        <!-- Activator Button -->
+        <template v-slot:activator="{ props }">
+          <v-btn
+            variant="outlined"
+            color="primary"
+            size="small"
+            :prepend-icon="mdiPlus"
+            :disabled="!availableProducts.length"
+            v-bind="props"
+          >
+            {{ $t('add-product') }}
+          </v-btn>
+        </template>
+        <v-card class="pa-4 pb-0">
+          <v-card-title>{{ $t('add-product') }}</v-card-title>
+          <v-card-text class="px-2">
+            <OrderlineForm
+              v-model="newOrderline"
+              :is-new="true"
+              :availableProducts="availableProducts"
+              :products="products"
+            />
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn variant="text" size="small" color="blue" @click="addOrderline(newOrderline)">
+              {{ $t('add') }}
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
     </template>
   </v-data-table>
+
   <v-card class="pa-4 pb-2" elevation="0">
     <div class="total-info d-flex justify-end">
       <div class="info">
@@ -128,7 +135,7 @@ import { useI18n } from 'vue-i18n'
 import { format } from 'date-fns'
 import { useVuelidate } from '@vuelidate/core'
 import { cloneDeep, isEqual, isNumber, sum } from 'lodash'
-import { mdiDelete, mdiPlus } from '@mdi/js'
+import { mdiDelete, mdiPlus, mdiPlusCircle } from '@mdi/js'
 
 import { useUpsertOrderlinesDb } from '@/composables/db/orderlines/useUpsertOrderlinesDb'
 import { useUpsertOrdersDb } from '@/composables/db/orders/useUpsertOrdersDb'
@@ -146,6 +153,17 @@ import DeleteItemModal from './DeleteItemModal.vue'
 import { OrderStatus } from '@/models/models'
 import type { Tables, TablesInsert } from '@/types/database.types'
 import type { OrderData, OrderlineData } from '@/composables/db/orders/useGetOrdersDb'
+
+type OrderlineItem = {
+  index: number
+  product: ProductData | null
+  product_name: string
+  qte: number | null
+  unit_price: number | null
+  unit_cost_price: number | null
+  total_price: number | null
+  isEmpty: boolean
+}
 
 const { t } = useI18n()
 
@@ -190,7 +208,7 @@ const headers = computed(
       { title: t('U.P'), key: 'unit_price' },
       { title: t('C.P'), key: 'unit_cost_price' },
       { title: t('total'), key: 'total_price' },
-      { title: '', key: 'actions' }
+      { title: '', key: 'actions', align: 'center' }
     ] as const
 )
 
@@ -234,21 +252,36 @@ const totalItems = computed(() => {
   }
 })
 
-const items = computed(
-  () =>
-    proxyOrderlines.value?.map((o, i) => {
-      const product = o.product
-      return {
-        index: i,
-        product: product,
-        product_name: product?.name,
-        qte: o.qte,
-        unit_price: o.unit_price,
-        unit_cost_price: o.unit_cost_price,
-        total_price: o.total_price
-      }
-    }) || []
-)
+// Then type your computed
+const items = computed<OrderlineItem[]>(() => {
+  const list: OrderlineItem[] = proxyOrderlines.value.map((o, index) => {
+    const product = o.product
+    return {
+      index,
+      product,
+      product_name: product?.name ?? '',
+      qte: o.qte,
+      unit_price: o.unit_price,
+      unit_cost_price: o.unit_cost_price,
+      total_price: o.total_price,
+      isEmpty: false
+    }
+  })
+
+  // Add empty row
+  list.push({
+    index: list.length,
+    product: null,
+    product_name: '',
+    qte: null,
+    unit_price: null,
+    unit_cost_price: null,
+    total_price: null,
+    isEmpty: true
+  })
+
+  return list
+})
 
 const products = computed(() => (productsQuery.rows?.value || []) as unknown as ProductData[])
 
